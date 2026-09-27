@@ -255,6 +255,78 @@ img[data-yardon-runtime-logo="1"]{
   pointer-events:none;
 }
 
+
+@keyframes yardonSplitLeft{
+  0%{transform:translate3d(0,0,0) scale(1.03);opacity:1}
+  22%{transform:translate3d(-2vw,0,0) scale(1.10);opacity:1}
+  100%{transform:translate3d(-58vw,0,0) scale(1.72);opacity:.08}
+}
+@keyframes yardonSplitRight{
+  0%{transform:translate3d(0,0,0) scale(1.03);opacity:1}
+  22%{transform:translate3d(2vw,0,0) scale(1.10);opacity:1}
+  100%{transform:translate3d(58vw,0,0) scale(1.72);opacity:.08}
+}
+@keyframes yardonSplashDissolve{
+  0%,58%{background-color:rgba(0,12,25,.98)}
+  100%{background-color:rgba(0,12,25,0)}
+}
+#yardivoWelcomeSplash.yardon-split-reveal{
+  perspective:1400px!important;
+  overflow:hidden!important;
+  animation:yardonSplashDissolve 2s ease forwards!important;
+}
+#yardivoWelcomeSplash.yardon-split-reveal .yardivo-welcome-inner{
+  visibility:hidden!important;
+}
+#yardivoWelcomeSplash .yardon-split-stage{
+  position:absolute!important;
+  inset:0!important;
+  z-index:5!important;
+  display:grid!important;
+  place-items:center!important;
+  pointer-events:none!important;
+}
+#yardivoWelcomeSplash .yardon-split-half{
+  position:absolute!important;
+  width:clamp(560px,57vw,900px)!important;
+  max-width:92vw!important;
+  height:auto!important;
+  object-fit:contain!important;
+  filter:drop-shadow(0 0 18px rgba(0,210,255,.70)) drop-shadow(0 0 44px rgba(0,125,255,.42));
+  will-change:transform,opacity;
+  backface-visibility:hidden;
+}
+#yardivoWelcomeSplash .yardon-split-half.left{
+  clip-path:inset(0 50% 0 0);
+  animation:yardonSplitLeft 2s cubic-bezier(.19,.72,.17,1) forwards!important;
+}
+#yardivoWelcomeSplash .yardon-split-half.right{
+  clip-path:inset(0 0 0 50%);
+  animation:yardonSplitRight 2s cubic-bezier(.19,.72,.17,1) forwards!important;
+}
+.login-screen.yardon-login-arrive,
+.login-overlay.yardon-login-arrive,
+#loginScreen.yardon-login-arrive,
+#loginOverlay.yardon-login-arrive,
+#login.yardon-login-arrive,
+[data-login-screen].yardon-login-arrive{
+  transform:perspective(1200px) translateZ(-720px) scale(.42)!important;
+  opacity:0!important;
+  filter:blur(10px)!important;
+  transition:transform 1.7s cubic-bezier(.17,.79,.19,1),opacity .9s ease,filter 1.35s ease!important;
+  will-change:transform,opacity,filter;
+}
+.login-screen.yardon-login-arrive.yardon-login-arrive-active,
+.login-overlay.yardon-login-arrive.yardon-login-arrive-active,
+#loginScreen.yardon-login-arrive.yardon-login-arrive-active,
+#loginOverlay.yardon-login-arrive.yardon-login-arrive-active,
+#login.yardon-login-arrive.yardon-login-arrive-active,
+[data-login-screen].yardon-login-arrive.yardon-login-arrive-active{
+  transform:perspective(1200px) translateZ(0) scale(1)!important;
+  opacity:1!important;
+  filter:blur(0)!important;
+}
+
 @media(max-width:700px){
   #yardivoWelcomeSplash .yardon-welcome-logo{width:min(92vw,610px)!important;}
   #yardivoWelcomeSplash .yardon-welcome-title{font-size:clamp(26px,7.4vw,42px)!important;}
