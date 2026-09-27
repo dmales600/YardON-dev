@@ -1,4 +1,4 @@
-name: YARDIVO Supplier notification regression QA
+name: YardOn Supplier notification regression QA
 
 on:
   workflow_dispatch:
@@ -108,12 +108,15 @@ jobs:
             assert(loginState.badge==='2','Supplier badge expected 2 pending rows, got '+loginState.badge);
 
             await page.evaluate(()=>{
-              window.__qaPendingRows.push({
-                id:'new4',status:'pending',supplier_name:'S4',supplier_username:'S4',
-                warehouse:'W001',location:'LOC001',delivery_date:'2026-09-27',requested_time:'11:00',
-                created_at:new Date().toISOString()
-              });
-              window.dispatchEvent(new CustomEvent('yardivo:supplier-internal-rows',{detail:{rows:window.__qaPendingRows}}));
+              const n={
+                id:'SUPREQ-new4',event:'SUPPLIER_REQUEST',type:'blue',
+                title:'NOVA NAJAVA DOBAVLJAČA',body:'S4 · 2026-09-27 11:00',
+                warehouse:'W001',location:'LOC001',supplier:'S4',
+                supplierDeliveryId:'new4',announcementId:'SUPDEL-new4',
+                roles:['admin','manager','inventory'],
+                createdAt:new Date().toISOString(),at:new Date().toISOString(),readBy:{}
+              };
+              window.YardivoNotifications?.ingest?.(n,{announce:true});
             });
             await page.waitForTimeout(900);
             const newToast=await page.evaluate(()=>(window.__qaVisibleToasts||[]).filter(n=>String(n?.event||'').toUpperCase()==='SUPPLIER_REQUEST'&&String(n?.id||'')==='SUPREQ-new4').length);
@@ -170,6 +173,6 @@ jobs:
             console.log('SUPPLIER_NOTIFICATION_QA='+JSON.stringify({loginState,newToast,newVoice,deleteCalls,pageErrors}));
             await browser.close();
             if(failures.length){console.error('QA_FAILURES='+JSON.stringify(failures));process.exit(1)}
-            console.log('YARDIVO_SUPPLIER_NOTIFICATION_QA_PASS');
+            console.log('YARDON_SUPPLIER_NOTIFICATION_QA_PASS');
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
