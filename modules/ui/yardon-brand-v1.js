@@ -25,7 +25,11 @@ style.textContent=`
 .brand-combo,
 .home-menu-brand,
 .yardon-topbar-brand,
-#yardivoSupplierPortal .yardon-supplier-brand{
+#yardivoSupplierPortal .yardon-supplier-brand,
+.yardon-role-brand,
+.yardon-role-brand-wrap,
+[data-yardon-brand],
+[class*="logo"][data-yardon-runtime-logo="1"]{
   background:transparent!important;
   border:0!important;
   box-shadow:none!important;
@@ -175,11 +179,17 @@ style.textContent=`
   padding:8px 12px!important;
 }
 
-#yardivoSupplierPortal .yardon-supplier-brand img{
+#yardivoSupplierPortal .yardon-supplier-brand img,
+.yardon-role-brand img,
+.yardon-role-brand-wrap img,
+img[data-yardon-runtime-logo="1"]{
   width:min(330px,74vw)!important;
   height:auto!important;
   display:block!important;
   object-fit:contain!important;
+  background:transparent!important;
+  mix-blend-mode:screen;
+  animation:yardonBrandPulse 2.25s ease-in-out infinite;
 }
 
 @media(max-width:700px){
@@ -206,6 +216,20 @@ function patchElement(el){
   if(el.tagName==='IMG'){
     const src=el.getAttribute('src')||'';
     if(/assets\/yardivo-logo\.svg(?:\?.*)?$/i.test(src))el.setAttribute('src',LOGO);
+    const now=el.getAttribute('src')||'';
+    if(/yardon-logo\.(?:webp|png|svg)(?:\?.*)?$/i.test(now)){
+      el.setAttribute('data-yardon-runtime-logo','1');
+      el.style.setProperty('background','transparent','important');
+      el.style.setProperty('box-shadow','none','important');
+      el.style.setProperty('mix-blend-mode','screen');
+      el.style.setProperty('animation','yardonBrandPulse 2.25s ease-in-out infinite');
+      const host=el.closest('.brand-combo,.home-menu-brand,.yardon-topbar-brand,.login-logo-combo,.yardivo-welcome-logo-wrap,.ysp-head,.ysp-header,.ysp-top,.ysp-nav,.sidebar,.topbar,[class*="brand"],[class*="logo"]');
+      if(host){
+        host.classList.add('yardon-role-brand-wrap');
+        host.style.setProperty('background','transparent','important');
+        host.style.setProperty('box-shadow','none','important');
+      }
+    }
   }
   for(const a of ['alt','aria-label','title','placeholder']){
     if(el.hasAttribute?.(a)){
@@ -230,6 +254,7 @@ function patchTree(root=document){
   document.querySelector('meta[name="application-name"]')?.setAttribute('content',BRAND);
 }
 function ensureBrandLogos(){
+  document.querySelectorAll('img[src*="yardon-logo"]').forEach(patchElement);
   const splash=document.getElementById('yardivoWelcomeSplash');
   if(splash&&!splash.querySelector('.yardon-welcome-logo')){
     const old=splash.querySelector('.yardivo-welcome-mark');
@@ -243,6 +268,12 @@ function ensureBrandLogos(){
     d.innerHTML='<img src="'+LOGO+'" alt="YardOn">';
     top.prepend(d);
   }
+  document.querySelectorAll('.sidebar,.topbar,#homeMenu,[data-role],[data-yardivo-role]').forEach(root=>{
+    root.querySelectorAll?.('img[src*="yardon-logo"]').forEach(img=>{
+      img.setAttribute('data-yardon-runtime-logo','1');
+      img.closest('.brand-combo,.home-menu-brand,.yardon-topbar-brand,[class*="brand"],[class*="logo"]')?.classList.add('yardon-role-brand-wrap');
+    });
+  });
   const sp=document.getElementById('yardivoSupplierPortal');
   if(sp&&!sp.querySelector('.yardon-supplier-brand')){
     const target=sp.querySelector('.ysp-head,.ysp-header,.ysp-top,.ysp-nav')||sp.firstElementChild;
