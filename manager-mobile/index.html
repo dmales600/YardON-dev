@@ -255,11 +255,11 @@ button{cursor:pointer}
 .mobile-boot-inner{width:min(520px,94vw)}
 .mobile-boot-mark{
   width:min(230px,58vw);aspect-ratio:1/1;margin:0 auto;
-  background-image:url('../assets/yardon-logo-transparent-v3.png');
-  background-repeat:no-repeat;background-position:left center;
-  background-size:auto 100%;
+  overflow:hidden;
+  position:relative;
   animation:yardonMobileMarkIn .42s ease-out both,yardonMobileGlow 2s ease-in-out .42s infinite;
 }
+.mobile-boot-mark img{height:100%;width:auto;max-width:none;display:block}
 .mobile-boot-full{display:none;width:min(500px,91vw);height:auto;margin:0 auto 25px;animation:yardonMobileGlow 2s ease-in-out infinite}
 .mobile-boot.full .mobile-boot-mark{display:none}
 .mobile-boot.full .mobile-boot-full{display:block}
@@ -286,8 +286,8 @@ button{cursor:pointer}
 
 <section id="mobileBoot" class="mobile-boot" aria-label="YardOn pokretanje">
   <div class="mobile-boot-inner">
-    <div class="mobile-boot-mark" aria-label="YardOn"></div>
-    <img class="mobile-boot-full" src="../assets/yardon-logo-transparent-v3.png" alt="YardOn">
+    <div class="mobile-boot-mark" aria-label="YardOn"><img src="../assets/yardon-logo.webp" alt="" data-yardon-logo></div>
+    <img class="mobile-boot-full" src="../assets/yardon-logo.webp" alt="YardOn" data-yardon-logo>
     <h1 id="mobileBootTitle" class="mobile-boot-title">YardOn</h1>
     <p id="mobileBootSub" class="mobile-boot-sub">Mobile Operations</p>
     <div class="mobile-boot-progress"><i id="mobileBootFill"></i></div>
@@ -297,7 +297,7 @@ button{cursor:pointer}
 <div id="auth" class="auth hidden">
   <div class="login-box">
     <div class="login-brand">
-      <img class="login-logo" src="../assets/yardon-logo-transparent-v3.png" alt="YardOn">
+      <img class="login-logo" src="../assets/yardon-logo.webp" alt="YardOn" data-yardon-logo>
       <h1>YardOn MANAGER</h1>
       <p>Mobile Operations</p>
     </div>
@@ -314,7 +314,7 @@ button{cursor:pointer}
 
 <div id="welcome" class="welcome">
   <div class="welcome-inner">
-    <img class="welcome-logo" src="../assets/yardon-logo-transparent-v3.png" alt="YardOn">
+    <img class="welcome-logo" src="../assets/yardon-logo.webp" alt="YardOn" data-yardon-logo>
     <h2 id="welcomeTitle">DOBRODOŠLI</h2>
     <p id="welcomeSub">Učitavam vašu lokaciju i operativne podatke…</p>
     <div class="welcome-progress"><i id="welcomeFill"></i></div>
@@ -324,7 +324,7 @@ button{cursor:pointer}
 
 <div id="app" class="app hidden">
   <header class="topbar">
-    <div class="brand" style="display:flex;align-items:center;gap:9px"><img src="../assets/yardon-logo-transparent-v3.png" alt="YardOn" style="width:140px;max-width:35vw;height:auto;object-fit:contain"><div><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS · v1.0</span></div></div>
+    <div class="brand" style="display:flex;align-items:center;gap:9px"><img src="../assets/yardon-logo.webp" alt="YardOn" style="width:140px;max-width:35vw;height:auto;object-fit:contain" data-yardon-logo><div><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS · v1.0</span></div></div>
     <div id="dbStatus" class="top-status"><i></i><span>SPAJANJE</span></div>
   </header>
   <div id="scopeControls" class="scope-controls">
@@ -446,6 +446,31 @@ let scope=null,session=null,ann=[],inc=[],state=[],master={locations:[],warehous
 const pad=n=>String(n).padStart(2,'0');
 function localIso(d=new Date()){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 
+
+let yardonMobileLogoPromise=null;
+function yardonMobileTransparentLogo(){
+  if(yardonMobileLogoPromise)return yardonMobileLogoPromise;
+  yardonMobileLogoPromise=new Promise((resolve,reject)=>{
+    const im=new Image();
+    im.onload=()=>{
+      try{
+        const cv=document.createElement('canvas');cv.width=im.naturalWidth;cv.height=im.naturalHeight;
+        const x=cv.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);
+        const pic=x.getImageData(0,0,cv.width,cv.height),d=pic.data;
+        for(let i=0;i<d.length;i+=4){const m=Math.max(d[i],d[i+1],d[i+2]);if(m<=20)d[i+3]=0;else if(m<48)d[i+3]=Math.round(d[i+3]*((m-20)/28))}
+        x.putImageData(pic,0,0);resolve(cv.toDataURL('image/png'));
+      }catch(e){reject(e)}
+    };
+    im.onerror=reject;im.src='../assets/yardon-logo.webp?brand=1.0';
+  });
+  return yardonMobileLogoPromise;
+}
+async function prepareYardonMobileLogos(){
+  const imgs=[...document.querySelectorAll('img[data-yardon-logo]')];
+  imgs.forEach(i=>i.style.visibility='hidden');
+  try{const src=await yardonMobileTransparentLogo();imgs.forEach(i=>{i.src=src;i.style.visibility='visible'})}
+  catch(_){imgs.forEach(i=>{i.style.mixBlendMode='screen';i.style.visibility='visible'})}
+}
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function runLinkIntro(){
   const boot=$('mobileBoot'),fill=$('mobileBootFill'),pct=$('mobileBootPct'),title=$('mobileBootTitle'),sub=$('mobileBootSub');
@@ -992,7 +1017,7 @@ $('app').classList.add('hidden');
 $('aiFab').classList.add('hidden');
 $('username').value='';
 $('password').value='';
-runLinkIntro();
+prepareYardonMobileLogos();runLinkIntro();
 
 })();
 </script>

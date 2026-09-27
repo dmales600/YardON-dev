@@ -1,7 +1,8 @@
 (()=>{'use strict';
 if(window.__YARDON_BRAND_V1__)return;
 window.__YARDON_BRAND_V1__=true;
-const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo-transparent-v3.png';
+const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo.webp';
+let transparentLogoPromise=null;
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','CODE','PRE','TEXTAREA']);
 const style=document.createElement('style');
 style.id='yardon-brand-style-v1';
@@ -242,13 +243,58 @@ function brandText(v){
     .replace(/Yardivo/g,BRAND)
     .replace(/\bV5\.8\.3\b/gi,VERSION);
 }
+function transparentLogo(){
+  if(transparentLogoPromise)return transparentLogoPromise;
+  transparentLogoPromise=new Promise((resolve,reject)=>{
+    const im=new Image();
+    im.onload=()=>{
+      try{
+        const canvas=document.createElement('canvas');
+        canvas.width=im.naturalWidth||im.width;canvas.height=im.naturalHeight||im.height;
+        const ctx=canvas.getContext('2d',{willReadFrequently:true});
+        ctx.drawImage(im,0,0);
+        const image=ctx.getImageData(0,0,canvas.width,canvas.height),d=image.data;
+        for(let i=0;i<d.length;i+=4){
+          const m=Math.max(d[i],d[i+1],d[i+2]);
+          if(m<=20)d[i+3]=0;
+          else if(m<48)d[i+3]=Math.round(d[i+3]*((m-20)/28));
+        }
+        ctx.putImageData(image,0,0);
+        const url=canvas.toDataURL('image/png');
+        window.__yardonTransparentLogo=url;
+        resolve(url);
+      }catch(e){reject(e)}
+    };
+    im.onerror=reject;
+    im.src=LOGO+(LOGO.includes('?')?'&':'?')+'brand=1.0';
+  });
+  return transparentLogoPromise;
+}
+async function prepareLogo(el){
+  if(!(el instanceof HTMLImageElement)||el.dataset.yardonPrepared==='1'||el.dataset.yardonPreparing==='1')return;
+  el.dataset.yardonPreparing='1';
+  el.style.setProperty('visibility','hidden','important');
+  try{
+    const url=await transparentLogo();
+    el.src=url;
+    el.dataset.yardonPrepared='1';
+    el.style.setProperty('mix-blend-mode','normal');
+  }catch(_){
+    el.src=LOGO;
+    el.style.setProperty('mix-blend-mode','screen');
+  }finally{
+    delete el.dataset.yardonPreparing;
+    el.style.removeProperty('visibility');
+  }
+}
 function patchElement(el){
   if(!(el instanceof Element))return;
   if(el.tagName==='IMG'){
     const src=el.getAttribute('src')||'';
     if(/assets\/yardivo-logo\.svg(?:\?.*)?$/i.test(src))el.setAttribute('src',LOGO);
     const now=el.getAttribute('src')||'';
-    if(/yardon-logo(?:-transparent)?\.(?:webp|png|svg)(?:\?.*)?$/i.test(now)){
+    if(/yardon-logo(?:-transparent(?:-v\d+)?)?\.(?:webp|png|svg)(?:\?.*)?$/i.test(now)||el.dataset.yardonPrepared==='1'){
+      prepareLogo(el);
       el.setAttribute('data-yardon-runtime-logo','1');
       el.style.setProperty('background','transparent','important');
       el.style.setProperty('box-shadow','none','important');
@@ -336,14 +382,17 @@ function runLoginTransition(){
     const overlay=document.createElement('div');
     overlay.id='yardonLoginTransition';
     overlay.setAttribute('aria-hidden','true');
-    overlay.innerHTML='<img src="'+LOGO+'" alt="">';
+    const img=document.createElement('img');img.alt='';
+    img.src=window.__yardonTransparentLogo||LOGO;
+    overlay.appendChild(img);
     document.body.appendChild(overlay);
+    if(!window.__yardonTransparentLogo)prepareLogo(img);
     setTimeout(()=>overlay.remove(),1050);
   }catch(e){console.warn('YardOn login transition',e)}
 }
 window.addEventListener('yardivo:login',runLoginTransition);
 
-window.YardOnBrand={name:BRAND,version:VERSION,logo:LOGO,apply,runLoginTransition};
+window.YardOnBrand={name:BRAND,version:VERSION,logo:LOGO,apply,runLoginTransition,transparentLogo};
 window.YARDIVO_PRODUCT_NAME=BRAND;
 window.YARDIVO_PRODUCT_VERSION=VERSION;
 })();
