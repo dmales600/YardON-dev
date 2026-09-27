@@ -90,8 +90,10 @@ style.textContent=`
   object-fit:contain!important;
   background:transparent!important;
   mix-blend-mode:normal;
-  animation:yardonBrandPulse 2.15s ease-in-out infinite;
-  transform:translateZ(0);
+  filter:drop-shadow(0 0 14px rgba(0,190,255,.42)) drop-shadow(0 0 34px rgba(0,120,255,.24));
+  transform:translate3d(0,0,0);
+  will-change:transform,opacity;
+  backface-visibility:hidden;
 }
 
 #yardivoWelcomeSplash .yardon-welcome-title{
@@ -131,8 +133,12 @@ style.textContent=`
 }
 
 #yardivoWelcomeSplash .yardivo-welcome-progress i{
+  width:100%!important;
+  transform:scaleX(0);
+  transform-origin:left center;
+  will-change:transform;
   background:linear-gradient(90deg,#19c8ff 0%,#1676ff 100%)!important;
-  animation:yardonBarPulse 1.65s ease-in-out infinite;
+  box-shadow:0 0 12px rgba(0,190,255,.48);
 }
 
 .login-logo-combo{
@@ -224,6 +230,31 @@ img[data-yardon-runtime-logo="1"]{
   animation:yardonBrandPulse 2.25s ease-in-out infinite;
 }
 
+
+@keyframes yardonWelcomeFinalZoom{
+  0%{transform:translate3d(0,0,0) scale(1);opacity:1}
+  72%{transform:translate3d(0,0,0) scale(2.15);opacity:1}
+  100%{transform:translate3d(0,0,0) scale(3.05);opacity:0}
+}
+@keyframes yardonWelcomeFadeOut{
+  to{opacity:0;transform:translate3d(0,10px,0)}
+}
+#yardivoWelcomeSplash.yardon-final-zoom{
+  overflow:hidden!important;
+}
+#yardivoWelcomeSplash.yardon-final-zoom .yardon-welcome-logo{
+  animation:yardonWelcomeFinalZoom 2s cubic-bezier(.18,.72,.16,1) forwards!important;
+}
+#yardivoWelcomeSplash.yardon-final-zoom .yardon-welcome-title,
+#yardivoWelcomeSplash.yardon-final-zoom .yardivo-welcome-sub,
+#yardivoWelcomeSplash.yardon-final-zoom .yardivo-welcome-copy,
+#yardivoWelcomeSplash.yardon-final-zoom .yardivo-welcome-progress,
+#yardivoWelcomeSplash.yardon-final-zoom .yardivo-welcome-meta,
+#yardivoWelcomeSplash.yardon-final-zoom .yardivo-welcome-foot{
+  animation:yardonWelcomeFadeOut .28s ease forwards!important;
+  pointer-events:none;
+}
+
 @media(max-width:700px){
   #yardivoWelcomeSplash .yardon-welcome-logo{width:min(92vw,610px)!important;}
   #yardivoWelcomeSplash .yardon-welcome-title{font-size:clamp(26px,7.4vw,42px)!important;}
@@ -250,9 +281,11 @@ function transparentLogo(){
     im.onload=()=>{
       try{
         const canvas=document.createElement('canvas');
-        canvas.width=im.naturalWidth||im.width;canvas.height=im.naturalHeight||im.height;
+        const sw=im.naturalWidth||im.width,sh=im.naturalHeight||im.height;
+        const maxW=1200,scale=Math.min(1,maxW/sw);
+        canvas.width=Math.max(1,Math.round(sw*scale));canvas.height=Math.max(1,Math.round(sh*scale));
         const ctx=canvas.getContext('2d',{willReadFrequently:true});
-        ctx.drawImage(im,0,0);
+        ctx.drawImage(im,0,0,canvas.width,canvas.height);
         const image=ctx.getImageData(0,0,canvas.width,canvas.height),d=image.data;
         for(let i=0;i<d.length;i+=4){
           const m=Math.max(d[i],d[i+1],d[i+2]);
