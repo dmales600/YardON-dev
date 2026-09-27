@@ -1,26 +1,27 @@
 <!--
-YARDIVO™ — Yard Management System
-Designed & Developed by YARDIVO
-© 2026 YARDIVO. All rights reserved.
+YardOn™ — Yard Management System
+Designed & Developed by YardOn
+© 2026 YardOn. All rights reserved.
 -->
 <!DOCTYPE html>
 
-<!-- YARDIVO BUILD 20260908-dev-v5.8.3-maps-fullscreen-day-drilldown -->
+<!-- YardOn BUILD 20260908-dev-v1.0-maps-fullscreen-day-drilldown -->
 <html lang="hr">
 <head>
 <script id="yardivo-zero-state-bootstrap-v583" src="./modules/ui/runtime/phase5-000-yardivo-zero-state-bootstrap-v583.js"></script>
 <script id="yardivo-canonical-warehouse-helper-v583" src="./modules/master-data/runtime/phase5-001-yardivo-canonical-warehouse-helper-v583.js"></script>
-<meta content="20260912-dev-v5.8.3-master-runtime-sync-final" name="yardivo-build"/>
+<meta content="20260912-dev-v1.0-master-runtime-sync-final" name="yardivo-build"/>
 <link href="./favicon-32.png?v=3" rel="icon" sizes="32x32" type="image/png"/>
 <script id="yardivo-production-bootstrap-guard-v4-20260902" src="./modules/settings/runtime/yardivo-production-bootstrap-guard-v4-20260902.js"></script>
 <script id="yardivo-first-paint-bootstrap-v1" src="./modules/settings/runtime/yardivo-first-paint-bootstrap-v1.js"></script>
 <script id="yardivo-first-visit-original-theme-v1-20260901" src="./modules/settings/runtime/phase5-004-yardivo-first-visit-original-theme-v1-20260901.js"></script>
 <link id="yardivo-runtime-styles" rel="stylesheet" href="styles/yardivo-runtime.css?v=20260925">
+<script id="yardon-brand-v1" src="modules/ui/yardon-brand-v1.js?v=1.0"></script>
 <meta content="PROD-PROFESSIONAL-UX-V2-2026-08-31" name="yardivo-build"/>
 <script id="yardivo-rbac-session-migration" src="./services/runtime/phase5-005-yardivo-rbac-session-migration.js"></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>YARDIVO DEV - YARD MANAGEMENT SYSTEM</title>
+<title>YardOn v1.0 - Yard Management System</title>
 
 
 
@@ -55,7 +56,9 @@ Designed & Developed by YARDIVO
 <meta content="#071925" name="theme-color"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
-<meta content="YARDIVO" name="apple-mobile-web-app-title"/>
+<meta content="YardOn" name="apple-mobile-web-app-title"/>
+<meta content="YardOn" name="application-name"/>
+<meta content="v1.0" name="yardon-version"/>
 
 
 
@@ -119,21 +122,21 @@ Designed & Developed by YARDIVO
 
 
 
-<!-- YARDIVO MODULAR WEBAPP PHASE 1 · 2026-09-25 -->
+<!-- YardOn MODULAR WEBAPP PHASE 1 · 2026-09-25 -->
 </head>
 <body>
 <button aria-label="Uključi full screen" id="yardivoFullscreenBtn" title="Full screen" type="button"><span class="fs-icon">⛶</span><span class="fs-label">FULL SCREEN</span></button>
-<div aria-label="YARDIVO copyright" id="yardivoBrandFooter"><span><strong>YARDIVO™</strong> · Yard Management System · YARDIVO DEV · © 2026</span></div>
+<div aria-label="YardOn copyright" id="yardivoBrandFooter"><span><strong>YardOn™</strong> · Yard Management System · YardOn v1.0 · © 2026</span></div>
 
 <button aria-label="Dark mode" id="yardivoThemeSwitch" title="Dark mode" type="button">
 <span aria-hidden="true" class="theme-track-icons"><span>🌙</span><span>☀️</span></span>
 <span aria-hidden="true" class="theme-thumb">🌙</span>
 </button>
 
-<div aria-label="YARDIVO welcome screen" id="yardivoWelcomeSplash">
+<div aria-label="YardOn welcome screen" id="yardivoWelcomeSplash">
 <div class="yardivo-welcome-inner">
 <div class="yardivo-welcome-mark">Y</div>
-<h1>WELCOME TO <span>YARDIVO</span></h1>
+<h1>WELCOME TO <span>YardOn</span></h1>
 <div class="yardivo-welcome-sub">Yard Management System</div>
 <div class="yardivo-welcome-text">
       Centralized yard operations, supplier visibility and dock coordination.
@@ -145,7 +148,7 @@ Designed & Developed by YARDIVO
 <span id="yardivoWelcomePercent">0%</span>
 </div>
 </div>
-<div class="yardivo-welcome-copy">YARDIVO™ · DEV · © 2026</div>
+<div class="yardivo-welcome-copy">YardOn™ · DEV · © 2026</div>
 </div>
 </div>
 <script id="yardivo-welcome-splash-script" src="modules/ui/phase2-017-yardivo-welcome-splash-script.js"></script>
@@ -154,7 +157,7 @@ Designed & Developed by YARDIVO
 <div class="login-overlay" id="loginOverlay">
 <form class="login-card" id="loginForm">
 <div class="login-logo-combo">
-<img alt="YARDIVO Yard Management System" src="assets/yardivo-logo.svg"/>
+<img alt="YardOn Yard Management System" src="assets/yardon-logo.webp"/>
 </div>
 <label>Korisničko ime
       <input autocomplete="username" id="loginUser" placeholder="Korisničko ime"/>
@@ -181,7 +184,7 @@ Designed & Developed by YARDIVO
 <div class="app-shell">
 <aside class="sidebar">
 <div class="brand-combo" style="padding:14px 10px 18px">
-<img alt="YARDIVO Yard Management System" class="studenac-market-logo" src="assets/yardivo-logo.svg"/>
+<img alt="YardOn Yard Management System" class="studenac-market-logo" src="assets/yardon-logo.webp"/>
 </div>
 <nav class="nav">
 <button class="nav-btn" data-view="homeMenu"><span>⌂</span> Početni izbornik</button>
@@ -206,7 +209,7 @@ Designed & Developed by YARDIVO
 </nav>
 <div class="sidebar-footer">
 <div><span class="dot green"></span><strong>Sustav aktivan</strong></div>
-<p>YARDIVO - YARD MANAGEMENT SYSTEM</p><p>Terminal 1</p>
+<p>YardOn - YARD MANAGEMENT SYSTEM</p><p>Terminal 1</p>
 </div>
 </aside>
 <main class="main">
@@ -246,11 +249,11 @@ Designed & Developed by YARDIVO
 <button class="home-logout-btn" id="homeLogoutBtn" type="button">ODJAVA</button>
 </div>
 <div class="home-menu-brand">
-<img alt="YARDIVO" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" src="assets/yardivo-logo.svg"/>
+<img alt="YardOn" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" src="assets/yardon-logo.webp"/>
 <div class="home-menu-brand-fallback" style="display:none">YARD<span>IVO</span></div>
 </div>
 <div class="home-menu-hero">
-<h1>YARDIVO · POČETNI IZBORNIK</h1>
+<h1>YardOn · POČETNI IZBORNIK</h1>
 <div class="home-selected-location" id="homeSelectedLocation">ODABERI LOKACIJU</div><p id="homeMenuSubtitle">Odaberi lokaciju, zatim sekciju u koju želiš ući</p>
 </div>
 <div class="home-location-warning" id="homeLocationWarning">Prvo odaberi lokaciju.</div>
@@ -365,7 +368,7 @@ Designed & Developed by YARDIVO
 <div class="section-title">
 <div>
 <h1>KAMIONI</h1>
-<p>Povijest svih registracija koje su se pojavile u YARDIVO sustavu.</p>
+<p>Povijest svih registracija koje su se pojavile u YardOn sustavu.</p>
 </div>
 </div>
 <div class="truck-history-toolbar">
@@ -1298,7 +1301,7 @@ AUTOMATSKA PREPORUKA</small>
 <div class="qr-mobile-setting-row">
 <div class="qr-mobile-setting-copy">
 <strong>QR SCAN · TURN ON / OFF</strong>
-<small>ON dopušta Porti i Prijamu skeniranje YARDIVO QR koda mobitelom. OFF zabranjuje skeniranje i scanner vraća ERROR. Generiranje, slanje i preuzimanje QR-a dobavljaču rade neovisno o ovom switchu.</small>
+<small>ON dopušta Porti i Prijamu skeniranje YardOn QR koda mobitelom. OFF zabranjuje skeniranje i scanner vraća ERROR. Generiranje, slanje i preuzimanje QR-a dobavljaču rade neovisno o ovom switchu.</small>
 </div>
 <label class="qr-mobile-toggle">
 <input id="qrMobileEnabledToggle" type="checkbox"/>
@@ -1323,7 +1326,7 @@ AUTOMATSKA PREPORUKA</small>
 <section class="danger-zone">
 <div class="panel-head"><div><h2>OPASNA ZONA</h2><small>Samo Admin</small></div></div>
 <div class="danger-body">
-<p><strong>FACTORY ZERO</strong> se izvršava kroz autoritativni RESET YARDIVO ispod. Briše svu poslovnu povijest, Master podatke, korisnike i Auth račune osim canonical Admina <strong>dujemales</strong>.</p>
+<p><strong>FACTORY ZERO</strong> se izvršava kroz autoritativni RESET YardOn ispod. Briše svu poslovnu povijest, Master podatke, korisnike i Auth račune osim canonical Admina <strong>dujemales</strong>.</p>
 <button aria-hidden="true" class="delete-all-btn" hidden="" id="deleteAllDataBtn" type="button">LEGACY RESET RETIRED</button>
 </div>
 </section>
@@ -1379,7 +1382,7 @@ AUTOMATSKA PREPORUKA</small>
 </dialog>
 <dialog id="arrivalDialog">
 <form class="arrival-modal" id="arrivalForm">
-<div class="modal-head"><div><small>YARDIVO - YARD MANAGEMENT SYSTEM</small><h2>Evidentiraj stvarni dolazak</h2></div><button class="icon-btn" id="closeArrival" type="button">×</button></div>
+<div class="modal-head"><div><small>YardOn - YARD MANAGEMENT SYSTEM</small><h2>Evidentiraj stvarni dolazak</h2></div><button class="icon-btn" id="closeArrival" type="button">×</button></div>
 <input id="arrivalAnnouncementId" type="hidden"/>
 <div class="arrival-summary" id="arrivalPlanInfo"></div>
 <div class="form-grid">
@@ -1398,7 +1401,7 @@ AUTOMATSKA PREPORUKA</small>
 </dialog>
 <dialog id="unloadDialog">
 <form id="unloadForm">
-<div class="modal-head"><div><small>YARDIVO - YARD MANAGEMENT SYSTEM</small><h2>Završetak istovara</h2></div><button class="icon-btn" id="closeUnload" type="button">×</button></div>
+<div class="modal-head"><div><small>YardOn - YARD MANAGEMENT SYSTEM</small><h2>Završetak istovara</h2></div><button class="icon-btn" id="closeUnload" type="button">×</button></div>
 <input id="unloadAnnouncementId" type="hidden"/>
 <div class="arrival-summary" id="unloadInfo"></div>
 <div class="form-grid">
@@ -1512,7 +1515,7 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-ann-map-availability-v3" src="modules/services/yardivo-ann-map-availability-v3.js?v=20260925"></script>
 <script id="yardivo-overview-methodology-note-v2" src="./modules/supplier/runtime/phase5-080-yardivo-overview-methodology-note-v2.js"></script>
 <script id="yardivo-final-yard-v27" src="modules/services/yardivo-final-yard-v27.js?v=20260925"></script>
-<!-- YARDIVO v2.8 HYBRID 2D/3D PATCH: flat yard floor + 3D warehouse/ramps/trucks -->
+<!-- YardOn v2.8 HYBRID 2D/3D PATCH: flat yard floor + 3D warehouse/ramps/trucks -->
 
 <script id="yardivo-v28-mode-switch-guard" src="./services/runtime/yardivo-v28-mode-switch-guard.js"></script>
 
@@ -1698,7 +1701,7 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-dashboard-daily-xlsx-label-v1-20260902" src="./modules/receiving/runtime/phase5-149-yardivo-dashboard-daily-xlsx-label-v1-20260902.js"></script>
 
 <script id="yardivo-smart-admin-setting-v1-20260902" src="modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js"></script>
-<!-- YARDIVO DEV V5.2 · ADMIN SUPPLIER ACCOUNT -->
+<!-- YardOn v1.0 V5.2 · ADMIN SUPPLIER ACCOUNT -->
 
 <script id="yardivo-supplier-account-admin-v52" src="modules/supplier/yardivo-supplier-account-admin-v52.js?v=20260925"></script>
 <script id="yardivo-v535-internal-user-location-bind" src="./modules/master-data/runtime/phase5-152-yardivo-v535-internal-user-location-bind.js"></script>
@@ -1734,7 +1737,7 @@ AUTOMATSKA PREPORUKA</small>
 <h1 id="yspTitle">Nova najava</h1>
 <p id="yspSubtitle">Pošaljite zahtjev za termin dostave u dodijeljeno skladište.</p>
 </div>
-<div class="ysp-badge">YARDIVO DEV · SUPPLIER</div>
+<div class="ysp-badge">YardOn v1.0 · SUPPLIER</div>
 </div>
 <div class="ysp-kpis">
 <div class="ysp-kpi"><small data-i18n="kpiWarehouses">DODIJELJENA SKLADIŠTA</small><strong id="yspKpiWh">0</strong></div>
@@ -2034,7 +2037,7 @@ AUTOMATSKA PREPORUKA</small>
 
 <script id="yardivo-v583-ramp-role-guard-final" src="modules/master-data/phase2-229-yardivo-v583-ramp-role-guard-final.js"></script>
 \n<script id="yardivo-v583-global-master-context-names-final" src="modules/supplier/yardivo-v583-global-master-context-names-final.js?v=20260925"></script>\n
-<!-- YARDIVO V5.8.3 SUPPLIER SMART SLOT + PDF UI 20260913 -->
+<!-- YardOn v1.0 SUPPLIER SMART SLOT + PDF UI 20260913 -->
 <script id="yardivo-v583-admin-actions-capture-final" src="modules/supplier/phase2-231-yardivo-v583-admin-actions-capture-final.js"></script>
 
 <script id="yardivo-v583-supplier-portal-ux-authority" src="modules/supplier/yardivo-v583-supplier-portal-ux-authority.js?v=20260925"></script>
@@ -2047,18 +2050,18 @@ AUTOMATSKA PREPORUKA</small>
 
 <script id="yardivo-v583-production-master-cleanup-final" src="modules/master-data/yardivo-v583-production-master-cleanup-final.js?v=20260925"></script>
 
-<!-- YARDIVO DEV V5.8.3 · MASTER DATA LEGACY ZERO + RESET ADMIN AUTHORITY · 2026-09-15 -->
+<!-- YardOn v1.0 · MASTER DATA LEGACY ZERO + RESET ADMIN AUTHORITY · 2026-09-15 -->
 
 <script id="yardivo-v583-admin-master-clean-no-flicker-final" src="./modules/master-data/runtime/yardivo-v583-admin-master-clean-no-flicker-final.js"></script>
 
 <script id="yardivo-v583-header-home-context-clean-authority" src="modules/master-data/phase2-237-yardivo-v583-header-home-context-clean-authority.js"></script>
-<!-- YARDIVO DEV V5.8.3 · HEADER/HOME FINAL AUTHORITY · 2026-09-15 -->
+<!-- YardOn v1.0 · HEADER/HOME FINAL AUTHORITY · 2026-09-15 -->
 
 <script id="yardivo-v583-header-home-user-right-final-authority" src="./modules/master-data/runtime/yardivo-v583-header-home-user-right-final-authority.js"></script>
-<!-- YARDIVO DEV V5.8.3 · SETTINGS SINGLE PAGE / MASTER LIGHT BLUE AUTHORITY · 2026-09-15 -->
+<!-- YardOn v1.0 · SETTINGS SINGLE PAGE / MASTER LIGHT BLUE AUTHORITY · 2026-09-15 -->
 
 <script id="yardivo-v583-settings-single-page-master-light-blue-authority" src="./modules/master-data/runtime/yardivo-v583-settings-single-page-master-light-blue-authority.js"></script>
-<!-- YARDIVO DEV V5.8.3 · HEADER CONTEXT + SETTINGS CONTRAST FINAL AUTHORITY · 2026-09-15 -->
+<!-- YardOn v1.0 · HEADER CONTEXT + SETTINGS CONTRAST FINAL AUTHORITY · 2026-09-15 -->
 
 <script id="yardivo-v583-header-context-settings-contrast-final-authority" src="./modules/master-data/runtime/phase5-240-yardivo-v583-header-context-settings-contrast-final-authority.js"></script>
 
@@ -2092,7 +2095,7 @@ AUTOMATSKA PREPORUKA</small>
 <div class="ysmp-body">
 <label>IME DOBAVLJAČA<input autocomplete="off" id="ysmpName" maxlength="120" placeholder="Unesi ime dobavljača" type="text"/></label>
 <label>ŠIFRA DOBAVLJAČA<input autocomplete="off" id="ysmpCode" maxlength="60" placeholder="Unesi šifru dobavljača" type="text"/></label>
-<div class="ysmp-help">Šifra dobavljača je poslovna šifra koju unosi Admin. Interni YARDIVO ID ostaje tehnički i ne prikazuje se korisnicima.</div>
+<div class="ysmp-help">Šifra dobavljača je poslovna šifra koju unosi Admin. Interni YardOn ID ostaje tehnički i ne prikazuje se korisnicima.</div>
 <div aria-live="polite" class="ysmp-error" id="ysmpError"></div>
 </div>
 <div class="ysmp-actions"><button class="ysmp-cancel" type="button">ODUSTANI</button><button class="ysmp-save" type="button">SPREMI DOBAVLJAČA</button></div>
@@ -2115,7 +2118,7 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-v583-supplier-popup-xlsx-total-fix-authority" src="modules/supplier/yardivo-v583-supplier-popup-xlsx-total-fix-authority.js?v=20260925"></script>
 
 <script id="yardivo-v583-supplier-master-scope-account-xlsx-total" src="modules/supplier/yardivo-v583-supplier-master-scope-account-xlsx-total.js?v=20260925"></script>
-<!-- YARDIVO DEV V5.8.3 · MASTER POPUP ONLY AUTHORITY · 2026-09-16 -->
+<!-- YardOn v1.0 · MASTER POPUP ONLY AUTHORITY · 2026-09-16 -->
 
 <script id="yardivo-v583-master-popup-only-fix" src="./modules/master-data/runtime/yardivo-v583-master-popup-only-fix.js"></script>
 
@@ -2138,7 +2141,7 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-v583-settings-smart-qr-master-zero-runtime" src="./modules/master-data/runtime/phase5-263-yardivo-v583-settings-smart-qr-master-zero-runtime.js"></script>
 <script id="yardivo-v583-qr-public-authority-js" src="./modules/gate/runtime/phase5-264-yardivo-v583-qr-public-authority-js.js"></script>
 <script id="yardivo-v583-settings-master-separation-cleanup-js" src="./modules/master-data/runtime/yardivo-v583-settings-master-separation-cleanup-js.js"></script>
-<!-- YARDIVO DEV V5.8.3 · ADMIN HOME/CONTEXT + SETTINGS MASTER/USERS FINAL AUTHORITY · 2026-09-18 -->
+<!-- YardOn v1.0 · ADMIN HOME/CONTEXT + SETTINGS MASTER/USERS FINAL AUTHORITY · 2026-09-18 -->
 
 
 <script id="yardivo-v583-home-header-master-dwell-final-js" src="modules/supplier/yardivo-v583-home-header-master-dwell-final-js.js?v=20260925"></script>
@@ -2148,10 +2151,10 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-v583-master-people-users-ui-final-js" src="modules/supplier/yardivo-v583-master-people-users-ui-final-js.js?v=20260925"></script>
 
 <script id="yardivo-v583-master-users-stability-hotfix" src="modules/supplier/yardivo-v583-master-users-stability-hotfix.js?v=20260925"></script>
-<!-- YARDIVO DEV V5.8.3 · MAPS FOLLOW HEADER + SMART IN MASTER + DWELL WHITE · FINAL AUTHORITY · 2026-09-18 -->
+<!-- YardOn v1.0 · MAPS FOLLOW HEADER + SMART IN MASTER + DWELL WHITE · FINAL AUTHORITY · 2026-09-18 -->
 
 <script id="yardivo-v583-maps-header-smart-master-final-js" src="modules/services/yardivo-v583-maps-header-smart-master-final-js.js?v=20260925"></script>
-<!-- YARDIVO DEV V5.8.3 · HOME 13 NO-FLICKER + MASTER SCOPE + RESPONSIBLE DELETE + USERS CONTRAST · FINAL HOTFIX · 2026-09-18 -->
+<!-- YardOn v1.0 · HOME 13 NO-FLICKER + MASTER SCOPE + RESPONSIBLE DELETE + USERS CONTRAST · FINAL HOTFIX · 2026-09-18 -->
 
 <script id="yardivo-v583-home13-master-scope-users-ui-hotfix-js" src="modules/supplier/yardivo-v583-home13-master-scope-users-ui-hotfix-js.js?v=20260925"></script>
 
