@@ -1,7 +1,7 @@
 (()=>{'use strict';
 if(window.__YARDON_BRAND_V1__)return;
 window.__YARDON_BRAND_V1__=true;
-const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo-transparent-v2.png';
+const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo-transparent-v3.png';
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','CODE','PRE','TEXTAREA']);
 const style=document.createElement('style');
 style.id='yardon-brand-style-v1';
