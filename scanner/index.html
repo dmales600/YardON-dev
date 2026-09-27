@@ -37,8 +37,12 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 
 /* YardOn mobile canonical boot / authenticated welcome */
 @keyframes yardonMobileGlow{
-  0%,100%{filter:drop-shadow(0 0 10px rgba(0,202,255,.40)) drop-shadow(0 0 26px rgba(0,121,255,.24));transform:scale(1)}
-  50%{filter:drop-shadow(0 0 20px rgba(0,230,255,.86)) drop-shadow(0 0 48px rgba(0,137,255,.54)) drop-shadow(0 0 78px rgba(0,77,255,.28));transform:scale(1.025)}
+  0%,100%{opacity:.48;transform:translate3d(-50%,-50%,0) scale(.94)}
+  50%{opacity:.92;transform:translate3d(-50%,-50%,0) scale(1.08)}
+}
+@keyframes yardonMobileLogoBreathe{
+  0%,100%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(0,0,0) scale(1.012)}
 }
 @keyframes yardonMobileMarkIn{
   from{opacity:0;transform:scale(.72)}
@@ -57,10 +61,24 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
   width:min(230px,58vw);aspect-ratio:1/1;margin:0 auto;
   overflow:hidden;
   position:relative;
-  animation:yardonMobileMarkIn .42s ease-out both,yardonMobileGlow 2s ease-in-out .42s infinite;
+  animation:yardonMobileMarkIn .42s ease-out both;
+  transform:translate3d(0,0,0);
+  will-change:transform,opacity;
+}
+.mobile-boot-mark::before,
+.mobile-boot.full .mobile-boot-inner::before{
+  content:"";
+  position:absolute;left:50%;top:50%;
+  width:min(420px,88vw);aspect-ratio:1.7/1;
+  transform:translate3d(-50%,-50%,0);
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(0,220,255,.38) 0%,rgba(0,128,255,.20) 38%,rgba(0,80,180,0) 74%);
+  z-index:-1;pointer-events:none;
+  will-change:transform,opacity;
+  animation:yardonMobileGlow 2.5s ease-in-out infinite;
 }
 .mobile-boot-mark img{height:100%;width:auto;max-width:none;display:block}
-.mobile-boot-full{display:none;width:min(500px,91vw);height:auto;margin:0 auto 25px;animation:yardonMobileGlow 2s ease-in-out infinite}
+.mobile-boot-full{display:none;width:min(500px,91vw);height:auto;margin:0 auto 25px;filter:drop-shadow(0 0 9px rgba(0,200,255,.26));animation:yardonMobileLogoBreathe 2.8s ease-in-out infinite;will-change:transform}
 .mobile-boot.full .mobile-boot-mark{display:none}
 .mobile-boot.full .mobile-boot-full{display:block}
 .mobile-boot-title{margin:8px 0 0;font-size:clamp(25px,7vw,38px);font-weight:1000;letter-spacing:-.025em;color:#fff;opacity:0;transition:opacity .25s ease}
@@ -110,11 +128,12 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
   100%{transform:translate3d(62vw,0,0) scale(1.85);opacity:.06}
 }
 .mobile-boot .yardon-mobile-split-stage{position:absolute;inset:0;display:grid;place-items:center;z-index:4;pointer-events:none}
-.mobile-boot .yardon-mobile-split-half{position:absolute;width:min(500px,91vw);height:auto;filter:drop-shadow(0 0 20px rgba(0,220,255,.82)) drop-shadow(0 0 50px rgba(0,120,255,.48));will-change:transform,opacity}
+.mobile-boot .yardon-mobile-split-stage::before{content:"";position:absolute;left:50%;top:50%;width:min(620px,116vw);aspect-ratio:1.8/1;transform:translate3d(-50%,-50%,0);border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,220,255,.42) 0%,rgba(0,125,255,.18) 42%,rgba(0,70,160,0) 76%);will-change:transform,opacity;animation:yardonMobileGlow 1.9s ease-in-out infinite}
+.mobile-boot .yardon-mobile-split-half{position:absolute;width:min(500px,91vw);height:auto;filter:drop-shadow(0 0 8px rgba(0,205,255,.28));will-change:transform,opacity;backface-visibility:hidden}
 .mobile-boot .yardon-mobile-split-half.left{clip-path:inset(0 50% 0 0);animation:yardonMobileSplitLeft 2s cubic-bezier(.19,.72,.17,1) forwards}
 .mobile-boot .yardon-mobile-split-half.right{clip-path:inset(0 0 0 50%);animation:yardonMobileSplitRight 2s cubic-bezier(.19,.72,.17,1) forwards}
-.auth.yardon-auth-arrive{display:flex!important;opacity:0;transform:perspective(1000px) translateZ(-650px) scale(.42);filter:blur(9px);transition:transform 1.7s cubic-bezier(.17,.79,.19,1),opacity .9s ease,filter 1.3s ease;will-change:transform,opacity,filter}
-.auth.yardon-auth-arrive.yardon-auth-arrive-active{opacity:1;transform:perspective(1000px) translateZ(0) scale(1);filter:blur(0)}
+.auth.yardon-auth-arrive{display:flex!important;opacity:0;transform:perspective(1000px) translateZ(-650px) scale(.42);transition:transform 1.75s cubic-bezier(.16,.84,.18,1),opacity .78s ease;will-change:transform,opacity;backface-visibility:hidden}
+.auth.yardon-auth-arrive.yardon-auth-arrive-active{opacity:1;transform:perspective(1000px) translateZ(0) scale(1)}
 .mobile-boot.splitting .mobile-boot-inner{visibility:hidden}
 
 </style>
@@ -236,7 +255,7 @@ function yardonMobileTransparentLogo(){
     const im=new Image();
     im.onload=()=>{
       try{
-        const cv=document.createElement('canvas');const sw=im.naturalWidth,sh=im.naturalHeight,maxW=720,scale=Math.min(1,maxW/sw);cv.width=Math.max(1,Math.round(sw*scale));cv.height=Math.max(1,Math.round(sh*scale));
+        const cv=document.createElement('canvas');const sw=im.naturalWidth,sh=im.naturalHeight,maxW=520,scale=Math.min(1,maxW/sw);cv.width=Math.max(1,Math.round(sw*scale));cv.height=Math.max(1,Math.round(sh*scale));
         const x=cv.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0,cv.width,cv.height);
         const pic=x.getImageData(0,0,cv.width,cv.height),d=pic.data;
         for(let i=0;i<d.length;i+=4){const m=Math.max(d[i],d[i+1],d[i+2]);if(m<=20)d[i+3]=0;else if(m<48)d[i+3]=Math.round(d[i+3]*((m-20)/28))}
@@ -247,11 +266,15 @@ function yardonMobileTransparentLogo(){
   });
   return yardonMobileLogoPromise;
 }
-async function prepareYardonMobileLogos(){
+function prepareYardonMobileLogos(){
   const imgs=[...document.querySelectorAll('img[data-yardon-logo]')];
-  imgs.forEach(i=>i.style.visibility='hidden');
-  try{const src=await yardonMobileTransparentLogo();imgs.forEach(i=>{i.src=src;i.style.visibility='visible'})}
-  catch(_){imgs.forEach(i=>{i.style.mixBlendMode='screen';i.style.visibility='visible'})}
+  imgs.forEach(i=>{i.style.mixBlendMode='screen';i.style.visibility='visible'});
+  const run=async()=>{
+    try{const src=await yardonMobileTransparentLogo();imgs.forEach(i=>{i.src=src;i.style.mixBlendMode='normal'})}
+    catch(_){imgs.forEach(i=>{i.style.mixBlendMode='screen'})}
+  };
+  if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:900});
+  else setTimeout(run,140);
 }
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function runLinkIntro(){
@@ -263,11 +286,11 @@ async function runLinkIntro(){
   boot.classList.add('full');
   if(title)title.textContent='YardOn';
   if(sub)sub.textContent='PRIJAM · MOBILE';
-  const duration=1750,start=performance.now();
+  const duration=1750,start=performance.now();let lastP=-1;
   await new Promise(resolve=>{
     const tick=now=>{
       const p=Math.min(100,Math.round(((now-start)/duration)*100));
-      if(fill)fill.style.transform='scaleX('+(p/100)+')';if(pct)pct.textContent=p+'%';
+      if(p!==lastP){lastP=p;if(fill)fill.style.transform='scaleX('+(p/100)+')';if(pct)pct.textContent=p+'%';}
       if(p>=100)return resolve();
       requestAnimationFrame(tick);
     };
@@ -288,7 +311,7 @@ async function runLinkIntro(){
   if(auth){
     auth.classList.remove('hidden');
     auth.classList.add('yardon-auth-arrive');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>auth.classList.add('yardon-auth-arrive-active')));
+    setTimeout(()=>requestAnimationFrame(()=>auth.classList.add('yardon-auth-arrive-active')),180);
   }
   boot.classList.add('splitting');
   await sleep(2050);
