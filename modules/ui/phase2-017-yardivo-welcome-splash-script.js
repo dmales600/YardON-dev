@@ -25,7 +25,7 @@ function mountLoginBehind(){
     login.style.visibility='visible';
     login.style.opacity='0';
     login.setAttribute('aria-hidden','false');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')));
+    setTimeout(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')),180);
   }
   document.documentElement.classList.add('yardivo-login-ready');
   return login;
