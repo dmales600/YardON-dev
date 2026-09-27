@@ -41,6 +41,10 @@ function patchTree(root=document){
   document.querySelector('meta[name="application-name"]')?.setAttribute('content',BRAND);
 }
 function apply(){try{patchTree(document)}catch(e){console.warn('YardOn brand runtime',e)}}
+const nativeAlert=window.alert?.bind(window),nativeConfirm=window.confirm?.bind(window),nativePrompt=window.prompt?.bind(window);
+if(nativeAlert)window.alert=(message)=>nativeAlert(brandText(message));
+if(nativeConfirm)window.confirm=(message)=>nativeConfirm(brandText(message));
+if(nativePrompt)window.prompt=(message,defaultValue)=>nativePrompt(brandText(message),defaultValue);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
 new MutationObserver(ms=>{
   for(const m of ms){

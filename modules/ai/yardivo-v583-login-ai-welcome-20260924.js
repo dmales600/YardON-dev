@@ -43,12 +43,12 @@ async function greet(mySeq){
     const n=visibleLocalToday();
     if(mySeq!==seq||role()!=='reception'||!window.currentSession)return;
     const word=n===1?'najavu':'najava';
-    const body='Dobrodošli u YARDIVO. Danas imate '+n+' '+word+'.';
+    const body='Dobrodošli u YardOn. Danas imate '+n+' '+word+'.';
     const api=window.YardivoAIVoiceNotifications;
     if(api?.readNow)api.readNow({id:'YARDIVO-LOGIN-'+Date.now(),title:'',body});
     else if(api?.test)await api.test(body);
   }catch(e){
-    console.warn('[YARDIVO login AI welcome]',e);
+    console.warn('[YardOn login AI welcome]',e);
   }
 }
 

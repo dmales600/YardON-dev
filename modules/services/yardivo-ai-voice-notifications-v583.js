@@ -8,7 +8,7 @@ const VOLUME_KEY='yardivo_notification_voice_volume_v583';
 const EDGE='https://rskticdbiovvgyocpzoc.supabase.co/functions/v1/yardivo-voice';
 const APIKEY='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
 const SEEN='yardivo_ai_voice_seen_v583';
-const TEST='YARDIVO test glas.';
+const TEST='YardOn test glas.';
 let activeAudio=null,processing=false,tokenCache='',tokenCachedAt=0,stopSeq=0;
 const queue=[];
 const recent=new Map();
@@ -22,7 +22,7 @@ function mode(){try{const v=localStorage.getItem(MODE_KEY);if(v==='ai'||v==='off
 function volume(){let v=85;try{v=Number(localStorage.getItem(VOLUME_KEY)||85)}catch(_){};return Math.max(0,Math.min(100,Number.isFinite(v)?v:85))}
 function setVolume(v){v=Math.max(0,Math.min(100,Number(v)||0));try{localStorage.setItem(VOLUME_KEY,String(v))}catch(_){};if(activeAudio)activeAudio.volume=v/100}
 function clean(v){return String(v||'').replace(/\s+/g,' ').trim()}
-function speechText(n){const title=clean(n?.title||'Nova YARDIVO notifikacija');const body=clean(n?.body||'');return (title+(body?'. '+body:'')).slice(0,850)}
+function speechText(n){const brand=v=>clean(v).replace(/YARDIVO/g,'YardOn').replace(/Yardivo/g,'YardOn');const title=brand(n?.title||'Nova YardOn notifikacija');const body=brand(n?.body||'');return (title+(body?'. '+body:'')).slice(0,850)}
 function sig(n){return clean((n?.title||'')+'|'+(n?.body||'')).toLowerCase().slice(0,900)}
 function seen(){try{return new Set(JSON.parse(sessionStorage.getItem(SEEN)||'[]'))}catch(_){return new Set()}}
 function markSeen(id){const s=seen();s.add(String(id));try{sessionStorage.setItem(SEEN,JSON.stringify([...s].slice(-500)))}catch(_){}}
@@ -89,7 +89,7 @@ async function playText(text,seq=stopSeq){
   if(seq!==stopSeq)return;
   await playUrl(url,seq);
 }
-function prepareText(text){fetchVoiceUrl(text).catch(e=>console.warn('YARDIVO Gemini voice prefetch',e))}
+function prepareText(text){fetchVoiceUrl(text).catch(e=>console.warn('YardOn Gemini voice prefetch',e))}
 
 async function processQueue(){
   if(processing||mode()!=='ai'||!allowed())return;
@@ -101,7 +101,7 @@ async function processQueue(){
         const url=await item.ready;
         if(seq!==stopSeq)continue;
         await playUrl(url,seq);
-      }catch(e){if(seq===stopSeq)console.warn('YARDIVO Gemini AI voice unavailable',e)}
+      }catch(e){if(seq===stopSeq)console.warn('YardOn Gemini AI voice unavailable',e)}
     }
   }finally{processing=false}
 }
@@ -131,9 +131,9 @@ function forceRead(n){enqueueNotification(n,{force:true,priority:true})}
 
 function notificationFromToast(el){
   if(!(el instanceof Element))return null;
-  if(el.matches('.y-live-toast'))return {id:'dom-live-'+Date.now(),title:clean(el.querySelector('.y-live-toast-head span')?.textContent||'Nova YARDIVO notifikacija'),body:clean(el.querySelector('.y-live-toast-body')?.textContent||'')};
-  if(el.matches('.y5-toast'))return {id:'dom-y5-'+Date.now(),title:clean(el.querySelector('strong')?.textContent||'Nova YARDIVO notifikacija'),body:clean(el.querySelector('span')?.textContent||'')};
-  if(el.matches('.yms-toast'))return {id:'dom-yms-'+Date.now(),title:clean(el.querySelector('strong')?.textContent||'Nova YARDIVO notifikacija'),body:clean(el.querySelector('span')?.textContent||'')};
+  if(el.matches('.y-live-toast'))return {id:'dom-live-'+Date.now(),title:clean(el.querySelector('.y-live-toast-head span')?.textContent||'Nova YardOn notifikacija'),body:clean(el.querySelector('.y-live-toast-body')?.textContent||'')};
+  if(el.matches('.y5-toast'))return {id:'dom-y5-'+Date.now(),title:clean(el.querySelector('strong')?.textContent||'Nova YardOn notifikacija'),body:clean(el.querySelector('span')?.textContent||'')};
+  if(el.matches('.yms-toast'))return {id:'dom-yms-'+Date.now(),title:clean(el.querySelector('strong')?.textContent||'Nova YardOn notifikacija'),body:clean(el.querySelector('span')?.textContent||'')};
   return null;
 }
 function findNotificationById(id){
@@ -227,7 +227,7 @@ window.YardivoAIVoiceNotifications={
     clearQueue();stopCurrent();
     const seq=stopSeq;
     try{await playText(String(text),seq);return'ai'}
-    catch(e){console.warn('YARDIVO Gemini AI voice test unavailable',e);throw e}
+    catch(e){console.warn('YardOn Gemini AI voice test unavailable',e);throw e}
   }
 };
 })();

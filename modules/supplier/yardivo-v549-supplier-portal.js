@@ -196,11 +196,11 @@ function progressIndex(x){
 function renderStatus(){
   const host=document.getElementById('yspStatusList');if(!host)return;
   const deliveries=loadRows().slice();
-  if(!deliveries.length){host.innerHTML='<div class="ysph-empty">Još nema najava ni isporuka u YARDIVO bazi.</div>';return}
+  if(!deliveries.length){host.innerHTML='<div class="ysph-empty">Još nema najava ni isporuka u YardOn bazi.</div>';return}
   const labels=['NAJAVA','POTVRDA','DOLAZAK','RAMPA','ZAPRIMANJE','ZAVRŠENO'];
   host.innerHTML=deliveries.map(x=>{
     const idx=progressIndex(x.status);
-    const qr=x.qrUrl?'<div class="ysps-qr-live"><div class="ysps-qr-canvas" data-yv-server-qr-canvas="'+esc(x.id)+'"></div><div class="ysps-qr-copy"><strong>▣ QR DOCK JE SPREMAN</strong><p>Ovaj QR Dock pošalji vozaču za potvrdu na Docku / Prijamu. Gate Check-In se radi posebnim QR-om na ulazu.</p><div class="ysps-qr-actions"><button type="button" class="btn-primary" data-yv-server-qr-open="'+esc(x.id)+'">OTVORI QR</button><button type="button" class="btn-secondary" data-yv-server-qr-pdf="'+esc(x.id)+'">PREUZMI QR · PDF</button></div></div></div>':'<div class="ysps-noqr">QR Dock još nije izdan od strane YARDIVO zaliha.</div>';
+    const qr=x.qrUrl?'<div class="ysps-qr-live"><div class="ysps-qr-canvas" data-yv-server-qr-canvas="'+esc(x.id)+'"></div><div class="ysps-qr-copy"><strong>▣ QR DOCK JE SPREMAN</strong><p>Ovaj QR Dock pošalji vozaču za potvrdu na Docku / Prijamu. Gate Check-In se radi posebnim QR-om na ulazu.</p><div class="ysps-qr-actions"><button type="button" class="btn-primary" data-yv-server-qr-open="'+esc(x.id)+'">OTVORI QR</button><button type="button" class="btn-secondary" data-yv-server-qr-pdf="'+esc(x.id)+'">PREUZMI QR · PDF</button></div></div></div>':'<div class="ysps-noqr">QR Dock još nije izdan od strane YardOn zaliha.</div>';
     const editable=!terminal.has(statusKey(x.status));
     const editor=editable?'<details class="ysps-edit"><summary>UREDI VOZILO / VOZAČA</summary><div class="ysps-edit-grid">'+
       '<label>REGISTRACIJA VOZILA<input data-yv-supplier-plate="'+esc(x.id)+'" value="'+esc(x.plate)+'" placeholder="npr. ZG1234AB"></label>'+
@@ -218,7 +218,7 @@ function renderStatus(){
         '<div class="ysps-fact"><small>PALETE / SKU</small><b>'+esc(x.pallets)+' / '+esc(x.sku)+'</b></div>'+
         '<div class="ysps-fact"><small>VOZILO</small><b>'+esc(x.plate||'—')+(x.trailer?' · '+esc(x.trailer):'')+'</b></div>'+
         '<div class="ysps-fact"><small>VOZAČ</small><b>'+esc(x.driver||'—')+(x.driverContact?' · '+esc(x.driverContact):'')+'</b></div>'+
-      '</div>'+(x.review?'<div class="ysps-review" style="margin-top:10px">YARDIVO: '+esc(x.review)+'</div>':'')+editor+'</div>'+
+      '</div>'+(x.review?'<div class="ysps-review" style="margin-top:10px">YardOn: '+esc(x.review)+'</div>':'')+editor+'</div>'+
       '<div class="ysps-side">'+qr+'<div class="ysps-timeline">'+labels.map((l,i)=>'<div class="ysps-step '+(i<=idx?'done':'')+'"><i></i>'+l+'</div>').join('')+'</div></div>'+
     '</article>'
   }).join('');
@@ -290,7 +290,7 @@ function upsertCanonicalYardivoFromSupplier(row){
     }
     saveAnnouncements();
     try{render?.()}catch(_){}
-  }catch(e){console.error('Supplier→YARDIVO mirror',e)}
+  }catch(e){console.error('Supplier→YardOn mirror',e)}
 }
 
 async function reviseRequest(id){
@@ -340,7 +340,7 @@ async function editVehicle(id){
   try{
     if(window.YardivoSupplierLiveSync?.pushVehicle)await window.YardivoSupplierLiveSync.pushVehicle(x);
   }catch(e){
-    alert((lang==='en'?'Update was not sent to YARDIVO:\n':'Promjena nije poslana u YARDIVO:\n')+(e?.message||e));
+    alert((lang==='en'?'Update was not sent to YardOn:\n':'Promjena nije poslana u YardOn:\n')+(e?.message||e));
     return;
   }
   saveRows(rows);
@@ -392,8 +392,8 @@ async function submit(){
   }
   const langNow=lang;
   const confirmed=window.confirm(langNow==='en'
-    ?'Send this announcement to YARDIVO?'
-    :'POSLATI NAJAVU U YARDIVO?');
+    ?'Send this announcement to YardOn?'
+    :'POSLATI NAJAVU U YardOn?');
   if(!confirmed)return;
 
   let attachment=null;
@@ -439,7 +439,7 @@ async function submit(){
     if(verified){
       if(verified.id)row.serverId=verified.id;
     }else{
-      alert((lang==='en'?'Announcement was not sent to YARDIVO:\n':'Najava nije poslana u YARDIVO:\n')+(e?.message||e));
+      alert((lang==='en'?'Announcement was not sent to YardOn:\n':'Najava nije poslana u YardOn:\n')+(e?.message||e));
       return;
     }
   }
@@ -450,7 +450,7 @@ async function submit(){
   }
   clearForm();render();
   try{
-    if(typeof showYmsToast==='function')showYmsToast('success',lang==='en'?'ANNOUNCEMENT SENT':'NAJAVA POSLANA',lang==='en'?'Announcement was sent to YARDIVO.':'Najava je uspješno poslana u YARDIVO.',3200);
+    if(typeof showYmsToast==='function')showYmsToast('success',lang==='en'?'ANNOUNCEMENT SENT':'NAJAVA POSLANA',lang==='en'?'Announcement was sent to YardOn.':'Najava je uspješno poslana u YardOn.',3200);
   }catch(_){}
   show('history');
 }
