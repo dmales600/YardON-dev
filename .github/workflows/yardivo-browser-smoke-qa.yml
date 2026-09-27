@@ -1,4 +1,4 @@
-name: YARDIVO browser smoke QA
+name: YardOn browser smoke QA
 
 on:
   push:
@@ -8,6 +8,9 @@ on:
       - "services/**"
       - "modules/**"
       - "styles/**"
+      - "assets/**"
+      - "manager-mobile/**"
+      - "scanner/**"
   workflow_dispatch:
 
 permissions:
@@ -70,8 +73,8 @@ jobs:
             });
             assert(resp && resp.ok(), `${name}: index HTTP response not OK`);
 
-            await page.waitForTimeout(3500);
-
+            await page.locator('#loginUser').waitFor({ state:'visible', timeout:10000 }).catch(()=>{});
+            
             assert(await page.locator('#loginUser').count() === 1, `${name}: #loginUser missing`);
             assert(await page.locator('#loginPass').count() === 1, `${name}: #loginPass missing`);
             assert(await page.locator('#loginRole').count() === 1, `${name}: #loginRole missing`);
@@ -118,11 +121,51 @@ jobs:
             await context.close();
           }
 
+
+          async function runMobileSurface(browser, name, path, authSelector) {
+            const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+            const page = await context.newPage();
+            const pageErrors = [];
+            const brokenLocal = [];
+            page.on('pageerror', e => pageErrors.push(String(e.stack || e.message || e)));
+            page.on('response', r => {
+              const u = r.url();
+              if (u.startsWith('http://127.0.0.1:4173/') && r.status() >= 400) brokenLocal.push({status:r.status(),url:u});
+            });
+
+            const resp = await page.goto('http://127.0.0.1:4173/' + path, { waitUntil:'domcontentloaded', timeout:30000 });
+            assert(resp && resp.ok(), `${name}: HTTP response not OK`);
+
+            const boot = page.locator('#mobileBoot');
+            assert(await boot.count() === 1, `${name}: #mobileBoot missing`);
+            assert(await page.locator('#mobileBoot .mobile-boot-mark').count() === 1, `${name}: mark phase missing`);
+            assert(await page.locator('#mobileBoot .mobile-boot-full').count() === 1, `${name}: full logo phase missing`);
+
+            await page.locator(authSelector).waitFor({ state:'visible', timeout:10000 }).catch(()=>{});
+            assert(await page.locator(authSelector).isVisible().catch(()=>false), `${name}: auth screen not visible after intro`);
+
+            const imageState = await page.locator('img[data-yardon-logo]').evaluateAll(imgs => imgs.map(i => ({
+              complete:i.complete,
+              naturalWidth:i.naturalWidth,
+              naturalHeight:i.naturalHeight,
+              src:i.getAttribute('src')||''
+            })));
+            assert(imageState.length > 0, `${name}: YardOn images missing`);
+            assert(imageState.every(x => x.complete && x.naturalWidth > 0 && x.naturalHeight > 0), `${name}: broken YardOn image: ${JSON.stringify(imageState)}`);
+            assert(pageErrors.length === 0, `${name}: page errors: ${pageErrors.join(' | ')}`);
+            assert(brokenLocal.length === 0, `${name}: local HTTP errors: ${JSON.stringify(brokenLocal)}`);
+
+            findings.push({name, path, imageState, pageErrors, brokenLocal});
+            await context.close();
+          }
+
           (async()=>{
             const browser = await chromium.launch({ headless: true });
             try {
               await runViewport(browser, 'desktop', { width: 1440, height: 1000 });
               await runViewport(browser, 'mobile', { width: 390, height: 844 });
+              await runMobileSurface(browser, 'manager-mobile', 'manager-mobile/', '#auth');
+              await runMobileSurface(browser, 'reception-scanner', 'scanner/', '#auth');
             } finally {
               await browser.close();
             }
@@ -132,7 +175,7 @@ jobs:
               console.error('QA_FAILURES=' + JSON.stringify(failures));
               process.exit(1);
             }
-            console.log('YARDIVO_BROWSER_SMOKE_PASS');
+            console.log('YARDON_BROWSER_SMOKE_PASS');
           })().catch(e => {
             console.error(e);
             process.exit(1);
