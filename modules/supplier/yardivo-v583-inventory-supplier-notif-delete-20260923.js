@@ -44,33 +44,6 @@ function syncSupplierBadge(){
   }
   try{window.YardivoNotifications?.render?.()}catch(_){}
 }
-function upsertLocalNotification(x){
-  if(!inventory()||!x||String(x.status||'').toLowerCase()!=='pending')return;
-  let list=notifications();
-  const id=notifId(x.id);
-  if(list.some(n=>String(n?.id)===id))return;
-  const now=String(x.created_at||new Date().toISOString());
-  list.push({
-    id,event:'SUPPLIER_REQUEST',type:'blue',
-    title:'NOVA NAJAVA DOBAVLJAČA',
-    body:String(x.supplier_name||x.supplier_username||'Dobavljač')+' · '+String(x.delivery_date||'')+' '+String(x.requested_time||'').slice(0,5),
-    at:now,createdAt:now,roles:['admin','manager','inventory'],
-    supplier:String(x.supplier_name||x.supplier_username||''),
-    supplierDeliveryId:String(x.id),announcementId:'SUPDEL-'+String(x.id),
-    warehouse:String(x.warehouse||''),location:String(x.location||''),readBy:{}
-  });
-  const n=list[list.length-1];
-  try{
-    if(window.YardivoNotifications?.ingest){
-      window.YardivoNotifications.ingest(n,{announce:true});
-    }else{
-      window.YardivoNotifications?.save?.(list);
-      window.YardivoNotifications?.render?.();
-    }
-  }catch(_){
-    try{localStorage.setItem('yardivo_live_notifications_v1',JSON.stringify(list))}catch(__){}
-  }
-}
 function removeLocalNotification(id){
   const target=String(id);
   const list=notifications().filter(n=>String(n?.id)!==notifId(target)&&String(n?.supplierDeliveryId||'')!==target);
@@ -83,7 +56,6 @@ async function poll(){
   try{
     const rows=window.YardivoSupplierLiveSync.internalRows?.();
     if(!Array.isArray(rows))return;
-    rows.filter(x=>String(x.status||'').toLowerCase()==='pending').forEach(upsertLocalNotification);
     const sig=rows.map(x=>String(x.id)+':'+String(x.status)).sort().join('|');
     if(sig!==lastSig){
       lastSig=sig;
@@ -151,5 +123,5 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
 /* SupplierLiveSync is the sole list_internal polling owner. */
 setInterval(syncSupplierBadge,3000);
 setTimeout(poll,900);
-window.YARDIVO_DEV_BUILD='20260923-dev-v5.8.3-supplier-notif-delete';
+window.YARDIVO_DEV_BUILD='20260927-dev-v5.8.3-supplier-canonical-notif-delete';
 })();
