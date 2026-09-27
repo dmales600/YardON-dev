@@ -298,6 +298,25 @@ button{cursor:pointer}
   animation:yardonMobileGlow 2.15s ease-in-out infinite;
 }
 
+
+@keyframes yardonMobileSplitLeft{
+  0%{transform:translate3d(0,0,0) scale(1.02);opacity:1}
+  22%{transform:translate3d(-3vw,0,0) scale(1.10);opacity:1}
+  100%{transform:translate3d(-62vw,0,0) scale(1.85);opacity:.06}
+}
+@keyframes yardonMobileSplitRight{
+  0%{transform:translate3d(0,0,0) scale(1.02);opacity:1}
+  22%{transform:translate3d(3vw,0,0) scale(1.10);opacity:1}
+  100%{transform:translate3d(62vw,0,0) scale(1.85);opacity:.06}
+}
+.mobile-boot .yardon-mobile-split-stage{position:absolute;inset:0;display:grid;place-items:center;z-index:4;pointer-events:none}
+.mobile-boot .yardon-mobile-split-half{position:absolute;width:min(500px,91vw);height:auto;filter:drop-shadow(0 0 20px rgba(0,220,255,.82)) drop-shadow(0 0 50px rgba(0,120,255,.48));will-change:transform,opacity}
+.mobile-boot .yardon-mobile-split-half.left{clip-path:inset(0 50% 0 0);animation:yardonMobileSplitLeft 2s cubic-bezier(.19,.72,.17,1) forwards}
+.mobile-boot .yardon-mobile-split-half.right{clip-path:inset(0 0 0 50%);animation:yardonMobileSplitRight 2s cubic-bezier(.19,.72,.17,1) forwards}
+.auth.yardon-auth-arrive{display:flex!important;opacity:0;transform:perspective(1000px) translateZ(-650px) scale(.42);filter:blur(9px);transition:transform 1.7s cubic-bezier(.17,.79,.19,1),opacity .9s ease,filter 1.3s ease;will-change:transform,opacity,filter}
+.auth.yardon-auth-arrive.yardon-auth-arrive-active{opacity:1;transform:perspective(1000px) translateZ(0) scale(1);filter:blur(0)}
+.mobile-boot.splitting .mobile-boot-inner{visibility:hidden}
+
 </style>
 </head>
 <body>
@@ -511,12 +530,26 @@ async function runLinkIntro(){
   });
   if(title)title.textContent='POZDRAV, VODITELJ';
   if(sub)sub.textContent='YardOn je spreman';
-  await sleep(280);
-  boot.classList.add('zooming');
-  await sleep(2000);
+  await sleep(220);
+  const full=boot.querySelector('.mobile-boot-full');
+  const auth=$('auth');
+  if(full){
+    const stage=document.createElement('div');stage.className='yardon-mobile-split-stage';
+    const src=full.currentSrc||full.src;
+    const left=document.createElement('img'),right=document.createElement('img');
+    left.className='yardon-mobile-split-half left';right.className='yardon-mobile-split-half right';
+    left.src=src;right.src=src;left.alt='';right.alt='';stage.append(left,right);boot.appendChild(stage);
+  }
+  if(auth){
+    auth.classList.remove('hidden');
+    auth.classList.add('yardon-auth-arrive');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>auth.classList.add('yardon-auth-arrive-active')));
+  }
+  boot.classList.add('splitting');
+  await sleep(2050);
   boot.classList.add('hidden');
-  boot.classList.remove('zooming');
-  $('auth')?.classList.remove('hidden');
+  boot.classList.remove('splitting','zooming');
+  if(auth)auth.classList.remove('yardon-auth-arrive','yardon-auth-arrive-active');
 }
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function nr(v){const n=Number(v);return Number.isFinite(n)?n:0}
