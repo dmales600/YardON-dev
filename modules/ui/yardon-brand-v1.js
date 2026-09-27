@@ -1,7 +1,7 @@
 (()=>{'use strict';
 if(window.__YARDON_BRAND_V1__)return;
 window.__YARDON_BRAND_V1__=true;
-const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo.webp';
+const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo-transparent.png';
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','CODE','PRE','TEXTAREA']);
 const style=document.createElement('style');
 style.id='yardon-brand-style-v1';
@@ -19,7 +19,38 @@ style.textContent=`
   50%{box-shadow:0 0 14px rgba(0,210,255,.70),0 0 30px rgba(0,130,255,.42);}
 }
 
-/* Canonical YardOn logo treatment: baked black pixels visually disappear on dark UI. */
+
+@keyframes yardonLoginZoom{
+  0%{opacity:0;transform:scale(.42);filter:drop-shadow(0 0 8px rgba(0,183,255,.28)) drop-shadow(0 0 18px rgba(0,120,255,.18));}
+  18%{opacity:1;transform:scale(.72);}
+  64%{opacity:1;transform:scale(1.28);filter:drop-shadow(0 0 24px rgba(0,220,255,.88)) drop-shadow(0 0 58px rgba(0,135,255,.58)) drop-shadow(0 0 100px rgba(0,80,255,.32));}
+  100%{opacity:0;transform:scale(2.15);filter:drop-shadow(0 0 34px rgba(0,220,255,.22)) drop-shadow(0 0 90px rgba(0,110,255,.12));}
+}
+#yardonLoginTransition{
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483646!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+  background:radial-gradient(circle at center,rgba(0,83,145,.34) 0%,rgba(0,24,46,.90) 40%,rgba(0,8,17,.99) 100%)!important;
+  opacity:1;
+}
+#yardonLoginTransition img{
+  width:min(1120px,88vw)!important;
+  max-width:88vw!important;
+  height:auto!important;
+  display:block!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  animation:yardonLoginZoom 1s cubic-bezier(.2,.7,.2,1) forwards!important;
+  transform-origin:center center!important;
+}
+
+/* Canonical YardOn transparent logo treatment. */
 #yardivoWelcomeSplash .yardivo-welcome-logo-wrap,
 .login-logo-combo,
 .brand-combo,
@@ -57,7 +88,7 @@ style.textContent=`
   height:auto!important;
   object-fit:contain!important;
   background:transparent!important;
-  mix-blend-mode:screen;
+  mix-blend-mode:normal;
   animation:yardonBrandPulse 2.15s ease-in-out infinite;
   transform:translateZ(0);
 }
@@ -120,7 +151,7 @@ style.textContent=`
   height:auto!important;
   object-fit:contain!important;
   background:transparent!important;
-  mix-blend-mode:screen;
+  mix-blend-mode:normal;
   animation:yardonBrandPulse 2.15s ease-in-out infinite;
 }
 
@@ -143,7 +174,7 @@ style.textContent=`
 .studenac-market-logo,
 #yardivoSupplierPortal .yardon-supplier-brand img{
   background:transparent!important;
-  mix-blend-mode:screen;
+  mix-blend-mode:normal;
   animation:yardonBrandPulse 2.35s ease-in-out infinite;
 }
 
@@ -188,7 +219,7 @@ img[data-yardon-runtime-logo="1"]{
   display:block!important;
   object-fit:contain!important;
   background:transparent!important;
-  mix-blend-mode:screen;
+  mix-blend-mode:normal;
   animation:yardonBrandPulse 2.25s ease-in-out infinite;
 }
 
@@ -217,7 +248,7 @@ function patchElement(el){
     const src=el.getAttribute('src')||'';
     if(/assets\/yardivo-logo\.svg(?:\?.*)?$/i.test(src))el.setAttribute('src',LOGO);
     const now=el.getAttribute('src')||'';
-    if(/yardon-logo\.(?:webp|png|svg)(?:\?.*)?$/i.test(now)){
+    if(/yardon-logo(?:-transparent)?\.(?:webp|png|svg)(?:\?.*)?$/i.test(now)){
       el.setAttribute('data-yardon-runtime-logo','1');
       el.style.setProperty('background','transparent','important');
       el.style.setProperty('box-shadow','none','important');
@@ -298,7 +329,21 @@ new MutationObserver(ms=>{
     for(const n of m.addedNodes)if(n.nodeType===1)patchTree(n);else if(n.nodeType===3){const old=n.nodeValue||'',next=brandText(old);if(next!==old)n.nodeValue=next} ensureBrandLogos();
   }
 }).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
-window.YardOnBrand={name:BRAND,version:VERSION,logo:LOGO,apply};
+
+function runLoginTransition(){
+  try{
+    document.getElementById('yardonLoginTransition')?.remove();
+    const overlay=document.createElement('div');
+    overlay.id='yardonLoginTransition';
+    overlay.setAttribute('aria-hidden','true');
+    overlay.innerHTML='<img src="'+LOGO+'" alt="">';
+    document.body.appendChild(overlay);
+    setTimeout(()=>overlay.remove(),1050);
+  }catch(e){console.warn('YardOn login transition',e)}
+}
+window.addEventListener('yardivo:login',runLoginTransition);
+
+window.YardOnBrand={name:BRAND,version:VERSION,logo:LOGO,apply,runLoginTransition};
 window.YARDIVO_PRODUCT_NAME=BRAND;
 window.YARDIVO_PRODUCT_VERSION=VERSION;
 })();
