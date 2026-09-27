@@ -34,12 +34,69 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 .scan-denied .deny-icon{font-size:66px;line-height:1}.scan-denied h2{font-size:34px;margin:12px 0 7px}.scan-denied p{color:#ffd4d8;line-height:1.55;font-size:12px}.scan-denied .deny-role{display:inline-block;margin:10px 0;padding:8px 12px;border:1px solid #c95c67;border-radius:999px;color:#fff;font-size:10px;font-weight:950}
 .scan-denied button{width:100%;margin-top:16px}
 @media(max-width:640px){.menu-grid{grid-template-columns:1fr}.daily-row{grid-template-columns:55px 1fr 70px}.daily-row .hide-mobile{display:none}.result{grid-template-columns:1fr}.brand h1{font-size:16px}}
+
+/* YardOn mobile canonical boot / authenticated welcome */
+@keyframes yardonMobileGlow{
+  0%,100%{filter:drop-shadow(0 0 10px rgba(0,202,255,.40)) drop-shadow(0 0 26px rgba(0,121,255,.24));transform:scale(1)}
+  50%{filter:drop-shadow(0 0 20px rgba(0,230,255,.86)) drop-shadow(0 0 48px rgba(0,137,255,.54)) drop-shadow(0 0 78px rgba(0,77,255,.28));transform:scale(1.025)}
+}
+@keyframes yardonMobileMarkIn{
+  from{opacity:0;transform:scale(.72)}
+  to{opacity:1;transform:scale(1)}
+}
+.mobile-boot{
+  position:fixed;inset:0;z-index:250;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;text-align:center;
+  background:radial-gradient(circle at 50% 42%,#0a6eb7 0%,#064a88 26%,#032b55 58%,#021932 100%);
+  overflow:hidden;
+}
+.mobile-boot.hidden{display:none!important}
+.mobile-boot-inner{width:min(520px,94vw)}
+.mobile-boot-mark{
+  width:min(230px,58vw);aspect-ratio:1/1;margin:0 auto;
+  background-image:url('../assets/yardon-logo-transparent.png');
+  background-repeat:no-repeat;background-position:left center;
+  background-size:auto 100%;
+  animation:yardonMobileMarkIn .42s ease-out both,yardonMobileGlow 2s ease-in-out .42s infinite;
+}
+.mobile-boot-full{display:none;width:min(500px,91vw);height:auto;margin:0 auto 25px;animation:yardonMobileGlow 2s ease-in-out infinite}
+.mobile-boot.full .mobile-boot-mark{display:none}
+.mobile-boot.full .mobile-boot-full{display:block}
+.mobile-boot-title{margin:8px 0 0;font-size:clamp(25px,7vw,38px);font-weight:1000;letter-spacing:-.025em;color:#fff;opacity:0;transition:opacity .25s ease}
+.mobile-boot.full .mobile-boot-title{opacity:1}
+.mobile-boot-sub{margin:8px 0 0;color:#a9cce4;font-size:11px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;opacity:0;transition:opacity .25s ease}
+.mobile-boot.full .mobile-boot-sub{opacity:1}
+.mobile-boot-progress{height:8px;margin:27px auto 0;max-width:430px;border-radius:999px;background:rgba(3,21,39,.52);border:1px solid rgba(90,190,255,.28);overflow:hidden;opacity:0;transition:opacity .2s ease}
+.mobile-boot.full .mobile-boot-progress{opacity:1}
+.mobile-boot-progress i{display:block;width:0;height:100%;border-radius:999px;background:linear-gradient(90deg,#28d8ff,#087cff);box-shadow:0 0 18px rgba(0,199,255,.72);transition:width .08s linear}
+.mobile-boot-pct{margin-top:9px;color:#b9ddf3;font-size:9px;font-weight:950;letter-spacing:.12em;opacity:0}
+.mobile-boot.full .mobile-boot-pct{opacity:1}
+.login-logo,.welcome-logo,.logo,.brand img{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.login-logo,.welcome-logo,.logo{
+  animation:yardonMobileGlow 2.15s ease-in-out infinite;
+}
+
 </style>
 </head>
 <body>
-<section id="auth" class="auth">
+
+<section id="mobileBoot" class="mobile-boot" aria-label="YardOn pokretanje">
+  <div class="mobile-boot-inner">
+    <div class="mobile-boot-mark" aria-label="YardOn"></div>
+    <img class="mobile-boot-full" src="../assets/yardon-logo-transparent.png" alt="YardOn">
+    <h1 id="mobileBootTitle" class="mobile-boot-title">YardOn</h1>
+    <p id="mobileBootSub" class="mobile-boot-sub">Mobile Operations</p>
+    <div class="mobile-boot-progress"><i id="mobileBootFill"></i></div>
+    <div id="mobileBootPct" class="mobile-boot-pct">0%</div>
+  </div>
+</section>
+<section id="auth" class="auth hidden">
   <div class="login-box">
-    <div class="login-brand"><img class="logo" src="../assets/yardon-logo.webp" alt="YardOn"><h1>YardOn PRIJAM</h1><p id="loginContext">MOBILE · PRIJAVA</p></div>
+    <div class="login-brand"><img class="logo" src="../assets/yardon-logo-transparent.png" alt="YardOn"><h1>YardOn PRIJAM</h1><p id="loginContext">MOBILE · PRIJAVA</p></div>
     <div class="login-panel">
       <label>KORISNIČKO IME</label><input id="username" autocomplete="username" autocapitalize="none">
       <label>LOZINKA</label><input id="password" type="password" autocomplete="current-password">
@@ -50,7 +107,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 </section>
 
 <section id="welcome" class="welcome" aria-hidden="true">
-  <div class="welcome-inner"><img class="logo" src="../assets/yardon-logo.webp" alt="YardOn"><h2 id="welcomeTitle">YardOn PRIJAM</h2><p id="welcomeSub">Priprema…</p>
+  <div class="welcome-inner"><img class="logo" src="../assets/yardon-logo-transparent.png" alt="YardOn"><h2 id="welcomeTitle">YardOn PRIJAM</h2><p id="welcomeSub">Priprema…</p>
     <div class="progress"><i id="welcomeFill"></i></div><div id="welcomePct" class="pct">0%</div>
     <div class="steps"><div class="step" data-step="login">PRIJAVA</div><div class="step" data-step="scope">OVLASTI</div><div class="step" data-step="warehouse">SKLADIŠTE</div><div class="step" data-step="ready">SPREMNO</div></div>
   </div>
@@ -59,7 +116,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 <div id="app" class="hidden">
 <div class="wrap">
   <div class="brand">
-    <div style="display:flex;align-items:center;gap:10px"><img src="../assets/yardon-logo.webp" alt="YardOn" style="width:150px;max-width:34vw;height:auto;object-fit:contain"><div><h1>YardOn · MOBILE</h1><small>PRIJAM / SCANNER · v1.0</small></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><img src="../assets/yardon-logo-transparent.png" alt="YardOn" style="width:150px;max-width:34vw;height:auto;object-fit:contain"><div><h1>YardOn · MOBILE</h1><small>PRIJAM / SCANNER · v1.0</small></div></div>
     <div id="netStatus" class="status"><span class="dot"></span><span>SPREMAN</span></div>
   </div>
 
@@ -133,6 +190,33 @@ const requestedRole=String(params.get('role')||'reception').toLowerCase();
 const requestedWarehouse=String(params.get('warehouse')||'').trim();
 let scope=null,state=null,currentWarehouse=requestedWarehouse,currentToken='',currentValidation=null,qr=null,running=false,lastDecoded='';
 
+
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function runLinkIntro(){
+  const boot=$('mobileBoot'),fill=$('mobileBootFill'),pct=$('mobileBootPct'),title=$('mobileBootTitle'),sub=$('mobileBootSub');
+  if(!boot)return;
+  boot.classList.remove('hidden','full');
+  if(fill)fill.style.width='0%';if(pct)pct.textContent='0%';
+  await sleep(2000);
+  boot.classList.add('full');
+  if(title)title.textContent='YardOn';
+  if(sub)sub.textContent='PRIJAM · MOBILE';
+  const duration=1750,start=performance.now();
+  await new Promise(resolve=>{
+    const tick=now=>{
+      const p=Math.min(100,Math.round(((now-start)/duration)*100));
+      if(fill)fill.style.width=p+'%';if(pct)pct.textContent=p+'%';
+      if(p>=100)return resolve();
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  if(title)title.textContent='POZDRAV, PRIJAM';
+  if(sub)sub.textContent='YardOn je spreman';
+  await sleep(650);
+  boot.classList.add('hidden');
+  $('auth')?.classList.remove('hidden');
+}
 const today=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())};
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function role(){return String(scope?.app_role||'').toLowerCase()}
@@ -159,12 +243,19 @@ async function completeLogin(){try{
   const loginUser=String(scope?.username||'').trim();
   scope=await fetchScope();if(loginUser&&!scope.username)scope.username=loginUser;
   try{assertAccess()}catch(e){showDenied(String(e?.message||e));return}
-  $('accessDenied').classList.add('hidden');$('auth').classList.add('hidden');$('welcome').classList.add('show');$('welcomeTitle').textContent='DOBRODOŠLI, '+String(scope?.username||prettyRole(role())).toUpperCase();
-  progress(25,'login','Prijava potvrđena.');progress(50,'scope','Ovlasti potvrđene: '+prettyRole(role())+'.');
+  $('accessDenied').classList.add('hidden');$('auth').classList.add('hidden');$('welcome').classList.add('show');
+  const name=String(scope?.username||prettyRole(role())||'PRIJAM').trim();
+  $('welcomeTitle').textContent='YardOn';
+  progress(18,'login','Prijava potvrđena.');
   $('adminModeWrap').classList.toggle('hidden',role()!=='admin');
-  await mobileState(today());progress(75,'warehouse',(state?.warehouseName||currentWarehouse)+' · učitavam postavke.');
-  $('who').textContent=scope?.username||'YardOn';$('rolePill').textContent=prettyRole(role());progress(100,'ready','YardOn Mobile je spreman.');
-  await new Promise(r=>setTimeout(r,220));$('welcome').classList.remove('show');$('app').classList.remove('hidden');showHome();setNet(true,'ONLINE');
+  await sleep(220);progress(45,'scope','Ovlasti potvrđene: '+prettyRole(role())+'.');
+  await mobileState(today());progress(72,'warehouse',(state?.warehouseName||currentWarehouse)+' · učitavam postavke.');
+  $('who').textContent=scope?.username||'YardOn';$('rolePill').textContent=prettyRole(role());
+  const fill=$('welcomeFill'),pct=$('welcomePct'),start=performance.now(),duration=650;
+  await new Promise(resolve=>{const tick=now=>{const p=Math.max(72,Math.min(100,Math.round(72+((now-start)/duration)*28)));fill.style.width=p+'%';pct.textContent=p+'%';if(p>=100)return resolve();requestAnimationFrame(tick)};requestAnimationFrame(tick)});
+  progress(100,'ready','YardOn Mobile je spreman.');
+  $('welcomeTitle').textContent='POZDRAV, '+name.toUpperCase();
+  await sleep(720);$('welcome').classList.remove('show');$('app').classList.remove('hidden');showHome();setNet(true,'ONLINE');
 }catch(e){
   const er=String(e?.message||e);
   if(/FORBIDDEN|ROLE_REQUIRED|nema pravo|potreban račun|potreban racun|ovlasti/i.test(er)){showDenied(er);return}
@@ -199,7 +290,7 @@ $('statusActions').onclick=e=>{const b=e.target.closest?.('[data-status]');if(b)
 window.addEventListener('online',()=>setNet(true,'ONLINE'));window.addEventListener('offline',()=>setNet(false,'OFFLINE'));
 
 $('dailyDate').value=today();$('loginContext').textContent=(requestedRole==='gate'?'PORTA':'PRIJAM')+(requestedWarehouse?' · '+requestedWarehouse:'')+' · PRIJAVA';
-scope=null;$('auth').classList.remove('hidden');$('welcome').classList.remove('show');$('app').classList.add('hidden');setNet(navigator.onLine,'SPREMAN');
+scope=null;$('auth').classList.add('hidden');$('welcome').classList.remove('show');$('app').classList.add('hidden');setNet(navigator.onLine,'SPREMAN');runLinkIntro();
 })();
 </script>
 </body>
