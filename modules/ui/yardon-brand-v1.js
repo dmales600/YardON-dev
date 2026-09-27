@@ -299,13 +299,20 @@ img[data-yardon-runtime-logo="1"]{
 
 @keyframes yardonSplitLeft{
   0%{transform:translate3d(0,0,0) scale(1.03);opacity:1}
-  22%{transform:translate3d(-2vw,0,0) scale(1.10);opacity:1}
-  100%{transform:translate3d(-58vw,0,0) scale(1.72);opacity:.08}
+  18%{transform:translate3d(-1vw,0,0) scale(1.08);opacity:1}
+  58%{transform:translate3d(-20vw,0,0) scale(1.28);opacity:.96}
+  100%{transform:translate3d(-62vw,0,0) scale(1.68);opacity:.04}
 }
 @keyframes yardonSplitRight{
   0%{transform:translate3d(0,0,0) scale(1.03);opacity:1}
-  22%{transform:translate3d(2vw,0,0) scale(1.10);opacity:1}
-  100%{transform:translate3d(58vw,0,0) scale(1.72);opacity:.08}
+  18%{transform:translate3d(1vw,0,0) scale(1.08);opacity:1}
+  58%{transform:translate3d(20vw,0,0) scale(1.28);opacity:.96}
+  100%{transform:translate3d(62vw,0,0) scale(1.68);opacity:.04}
+}
+@keyframes yardonSeamFlash{
+  0%{opacity:0;transform:translate3d(-50%,-50%,0) scaleY(.25)}
+  30%{opacity:1;transform:translate3d(-50%,-50%,0) scaleY(1)}
+  100%{opacity:0;transform:translate3d(-50%,-50%,0) scaleY(1.25)}
 }
 @keyframes yardonSplashDissolve{
   0%,52%{opacity:1}
@@ -314,6 +321,7 @@ img[data-yardon-runtime-logo="1"]{
 #yardivoWelcomeSplash.yardon-split-reveal{
   perspective:1400px!important;
   overflow:hidden!important;
+  background:transparent!important;
 }
 #yardivoWelcomeSplash.yardon-split-reveal::after{
   content:"";
@@ -348,6 +356,18 @@ img[data-yardon-runtime-logo="1"]{
   opacity:.88;
   will-change:opacity,transform;
   animation:yardonBrandPulse 1.8s ease-in-out infinite;
+}
+#yardivoWelcomeSplash .yardon-split-stage::after{
+  content:"";
+  position:absolute;
+  left:50%;top:50%;
+  width:2px;height:min(380px,46vh);
+  transform:translate3d(-50%,-50%,0);
+  background:linear-gradient(180deg,rgba(0,210,255,0),rgba(105,235,255,.95),rgba(0,150,255,.88),rgba(0,210,255,0));
+  box-shadow:0 0 12px rgba(0,220,255,.88),0 0 34px rgba(0,135,255,.62);
+  opacity:0;
+  will-change:transform,opacity;
+  animation:yardonSeamFlash .62s ease-out forwards;
 }
 #yardivoWelcomeSplash .yardon-split-half{
   position:absolute!important;
