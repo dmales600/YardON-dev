@@ -269,12 +269,30 @@ button{cursor:pointer}
 .mobile-boot.full .mobile-boot-sub{opacity:1}
 .mobile-boot-progress{height:8px;margin:27px auto 0;max-width:430px;border-radius:999px;background:rgba(3,21,39,.52);border:1px solid rgba(90,190,255,.28);overflow:hidden;opacity:0;transition:opacity .2s ease}
 .mobile-boot.full .mobile-boot-progress{opacity:1}
-.mobile-boot-progress i{display:block;width:0;height:100%;border-radius:999px;background:linear-gradient(90deg,#28d8ff,#087cff);box-shadow:0 0 18px rgba(0,199,255,.72);transition:width .08s linear}
+.mobile-boot-progress i{display:block;width:100%;height:100%;border-radius:999px;background:linear-gradient(90deg,#28d8ff,#087cff);box-shadow:0 0 14px rgba(0,199,255,.58);transform:scaleX(0);transform-origin:left center;will-change:transform}
 .mobile-boot-pct{margin-top:9px;color:#b9ddf3;font-size:9px;font-weight:950;letter-spacing:.12em;opacity:0}
 .mobile-boot.full .mobile-boot-pct{opacity:1}
 .login-logo,.welcome-logo,.logo,.brand img{
   background:transparent!important;
   box-shadow:none!important;
+}
+@keyframes yardonMobileFinalZoom{
+  0%{transform:translate3d(0,0,0) scale(1);opacity:1}
+  72%{transform:translate3d(0,0,0) scale(2.15);opacity:1}
+  100%{transform:translate3d(0,0,0) scale(3.1);opacity:0}
+}
+.mobile-boot.zooming{overflow:hidden}
+.mobile-boot.zooming .mobile-boot-full{
+  display:block!important;
+  animation:yardonMobileFinalZoom 2s cubic-bezier(.18,.72,.16,1) forwards!important;
+  will-change:transform,opacity;
+}
+.mobile-boot.zooming .mobile-boot-title,
+.mobile-boot.zooming .mobile-boot-sub,
+.mobile-boot.zooming .mobile-boot-progress,
+.mobile-boot.zooming .mobile-boot-pct{
+  opacity:0!important;
+  transition:opacity .22s ease!important;
 }
 .login-logo,.welcome-logo,.logo{
   animation:yardonMobileGlow 2.15s ease-in-out infinite;
@@ -454,8 +472,8 @@ function yardonMobileTransparentLogo(){
     const im=new Image();
     im.onload=()=>{
       try{
-        const cv=document.createElement('canvas');cv.width=im.naturalWidth;cv.height=im.naturalHeight;
-        const x=cv.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);
+        const cv=document.createElement('canvas');const sw=im.naturalWidth,sh=im.naturalHeight,maxW=720,scale=Math.min(1,maxW/sw);cv.width=Math.max(1,Math.round(sw*scale));cv.height=Math.max(1,Math.round(sh*scale));
+        const x=cv.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0,cv.width,cv.height);
         const pic=x.getImageData(0,0,cv.width,cv.height),d=pic.data;
         for(let i=0;i<d.length;i+=4){const m=Math.max(d[i],d[i+1],d[i+2]);if(m<=20)d[i+3]=0;else if(m<48)d[i+3]=Math.round(d[i+3]*((m-20)/28))}
         x.putImageData(pic,0,0);resolve(cv.toDataURL('image/png'));
@@ -475,8 +493,8 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function runLinkIntro(){
   const boot=$('mobileBoot'),fill=$('mobileBootFill'),pct=$('mobileBootPct'),title=$('mobileBootTitle'),sub=$('mobileBootSub');
   if(!boot)return;
-  boot.classList.remove('hidden','full');
-  if(fill)fill.style.width='0%';if(pct)pct.textContent='0%';
+  boot.classList.remove('hidden','full','zooming');
+  if(fill){fill.style.width='100%';fill.style.transform='scaleX(0)'}if(pct)pct.textContent='0%';
   await sleep(2000);
   boot.classList.add('full');
   if(title)title.textContent='YardOn';
@@ -485,7 +503,7 @@ async function runLinkIntro(){
   await new Promise(resolve=>{
     const tick=now=>{
       const p=Math.min(100,Math.round(((now-start)/duration)*100));
-      if(fill)fill.style.width=p+'%';if(pct)pct.textContent=p+'%';
+      if(fill)fill.style.transform='scaleX('+(p/100)+')';if(pct)pct.textContent=p+'%';
       if(p>=100)return resolve();
       requestAnimationFrame(tick);
     };
@@ -493,8 +511,11 @@ async function runLinkIntro(){
   });
   if(title)title.textContent='POZDRAV, VODITELJ';
   if(sub)sub.textContent='YardOn je spreman';
-  await sleep(650);
+  await sleep(280);
+  boot.classList.add('zooming');
+  await sleep(2000);
   boot.classList.add('hidden');
+  boot.classList.remove('zooming');
   $('auth')?.classList.remove('hidden');
 }
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -613,9 +634,9 @@ async function welcomeThenOpen(){
   const name=String(scope?.username||'VODITELJ').trim();
   $('welcomeTitle').textContent='YardOn';
   const locs=assignedLocs();$('welcomeSub').textContent=locs.length?locs.map(locName).join(' · ')+' · učitavam operativno stanje…':'Učitavam operativno stanje…';
-  const fill=$('welcomeFill'),pct=$('welcomePct');fill.style.width='0%';pct.textContent='0%';
+  const fill=$('welcomeFill'),pct=$('welcomePct');fill.style.width='100%';fill.style.transformOrigin='left center';fill.style.transform='scaleX(0)';pct.textContent='0%';
   const duration=1450,start=performance.now();
-  await new Promise(resolve=>{const tick=now=>{const p=Math.min(100,Math.round(((now-start)/duration)*100));fill.style.width=p+'%';pct.textContent=p+'%';if(p>=100)return resolve();requestAnimationFrame(tick)};requestAnimationFrame(tick)});
+  await new Promise(resolve=>{const tick=now=>{const p=Math.min(100,Math.round(((now-start)/duration)*100));fill.style.transform='scaleX('+(p/100)+')';pct.textContent=p+'%';if(p>=100)return resolve();requestAnimationFrame(tick)};requestAnimationFrame(tick)});
   $('welcomeTitle').textContent='POZDRAV, '+name.toUpperCase();
   $('welcomeSub').textContent='YardOn Mobile je spreman.';
   await sleep(720);
