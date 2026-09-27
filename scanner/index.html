@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07111b">
-<title>YARDIVO · Mobile Scanner</title>
+<title>YardOn v1.0 · Mobile Scanner</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
@@ -39,7 +39,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 <body>
 <section id="auth" class="auth">
   <div class="login-box">
-    <div class="login-brand"><div class="logo">Y</div><h1>YARDIVO PRIJAM</h1><p id="loginContext">MOBILE · PRIJAVA</p></div>
+    <div class="login-brand"><div class="logo">Y</div><h1>YardOn PRIJAM</h1><p id="loginContext">MOBILE · PRIJAVA</p></div>
     <div class="login-panel">
       <label>KORISNIČKO IME</label><input id="username" autocomplete="username" autocapitalize="none">
       <label>LOZINKA</label><input id="password" type="password" autocomplete="current-password">
@@ -50,7 +50,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 </section>
 
 <section id="welcome" class="welcome" aria-hidden="true">
-  <div class="welcome-inner"><div class="logo">Y</div><h2 id="welcomeTitle">YARDIVO PRIJAM</h2><p id="welcomeSub">Priprema…</p>
+  <div class="welcome-inner"><div class="logo">Y</div><h2 id="welcomeTitle">YardOn PRIJAM</h2><p id="welcomeSub">Priprema…</p>
     <div class="progress"><i id="welcomeFill"></i></div><div id="welcomePct" class="pct">0%</div>
     <div class="steps"><div class="step" data-step="login">PRIJAVA</div><div class="step" data-step="scope">OVLASTI</div><div class="step" data-step="warehouse">SKLADIŠTE</div><div class="step" data-step="ready">SPREMNO</div></div>
   </div>
@@ -59,7 +59,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 <div id="app" class="hidden">
 <div class="wrap">
   <div class="brand">
-    <div><h1>YARDIVO · MOBILE</h1><small>PRIJAM / SCANNER · V3</small></div>
+    <div><h1>YardOn · MOBILE</h1><small>PRIJAM / SCANNER · V3</small></div>
     <div id="netStatus" class="status"><span class="dot"></span><span>SPREMAN</span></div>
   </div>
 
@@ -80,7 +80,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
   <section id="scannerView" class="hidden">
     <div class="card"><div class="toolbar"><button id="scannerBack" class="secondary">← IZBORNIK</button><strong id="scannerWarehouse">—</strong></div></div>
     <div class="card">
-      <div class="hero"><strong>Skeniraj YARDIVO QR</strong><span>Kamera se uključuje tek nakon tvoje dozvole</span></div>
+      <div class="hero"><strong>Skeniraj YardOn QR</strong><span>Kamera se uključuje tek nakon tvoje dozvole</span></div>
       <div id="reader"></div>
       <div class="row" style="margin-top:12px"><button id="startBtn" class="primary">UKLJUČI KAMERU</button><button id="stopBtn" class="secondary" disabled>ZAUSTAVI</button></div>
       <div id="scanMsg" class="msg hidden" style="margin-top:12px"></div>
@@ -109,18 +109,18 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 <section id="accessDenied" class="scan-denied hidden">
   <div class="scan-denied-inner"><div class="deny-icon">⛔</div><h2>NEMA DOZVOLE</h2>
     <div id="denyRole" class="deny-role">—</div>
-    <p id="denyText">Ovaj račun nema ovlasti za ovaj YARDIVO scanner.</p>
+    <p id="denyText">Ovaj račun nema ovlasti za ovaj YardOn scanner.</p>
     <button id="denyLogout" class="danger">ODJAVA / DRUGI RAČUN</button>
   </div>
 </section>
 
 <section id="qrOffScreen" class="qr-off hidden">
-  <div class="qr-off-inner"><div class="off-icon">⛔</div><h2>QR SCAN JE OFF</h2><div id="offWarehouse" class="warehouse">—</div><p>QR skeniranje za ovo skladište i ovu ulogu isključeno je u YARDIVO Postavkama. Dnevna mapa i dalje radi normalno.</p>
+  <div class="qr-off-inner"><div class="off-icon">⛔</div><h2>QR SCAN JE OFF</h2><div id="offWarehouse" class="warehouse">—</div><p>QR skeniranje za ovo skladište i ovu ulogu isključeno je u YardOn Postavkama. Dnevna mapa i dalje radi normalno.</p>
     <div class="row"><button id="offDaily" class="secondary">DNEVNA MAPA</button><button id="offBack" class="danger">NAZAD</button></div>
   </div>
 </section>
 
-<div class="footer">YARDIVO · Supabase protected mobile operations</div>
+<div class="footer">YardOn · Supabase protected mobile operations</div>
 
 <script>
 (()=>{'use strict';
@@ -143,13 +143,13 @@ function loginMsg(t){$('loginMsg').textContent=t||'';$('loginMsg').classList.tog
 function scanMsg(t,k=''){const el=$('scanMsg');el.textContent=t||'';el.className='msg '+k;el.classList.toggle('hidden',!t)}
 function setScanState(v='blue'){document.body.classList.remove('scan-state-blue','scan-state-green','scan-state-red');document.body.classList.add('scan-state-'+(v==='green'?'green':v==='red'?'red':'blue'))}
 function clearScanState(){document.body.classList.remove('scan-state-blue','scan-state-green','scan-state-red')}
-function showDenied(message='Ovaj račun nema ovlasti za ovaj YARDIVO scanner.'){
+function showDenied(message='Ovaj račun nema ovlasti za ovaj YardOn scanner.'){
   clearScanState();$('auth').classList.add('hidden');$('welcome').classList.remove('show');$('app').classList.add('hidden');$('qrOffScreen').classList.add('hidden');
-  $('denyRole').textContent=(scope?.username||'YARDIVO')+' · '+prettyRole(role());
+  $('denyRole').textContent=(scope?.username||'YardOn')+' · '+prettyRole(role());
   $('denyText').textContent=message;$('accessDenied').classList.remove('hidden');
 }
 function tokenFromRaw(raw){raw=String(raw||'').trim();if(!raw)return'';try{const u=new URL(raw),p=u.pathname.split('/').filter(Boolean),i=p.indexOf('pass');if(i>=0&&p[i+1])return decodeURIComponent(p[i+1])}catch(_){}const m=raw.match(/\/q\/pass\/([^?#\s]+)/i);return m?decodeURIComponent(m[1]):raw}
-async function invoke(action,payload={}){const {data,error}=await sb.functions.invoke('yardivo-gate-pass',{body:{action,...payload}});if(error){let t=error.message||String(error);try{const b=await error.context?.json?.();if(b?.error)t=b.error}catch(_){}throw new Error(t)}if(data?.ok===false)throw new Error(data.error||'YARDIVO_ERROR');return data}
+async function invoke(action,payload={}){const {data,error}=await sb.functions.invoke('yardivo-gate-pass',{body:{action,...payload}});if(error){let t=error.message||String(error);try{const b=await error.context?.json?.();if(b?.error)t=b.error}catch(_){}throw new Error(t)}if(data?.ok===false)throw new Error(data.error||'YardOn_ERROR');return data}
 async function fetchScope(){const {data,error}=await sb.functions.invoke('yardivo-user-scope',{body:{fresh:true}});if(error)throw error;if(!data?.ok)throw new Error(data?.error||'Scope nije dostupan');return data.data||{}}
 function assertAccess(){const r=role();if(!['gate','reception','admin'].includes(r))throw new Error('Ovaj račun nema pravo koristiti mobilni scanner.');if(requestedRole==='reception'&&!['reception','admin'].includes(r))throw new Error('Za PRIJAM je potreban račun Prijam ili Admin.');if(requestedRole==='gate'&&!['gate','admin'].includes(r))throw new Error('Za PORTU je potreban račun Porta ili Admin.')}
 function progress(p,step,text){$('welcomeFill').style.width=p+'%';$('welcomePct').textContent=p+'%';const order=['login','scope','warehouse','ready'];document.querySelectorAll('.step').forEach(el=>{const a=order.indexOf(step),b=order.indexOf(el.dataset.step);el.classList.toggle('done',b<a||p===100);el.classList.toggle('active',b===a&&p<100)});$('welcomeSub').textContent=text}
@@ -163,7 +163,7 @@ async function completeLogin(){try{
   progress(25,'login','Prijava potvrđena.');progress(50,'scope','Ovlasti potvrđene: '+prettyRole(role())+'.');
   $('adminModeWrap').classList.toggle('hidden',role()!=='admin');
   await mobileState(today());progress(75,'warehouse',(state?.warehouseName||currentWarehouse)+' · učitavam postavke.');
-  $('who').textContent=scope?.username||'YARDIVO';$('rolePill').textContent=prettyRole(role());progress(100,'ready','YARDIVO Mobile je spreman.');
+  $('who').textContent=scope?.username||'YardOn';$('rolePill').textContent=prettyRole(role());progress(100,'ready','YardOn Mobile je spreman.');
   await new Promise(r=>setTimeout(r,220));$('welcome').classList.remove('show');$('app').classList.remove('hidden');showHome();setNet(true,'ONLINE');
 }catch(e){
   const er=String(e?.message||e);
@@ -178,7 +178,7 @@ async function openScanner(){try{await mobileState($('dailyDate').value||today()
 function showQrOff(){hideViews();$('offWarehouse').textContent=(state?.warehouseName||currentWarehouse||'SKLADIŠTE')+' · '+(type()==='gate'?'PORTA':'PRIJAM');$('qrOffScreen').classList.remove('hidden');setNet(false,'QR OFF')}
 async function openDaily(){hideViews();$('dailyView').classList.remove('hidden');$('dailyDate').value=$('dailyDate').value||today();await loadDaily()}
 async function loadDaily(){try{const s=await mobileState($('dailyDate').value||today());$('dailyMeta').textContent=(s.warehouseName||currentWarehouse)+' · '+$('dailyDate').value+' · '+s.rows.length+' najava';const host=$('dailyList');if(!s.rows.length){host.innerHTML='<div class="empty">Nema najava za odabrani datum.</div>';return}host.innerHTML=s.rows.map(r=>{const st=String(r.status||'');const cls=/zaprim/i.test(st)?'done':/odbij/i.test(st)?'reject':/ramp/i.test(st)?'dock':'';return '<div class="daily-row"><div><small>TERMIN</small><strong>'+esc(r.time||'—')+'</strong></div><div><small>DOBAVLJAČ</small><strong>'+esc(r.supplier)+'</strong></div><div><small>RAMPA</small><strong>'+esc(r.dock)+'</strong></div><div class="hide-mobile"><small>PALETE</small><strong>'+esc(r.pallets)+'</strong></div><div><span class="pill '+cls+'">'+esc(st||'—')+'</span></div></div>'}).join('')}catch(e){$('dailyList').innerHTML='<div class="msg bad">'+esc(String(e?.message||e))+'</div>'}}
-async function startCamera(){setScanState('blue');scanMsg('');if(running)return;if(!window.Html5Qrcode){scanMsg('QR kamera biblioteka nije učitana.','bad');return}try{qr=new Html5Qrcode('reader');const cams=await Html5Qrcode.getCameras();if(!cams?.length)throw new Error('Kamera nije pronađena ili nije dopuštena.');const back=cams.find(c=>/back|rear|environment/i.test(c.label))||cams[cams.length-1];await qr.start({deviceId:{exact:back.id}},{fps:12,qrbox:{width:240,height:240},aspectRatio:1},async d=>{if(d===lastDecoded)return;lastDecoded=d;setTimeout(()=>lastDecoded='',1800);await processRaw(d)},()=>{});running=true;$('startBtn').disabled=true;$('stopBtn').disabled=false;scanMsg('Kamera je uključena. Usmjeri je prema YARDIVO QR kodu.','ok')}catch(e){scanMsg(String(e?.message||e),'bad');try{await qr?.clear?.()}catch(_){}qr=null;running=false}}
+async function startCamera(){setScanState('blue');scanMsg('');if(running)return;if(!window.Html5Qrcode){scanMsg('QR kamera biblioteka nije učitana.','bad');return}try{qr=new Html5Qrcode('reader');const cams=await Html5Qrcode.getCameras();if(!cams?.length)throw new Error('Kamera nije pronađena ili nije dopuštena.');const back=cams.find(c=>/back|rear|environment/i.test(c.label))||cams[cams.length-1];await qr.start({deviceId:{exact:back.id}},{fps:12,qrbox:{width:240,height:240},aspectRatio:1},async d=>{if(d===lastDecoded)return;lastDecoded=d;setTimeout(()=>lastDecoded='',1800);await processRaw(d)},()=>{});running=true;$('startBtn').disabled=true;$('stopBtn').disabled=false;scanMsg('Kamera je uključena. Usmjeri je prema YardOn QR kodu.','ok')}catch(e){scanMsg(String(e?.message||e),'bad');try{await qr?.clear?.()}catch(_){}qr=null;running=false}}
 async function stopCamera(){if(!qr){$('startBtn').disabled=false;$('stopBtn').disabled=true;return}try{await qr.stop()}catch(_){}try{await qr.clear()}catch(_){}qr=null;running=false;$('startBtn').disabled=false;$('stopBtn').disabled=true}
 async function processRaw(raw){const t=tokenFromRaw(raw);if(!t){setScanState('red');scanMsg('⛔ NEVAŽEĆI QR · Token nije prepoznat.','bad');return}currentToken=t;currentValidation=null;setScanState('blue');scanMsg('Provjeravam QR…');try{const d=await invoke('validate',{token:t,type:type()});currentValidation=d;renderValidation(d);if(running)await stopCamera();setScanState('green');scanMsg('✓ QR JE VALJAN. Odaberi sljedeći status.','ok')}catch(e){const er=String(e?.message||e);if(/FORBIDDEN|GATE_ROLE_REQUIRED|RECEPTION_ROLE_REQUIRED|WAREHOUSE_SCOPE_DENIED/i.test(er)){showDenied('NEMA DOZVOLE ZA '+(type()==='gate'?'GATE CHECK-IN / PORTU':'SCAN ZA RAMPE / PRIJAM')+'.');return}if(/QR_SCAN_DISABLED/.test(er)){await mobileState(today()).catch(()=>{});showQrOff();return}setScanState('red');scanMsg('⛔ NEVAŽEĆI QR · '+er,'bad');$('resultCard').classList.add('hidden')}}
 function fmt(v){if(!v)return'—';try{return new Intl.DateTimeFormat('hr-HR',{dateStyle:'short',timeStyle:'short'}).format(new Date(v))}catch(_){return String(v)}}

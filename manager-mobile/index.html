@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07111b">
-<title>YARDIVO Manager Mobile · V6</title>
+<title>YardOn v1.0 Manager Mobile · V6</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <style>
 :root{
@@ -104,7 +104,7 @@ button{cursor:pointer}
 .welcome.show{display:flex}.welcome-inner{width:min(420px,100%)}.welcome-logo{width:86px;height:86px;border-radius:28px;margin:0 auto 20px;display:grid;place-items:center;background:linear-gradient(145deg,#12324c,#0b1b2a);border:1px solid #3478a4;font-size:34px;font-weight:1000;color:#6bc0ff;box-shadow:0 20px 55px rgba(0,0,0,.35)}
 .welcome h2{margin:0;font-size:26px}.welcome p{margin:8px 0 0;color:#8ca6b7;font-size:12px}.welcome-progress{margin-top:24px;height:9px;border-radius:999px;background:#132b3a;overflow:hidden}.welcome-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#45a6ff,#45e487);border-radius:999px}.welcome small{display:block;margin-top:9px;color:#6f899a;font-size:9px;font-weight:900;letter-spacing:.06em}
 
-/* ===== YARDIVO MOBILE MAPS V2 · desktop-faithful, touch optimized ===== */
+/* ===== YardOn MOBILE MAPS V2 · desktop-faithful, touch optimized ===== */
 .mobile-map-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
 .mobile-map-summary .ms{padding:9px 7px;border:1px solid #244257;border-radius:12px;background:#091925;text-align:center}
 .mobile-map-summary small{display:block;color:#7894a4;font-size:7px;font-weight:1000;letter-spacing:.04em}
@@ -150,7 +150,7 @@ button{cursor:pointer}
 @media(max-width:390px){.mobile-map-summary{grid-template-columns:repeat(2,1fr)}.wm-summary{grid-template-columns:repeat(2,1fr)}}
 
 
-/* ===== YARDIVO MANAGER MOBILE V3 · MY YARD 2D + ASSISTANT ===== */
+/* ===== YardOn MANAGER MOBILE V3 · MY YARD 2D + ASSISTANT ===== */
 :root{--navh:84px}
 .bottom-nav{grid-template-columns:repeat(6,1fr)}
 .nav-btn span:last-child{font-size:6.7px}
@@ -241,7 +241,7 @@ button{cursor:pointer}
   <div class="login-box">
     <div class="login-brand">
       <div class="login-logo">Y</div>
-      <h1>YARDIVO MANAGER</h1>
+      <h1>YardOn MANAGER</h1>
       <p>Mobile Operations</p>
     </div>
     <div class="login-panel">
@@ -267,7 +267,7 @@ button{cursor:pointer}
 
 <div id="app" class="app hidden">
   <header class="topbar">
-    <div class="brand"><strong>YARDIVO MANAGER</strong><span id="scopeText">MOBILE OPERATIONS</span></div>
+    <div class="brand"><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS</span></div>
     <div id="dbStatus" class="top-status"><i></i><span>SPAJANJE</span></div>
   </header>
   <div id="scopeControls" class="scope-controls">
@@ -325,7 +325,7 @@ button{cursor:pointer}
         <div id="yard2dKpis" class="yard2d-kpis"></div>
         <div id="yard2dStage"></div>
         <div class="yard2d-legend"><span><i style="background:#2e8053"></i>SLOBODNA RAMPA</span><span><i style="background:#d5a93a"></i>ZAUZETA</span><span><i style="background:#cc783d"></i>PARKING ZAUZET</span></div>
-        <div class="yard2d-note">2D operativni prikaz koristi stvarne YARDIVO statuse. Raspored objekata je pojednostavljen za mobitel.</div>
+        <div class="yard2d-note">2D operativni prikaz koristi stvarne YardOn statuse. Raspored objekata je pojednostavljen za mobitel.</div>
       </div>
     </section>
 
@@ -361,24 +361,24 @@ button{cursor:pointer}
 </div>
 
 
-<button id="aiFab" class="ai-fab hidden" type="button" aria-label="Otvori YARDIVO Assistant">✦</button>
+<button id="aiFab" class="ai-fab hidden" type="button" aria-label="Otvori YardOn Assistant">✦</button>
 <div id="aiSheet" class="ai-sheet" aria-hidden="true">
   <div class="ai-panel">
-    <div class="ai-head"><div><strong>✦ YARDIVO ASSISTANT</strong><span id="aiContextLabel">Manager · live operativni kontekst</span></div><button id="aiClose" class="ai-close" type="button">×</button></div>
+    <div class="ai-head"><div><strong>✦ YardOn ASSISTANT</strong><span id="aiContextLabel">Manager · live operativni kontekst</span></div><button id="aiClose" class="ai-close" type="button">×</button></div>
     <div class="ai-quick">
       <button type="button" data-ai-q="Što trenutno traži moju pažnju?">ŠTO TRAŽI PAŽNJU?</button>
       <button type="button" data-ai-q="Tko trenutno kasni?">TKO KASNI?</button>
       <button type="button" data-ai-q="Koje su rampe slobodne?">SLOBODNE RAMPE</button>
       <button type="button" data-ai-q="Sažmi današnje stanje dvorišta.">SAŽMI DVORIŠTE</button>
     </div>
-    <div id="aiMessages" class="ai-messages"><div class="ai-msg system">Assistant koristi samo YARDIVO podatke unutar vašeg dopuštenog scopea.</div></div>
-    <div class="ai-inputbar"><textarea id="aiInput" rows="1" placeholder="Pitaj YARDIVO…"></textarea><button id="aiSend" class="ai-send" type="button">➤</button></div>
+    <div id="aiMessages" class="ai-messages"><div class="ai-msg system">Assistant koristi samo YardOn podatke unutar vašeg dopuštenog scopea.</div></div>
+    <div class="ai-inputbar"><textarea id="aiInput" rows="1" placeholder="Pitaj YardOn…"></textarea><button id="aiSend" class="ai-send" type="button">➤</button></div>
   </div>
 </div>
 
 <script>
 (()=>{'use strict';
-window.YARDIVO_MANAGER_MOBILE_BUILD='20260921-v6-explicit-login';
+window.YardOn_MANAGER_MOBILE_BUILD='20260921-v6-explicit-login';
 const BASE='https://rskticdbiovvgyocpzoc.supabase.co';
 const KEY='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
 const SYNC=BASE+'/functions/v1/yardivo-sync';
@@ -470,7 +470,7 @@ async function token(){
   if(!s?.access_token)s=(await sb.auth.getSession()).data.session;
   if(!s?.access_token)s=(await sb.auth.refreshSession()).data.session;
   if(!s?.access_token)throw new Error('Prijava je istekla.');
-  session=s;window.__YARDIVO_MANAGER_MOBILE_TOKEN=s.access_token;
+  session=s;window.__YardOn_MANAGER_MOBILE_TOKEN=s.access_token;
   return s.access_token;
 }
 async function getScope(){
@@ -493,7 +493,7 @@ async function login(){
     const u=$('username').value.trim().toLowerCase(),p=$('password').value;if(!u||!p)throw new Error('Upiši korisničko ime i lozinku.');
     const {data,error}=await sb.auth.signInWithPassword({email:u+'@yardivo.local',password:p});
     if(error||!data?.session)throw error||new Error('Prijava nije uspjela.');
-    session=data.session;window.__YARDIVO_MANAGER_MOBILE_TOKEN=session.access_token;scope=await getScope();
+    session=data.session;window.__YardOn_MANAGER_MOBILE_TOKEN=session.access_token;scope=await getScope();
     if(normRole(scope?.app_role||scope?.role)!=='manager'){await sb.auth.signOut();throw new Error('Ovaj Mobile UI je dostupan samo Voditeljima.');}
     await bootstrap();await welcomeThenOpen();
   }catch(e){err.textContent=String(e?.message||e);err.classList.remove('hidden')}
@@ -923,7 +923,7 @@ $('password').value='';
 const BASE='https://rskticdbiovvgyocpzoc.supabase.co',KEY='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy',URL=BASE+'/functions/v1/yardivo-operational-chat';
 let threads=[],selected='',msgs=[],opened=false,lastSig='',timer=null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function api(action,payload={}){const t=String(window.__YARDIVO_MANAGER_MOBILE_TOKEN||'');if(!t)throw new Error('Prijava nije spremna');const r=await fetch(URL,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});const d=await r.json().catch(()=>({}));if(!r.ok||d?.ok===false)throw new Error(d?.error||('HTTP '+r.status));return d?.data??d}
+async function api(action,payload={}){const t=String(window.__YardOn_MANAGER_MOBILE_TOKEN||'');if(!t)throw new Error('Prijava nije spremna');const r=await fetch(URL,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});const d=await r.json().catch(()=>({}));if(!r.ok||d?.ok===false)throw new Error(d?.error||('HTTP '+r.status));return d?.data??d}
 function ensure(){if(document.getElementById('mmOpChatFab'))return;const f=document.createElement('button');f.id='mmOpChatFab';f.type='button';f.innerHTML='💬<span class="b">0</span>';f.onclick=()=>openPanel();document.body.appendChild(f);const p=document.createElement('div');p.id='mmOpChatSheet';p.innerHTML='<div class="mmoc-panel"><div class="mmoc-head"><div><strong>OPERATIVNI CHAT</strong><small>VODITELJ · PRIJAM · ZALIHE</small></div><button class="mmoc-close" type="button">×</button></div><div class="mmoc-tabs" id="mmocTabs"></div><div class="mmoc-msgs" id="mmocMsgs"><div class="mmoc-empty">Učitavam…</div></div><div class="mmoc-compose"><textarea id="mmocInput" placeholder="Napiši poruku…"></textarea><button id="mmocSend" type="button">➤</button></div></div>';document.body.appendChild(p);p.querySelector('.mmoc-close').onclick=closePanel;p.onclick=e=>{if(e.target===p)closePanel()};p.querySelector('#mmocSend').onclick=send;p.querySelector('#mmocInput').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}};p.querySelector('#mmocTabs').onclick=e=>{const b=e.target.closest('[data-mmoc]');if(b){selected=b.dataset.mmoc;renderTabs();loadMessages()}};const pop=document.createElement('div');pop.id='mmOpChatPop';document.body.appendChild(pop);pop.onclick=e=>{const b=e.target.closest('[data-mmoc-pop]');if(b)openPanel(b.dataset.mmocPop)}}
 function renderTabs(){const h=document.getElementById('mmocTabs');if(h)h.innerHTML=threads.map(t=>'<button class="'+(t.thread_key===selected?'active':'')+'" data-mmoc="'+esc(t.thread_key)+'">'+esc(t.label)+(t.unread?'<em>'+t.unread+'</em>':'')+'</button>').join('')}
 function render(){const h=document.getElementById('mmocMsgs');if(!h)return;if(!msgs.length){h.innerHTML='<div class="mmoc-empty">Još nema poruka.</div>';return}const me='voditelj';h.innerHTML=msgs.map(m=>'<div class="mmoc-msg '+(String(m.sender_username||'').toLowerCase()===me?'mine':'')+'"><small>'+esc(m.sender_username||'')+'</small>'+esc(m.body||'')+'</div>').join('');h.scrollTop=h.scrollHeight}
@@ -932,7 +932,7 @@ async function loadMessages(){if(!selected)return;try{msgs=await api('list_messa
 async function send(){const i=document.getElementById('mmocInput'),body=String(i.value||'').trim();if(!body||!selected)return;try{await api('send',{thread_key:selected,body,warehouse:document.getElementById('warehouseSelect')?.value||''});i.value='';await loadMessages()}catch(e){alert(e.message||e)}}
 async function openPanel(key){ensure();opened=true;document.getElementById('mmOpChatSheet').classList.add('open');document.getElementById('mmOpChatPop').innerHTML='';await refresh(false);if(key)selected=key;renderTabs();await loadMessages();clearInterval(timer);timer=setInterval(()=>{if(opened)loadMessages()},3000)}
 function closePanel(){opened=false;document.getElementById('mmOpChatSheet')?.classList.remove('open');clearInterval(timer);timer=null}
-setInterval(()=>{if(window.__YARDIVO_MANAGER_MOBILE_TOKEN&&!opened)refresh(true)},4000);setTimeout(()=>refresh(true),2500);
+setInterval(()=>{if(window.__YardOn_MANAGER_MOBILE_TOKEN&&!opened)refresh(true)},4000);setTimeout(()=>refresh(true),2500);
 })();
 </script>
 </body>
