@@ -308,13 +308,22 @@ img[data-yardon-runtime-logo="1"]{
   100%{transform:translate3d(58vw,0,0) scale(1.72);opacity:.08}
 }
 @keyframes yardonSplashDissolve{
-  0%,58%{background-color:rgba(0,12,25,.98)}
-  100%{background-color:rgba(0,12,25,0)}
+  0%,52%{opacity:1}
+  100%{opacity:0}
 }
 #yardivoWelcomeSplash.yardon-split-reveal{
   perspective:1400px!important;
   overflow:hidden!important;
+}
+#yardivoWelcomeSplash.yardon-split-reveal::after{
+  content:"";
+  position:absolute;inset:0;
+  background:rgba(0,12,25,.72);
+  pointer-events:none;
+  z-index:1;
+  opacity:1;
   animation:yardonSplashDissolve 2s ease forwards!important;
+  will-change:opacity;
 }
 #yardivoWelcomeSplash.yardon-split-reveal .yardivo-welcome-inner{
   visibility:hidden!important;
@@ -322,7 +331,7 @@ img[data-yardon-runtime-logo="1"]{
 #yardivoWelcomeSplash .yardon-split-stage{
   position:absolute!important;
   inset:0!important;
-  z-index:5!important;
+  z-index:6!important;
   display:grid!important;
   place-items:center!important;
   pointer-events:none!important;
@@ -445,8 +454,12 @@ function prepareLogo(el){
       delete el.dataset.yardonPreparing;
     }
   };
-  if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:900});
-  else setTimeout(run,120);
+  const schedule=()=>setTimeout(run,80);
+  if(document.documentElement.classList.contains('yardivo-welcome-complete'))schedule();
+  else{
+    window.addEventListener('yardivo:welcome-complete',schedule,{once:true});
+    setTimeout(()=>{if(el.dataset.yardonPrepared!=='1'&&el.dataset.yardonPreparing==='1')schedule()},7600);
+  }
 }
 function patchElement(el){
   if(!(el instanceof Element))return;
