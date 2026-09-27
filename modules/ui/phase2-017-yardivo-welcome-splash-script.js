@@ -6,7 +6,8 @@ let started=false;
 let finished=false;
 let timer=null;
 let rafId=0;
-const WELCOME_MS=5200;
+const WELCOME_MS=4200;
+const FINAL_ZOOM_MS=2000;
 
 function revealLogin(){
   if(finished)return;
@@ -17,7 +18,7 @@ function revealLogin(){
   const bar=document.getElementById('yardivoWelcomeBar');
   const pct=document.getElementById('yardivoWelcomePercent');
   const status=document.getElementById('yardivoWelcomeStatus');
-  if(bar)bar.style.width='100%';
+  if(bar){bar.style.width='100%';bar.style.transform='scaleX(1)';}
   if(pct)pct.textContent='100%';
   if(status)status.textContent='Ready';
 
@@ -39,7 +40,7 @@ function revealLogin(){
   document.documentElement.classList.add('yardivo-login-ready');
 
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    if(splash)splash.classList.add('hide');
+    if(splash&&!splash.classList.contains('yardon-final-zoom'))splash.classList.add('hide');
 
     setTimeout(()=>{
       if(splash)splash.style.display='none';
@@ -49,7 +50,7 @@ function revealLogin(){
       document.body.classList.remove('yardivo-welcome-active');
       document.body.classList.add('yardivo-prelogin');
       try{YardivoLoginNotificationFix?.clearLoginOnce?.()}catch(e){}
-    },480);
+    },80);
   }));
 }
 
@@ -77,7 +78,8 @@ function start(){
   }
   if(!bar||!pct){revealLogin();return;}
 
-  bar.style.width='0%';
+  bar.style.width='100%';
+  bar.style.transform='scaleX(0)';
   pct.textContent='0%';
   if(status)status.textContent='Initializing system';
 
@@ -100,7 +102,7 @@ function start(){
 
     if(value!==lastValue){
       lastValue=value;
-      bar.style.width=value+'%';
+      bar.style.transform='scaleX('+(value/100)+')';
       pct.textContent=value+'%';
       while(stage<stages.length&&value>=stages[stage][0]){
         if(status)status.textContent=stages[stage][1];
@@ -110,7 +112,12 @@ function start(){
 
     if(value>=100){
       rafId=0;
-      setTimeout(revealLogin,220);
+      if(status)status.textContent='Ready';
+      const splash=document.getElementById('yardivoWelcomeSplash');
+      if(splash&&!splash.classList.contains('yardon-final-zoom')){
+        requestAnimationFrame(()=>splash.classList.add('yardon-final-zoom'));
+      }
+      setTimeout(revealLogin,FINAL_ZOOM_MS);
       return;
     }
     rafId=requestAnimationFrame(tick);
@@ -125,7 +132,7 @@ if(document.readyState==='loading'){
 }
 
 /* Real fail-safe only. It does not restart or visually alter Welcome. */
-setTimeout(()=>{if(!finished)revealLogin()},6500);
+setTimeout(()=>{if(!finished)revealLogin()},9000);
 
 window.YardivoWelcomeSplash={start,hide:revealLogin};
 })();
