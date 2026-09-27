@@ -8,8 +8,12 @@ const style=document.createElement('style');
 style.id='yardon-brand-style-v1';
 style.textContent=`
 @keyframes yardonBrandPulse{
-  0%,100%{filter:drop-shadow(0 0 9px rgba(0,183,255,.34)) drop-shadow(0 0 24px rgba(0,146,255,.22));}
-  50%{filter:drop-shadow(0 0 16px rgba(0,218,255,.72)) drop-shadow(0 0 38px rgba(0,144,255,.48)) drop-shadow(0 0 68px rgba(0,95,255,.30));}
+  0%,100%{opacity:.50;transform:translate3d(-50%,-50%,0) scale(.94)}
+  50%{opacity:.92;transform:translate3d(-50%,-50%,0) scale(1.08)}
+}
+@keyframes yardonLogoBreathe{
+  0%,100%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(0,0,0) scale(1.012)}
 }
 @keyframes yardonTextPulse{
   0%,100%{text-shadow:0 0 8px rgba(0,174,255,.20),0 0 20px rgba(0,120,255,.12);}
@@ -51,6 +55,36 @@ style.textContent=`
   transform-origin:center center!important;
 }
 
+
+#yardivoWelcomeSplash .yardivo-welcome-logo-wrap,
+.login-logo-combo,
+.yardon-topbar-brand,
+.home-menu-brand,
+#yardivoSupplierPortal .yardon-supplier-brand{
+  position:relative!important;
+  isolation:isolate;
+}
+#yardivoWelcomeSplash .yardivo-welcome-logo-wrap::before,
+.login-logo-combo::before{
+  content:"";
+  position:absolute;
+  left:50%;top:50%;
+  width:min(760px,82vw);
+  aspect-ratio:4.2/1;
+  transform:translate3d(-50%,-50%,0);
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(0,190,255,.34) 0%,rgba(0,118,255,.18) 38%,rgba(0,70,170,0) 72%);
+  filter:none;
+  pointer-events:none;
+  z-index:-1;
+  will-change:transform,opacity;
+  animation:yardonBrandPulse 2.4s ease-in-out infinite;
+}
+.login-logo-combo::before{
+  width:min(440px,88vw);
+  aspect-ratio:3.8/1;
+}
+
 /* Canonical YardOn transparent logo treatment. */
 #yardivoWelcomeSplash .yardivo-welcome-logo-wrap,
 .login-logo-combo,
@@ -90,8 +124,9 @@ style.textContent=`
   object-fit:contain!important;
   background:transparent!important;
   mix-blend-mode:normal;
-  filter:drop-shadow(0 0 14px rgba(0,190,255,.42)) drop-shadow(0 0 34px rgba(0,120,255,.24));
+  filter:drop-shadow(0 0 10px rgba(0,190,255,.28));
   transform:translate3d(0,0,0);
+  animation:yardonLogoBreathe 2.8s ease-in-out infinite;
   will-change:transform,opacity;
   backface-visibility:hidden;
 }
@@ -159,7 +194,9 @@ style.textContent=`
   object-fit:contain!important;
   background:transparent!important;
   mix-blend-mode:normal;
-  animation:yardonBrandPulse 2.15s ease-in-out infinite;
+  filter:drop-shadow(0 0 9px rgba(0,190,255,.25));
+  animation:yardonLogoBreathe 2.8s ease-in-out infinite;
+  will-change:transform;
 }
 
 .login-card{
@@ -182,7 +219,9 @@ style.textContent=`
 #yardivoSupplierPortal .yardon-supplier-brand img{
   background:transparent!important;
   mix-blend-mode:normal;
-  animation:yardonBrandPulse 2.35s ease-in-out infinite;
+  filter:drop-shadow(0 0 7px rgba(0,185,255,.22));
+  animation:yardonLogoBreathe 3s ease-in-out infinite;
+  will-change:transform;
 }
 
 .yardon-topbar-brand img{
@@ -227,7 +266,9 @@ img[data-yardon-runtime-logo="1"]{
   object-fit:contain!important;
   background:transparent!important;
   mix-blend-mode:normal;
-  animation:yardonBrandPulse 2.25s ease-in-out infinite;
+  filter:drop-shadow(0 0 7px rgba(0,185,255,.22));
+  animation:yardonLogoBreathe 3s ease-in-out infinite;
+  will-change:transform;
 }
 
 
@@ -286,13 +327,26 @@ img[data-yardon-runtime-logo="1"]{
   place-items:center!important;
   pointer-events:none!important;
 }
+#yardivoWelcomeSplash .yardon-split-stage::before{
+  content:"";
+  position:absolute;
+  left:50%;top:50%;
+  width:min(920px,96vw);
+  aspect-ratio:4/1;
+  transform:translate3d(-50%,-50%,0);
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(0,205,255,.38) 0%,rgba(0,118,255,.16) 40%,rgba(0,70,170,0) 74%);
+  opacity:.88;
+  will-change:opacity,transform;
+  animation:yardonBrandPulse 1.8s ease-in-out infinite;
+}
 #yardivoWelcomeSplash .yardon-split-half{
   position:absolute!important;
   width:clamp(560px,57vw,900px)!important;
   max-width:92vw!important;
   height:auto!important;
   object-fit:contain!important;
-  filter:drop-shadow(0 0 18px rgba(0,210,255,.70)) drop-shadow(0 0 44px rgba(0,125,255,.42));
+  filter:drop-shadow(0 0 10px rgba(0,205,255,.30));
   will-change:transform,opacity;
   backface-visibility:hidden;
 }
@@ -312,9 +366,9 @@ img[data-yardon-runtime-logo="1"]{
 [data-login-screen].yardon-login-arrive{
   transform:perspective(1200px) translateZ(-720px) scale(.42)!important;
   opacity:0!important;
-  filter:blur(10px)!important;
-  transition:transform 1.7s cubic-bezier(.17,.79,.19,1),opacity .9s ease,filter 1.35s ease!important;
-  will-change:transform,opacity,filter;
+  transition:transform 1.75s cubic-bezier(.16,.84,.18,1),opacity .78s ease!important;
+  will-change:transform,opacity;
+  backface-visibility:hidden;
 }
 .login-screen.yardon-login-arrive.yardon-login-arrive-active,
 .login-overlay.yardon-login-arrive.yardon-login-arrive-active,
@@ -324,7 +378,6 @@ img[data-yardon-runtime-logo="1"]{
 [data-login-screen].yardon-login-arrive.yardon-login-arrive-active{
   transform:perspective(1200px) translateZ(0) scale(1)!important;
   opacity:1!important;
-  filter:blur(0)!important;
 }
 
 @media(max-width:700px){
@@ -354,7 +407,7 @@ function transparentLogo(){
       try{
         const canvas=document.createElement('canvas');
         const sw=im.naturalWidth||im.width,sh=im.naturalHeight||im.height;
-        const maxW=1200,scale=Math.min(1,maxW/sw);
+        const maxW=820,scale=Math.min(1,maxW/sw);
         canvas.width=Math.max(1,Math.round(sw*scale));canvas.height=Math.max(1,Math.round(sh*scale));
         const ctx=canvas.getContext('2d',{willReadFrequently:true});
         ctx.drawImage(im,0,0,canvas.width,canvas.height);
@@ -375,22 +428,25 @@ function transparentLogo(){
   });
   return transparentLogoPromise;
 }
-async function prepareLogo(el){
+function prepareLogo(el){
   if(!(el instanceof HTMLImageElement)||el.dataset.yardonPrepared==='1'||el.dataset.yardonPreparing==='1')return;
   el.dataset.yardonPreparing='1';
-  el.style.setProperty('visibility','hidden','important');
-  try{
-    const url=await transparentLogo();
-    el.src=url;
-    el.dataset.yardonPrepared='1';
-    el.style.setProperty('mix-blend-mode','normal');
-  }catch(_){
-    el.src=LOGO;
-    el.style.setProperty('mix-blend-mode','screen');
-  }finally{
-    delete el.dataset.yardonPreparing;
-    el.style.removeProperty('visibility');
-  }
+  el.style.setProperty('mix-blend-mode','screen');
+  const run=async()=>{
+    try{
+      const url=await transparentLogo();
+      el.src=url;
+      el.dataset.yardonPrepared='1';
+      el.style.setProperty('mix-blend-mode','normal');
+    }catch(_){
+      el.src=LOGO;
+      el.style.setProperty('mix-blend-mode','screen');
+    }finally{
+      delete el.dataset.yardonPreparing;
+    }
+  };
+  if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:900});
+  else setTimeout(run,120);
 }
 function patchElement(el){
   if(!(el instanceof Element))return;
@@ -404,7 +460,6 @@ function patchElement(el){
       el.style.setProperty('background','transparent','important');
       el.style.setProperty('box-shadow','none','important');
       el.style.setProperty('mix-blend-mode','screen');
-      el.style.setProperty('animation','yardonBrandPulse 2.25s ease-in-out infinite');
       const host=el.closest('.brand-combo,.home-menu-brand,.yardon-topbar-brand,.login-logo-combo,.yardivo-welcome-logo-wrap,.ysp-head,.ysp-header,.ysp-top,.ysp-nav,.sidebar,.topbar,[class*="brand"],[class*="logo"]');
       if(host){
         host.classList.add('yardon-role-brand-wrap');
