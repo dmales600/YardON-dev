@@ -124,9 +124,8 @@ style.textContent=`
   object-fit:contain!important;
   background:transparent!important;
   mix-blend-mode:normal;
-  filter:drop-shadow(0 0 10px rgba(0,190,255,.28));
+  filter:none;
   transform:translate3d(0,0,0);
-  animation:yardonLogoBreathe 2.8s ease-in-out infinite;
   will-change:transform,opacity;
   backface-visibility:hidden;
 }
@@ -158,7 +157,7 @@ style.textContent=`
 #yardivoWelcomeSplash .yardon-blue{
   color:#09b8ff!important;
   font-weight:900!important;
-  animation:yardonTextPulse 2.05s ease-in-out infinite;
+  text-shadow:0 0 10px rgba(0,190,255,.38),0 0 24px rgba(0,120,255,.18);
 }
 
 #yardivoWelcomeSplash .yardivo-welcome-sub{
@@ -330,7 +329,7 @@ img[data-yardon-runtime-logo="1"]{
   pointer-events:none;
   z-index:1;
   opacity:1;
-  animation:yardonSplashDissolve 2s ease forwards!important;
+  animation:yardonSplashDissolve 2.55s ease forwards!important;
   will-change:opacity;
 }
 #yardivoWelcomeSplash.yardon-split-reveal .yardivo-welcome-inner{
@@ -355,7 +354,7 @@ img[data-yardon-runtime-logo="1"]{
   background:radial-gradient(ellipse at center,rgba(0,205,255,.38) 0%,rgba(0,118,255,.16) 40%,rgba(0,70,170,0) 74%);
   opacity:.88;
   will-change:opacity,transform;
-  animation:yardonBrandPulse 1.8s ease-in-out infinite;
+  animation:yardonBrandPulse 2.6s ease-in-out infinite;
 }
 #yardivoWelcomeSplash .yardon-split-stage::after{
   content:"";
@@ -375,17 +374,17 @@ img[data-yardon-runtime-logo="1"]{
   max-width:92vw!important;
   height:auto!important;
   object-fit:contain!important;
-  filter:drop-shadow(0 0 10px rgba(0,205,255,.30));
+  filter:none;
   will-change:transform,opacity;
   backface-visibility:hidden;
 }
 #yardivoWelcomeSplash .yardon-split-half.left{
   clip-path:inset(0 50% 0 0);
-  animation:yardonSplitLeft 2s cubic-bezier(.19,.72,.17,1) forwards!important;
+  animation:yardonSplitLeft 2.55s cubic-bezier(.16,.78,.18,1) forwards!important;
 }
 #yardivoWelcomeSplash .yardon-split-half.right{
   clip-path:inset(0 0 0 50%);
-  animation:yardonSplitRight 2s cubic-bezier(.19,.72,.17,1) forwards!important;
+  animation:yardonSplitRight 2.55s cubic-bezier(.16,.78,.18,1) forwards!important;
 }
 .login-screen.yardon-login-arrive,
 .login-overlay.yardon-login-arrive,
@@ -395,7 +394,7 @@ img[data-yardon-runtime-logo="1"]{
 [data-login-screen].yardon-login-arrive{
   transform:perspective(1200px) translateZ(-720px) scale(.42)!important;
   opacity:0!important;
-  transition:transform 1.75s cubic-bezier(.16,.84,.18,1),opacity .78s ease!important;
+  transition:transform 2.25s cubic-bezier(.14,.82,.16,1),opacity 1.15s ease!important;
   will-change:transform,opacity;
   backface-visibility:hidden;
 }
