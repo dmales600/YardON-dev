@@ -13,7 +13,7 @@
 .hidden{display:none!important}.wrap{max-width:760px;margin:0 auto}.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:16px;margin:10px 0;box-shadow:0 14px 40px rgba(0,0,0,.26)}
 button,input,select{font:inherit}button{border:0;border-radius:12px;padding:13px 16px;font-weight:950;cursor:pointer}button.primary{background:linear-gradient(180deg,#57adff,#2f86e6);color:#04111f}button.secondary{background:#0c1d2e;color:var(--text);border:1px solid #2b4f7d}button.success{background:#123b29;color:#caffdf;border:1px solid #2d865b}button.warn{background:#4b3810;color:#ffe7a3;border:1px solid #987229}button.danger{background:#42141a;color:#ffd2d6;border:1px solid #9a3944}button:disabled{opacity:.45;cursor:not-allowed}
 input,select{width:100%;padding:13px 12px;border-radius:12px;border:1px solid #2b4f7d;background:#081729;color:var(--text);outline:none}label{display:block;font-size:10px;color:var(--muted);font-weight:900;margin:8px 0 6px}
-.auth{position:fixed;inset:0;z-index:100;background:radial-gradient(700px 380px at 50% 0,rgba(52,139,226,.22),transparent 70%),#07111b;display:flex;align-items:center;justify-content:center;padding:20px}.login-box{width:min(430px,100%)}.login-brand{text-align:center;margin-bottom:22px}.logo{width:76px;height:76px;margin:0 auto 14px;border-radius:23px;display:grid;place-items:center;background:linear-gradient(145deg,#122b40,#0b1a28);border:1px solid #2f5f7d;box-shadow:0 18px 50px rgba(0,0,0,.35);font-size:29px;font-weight:1000;color:#68bdff}.login-brand h1{margin:0;font-size:25px}.login-brand p{margin:7px 0 0;color:#7895a7;font-size:11px}.login-panel{padding:18px;border-radius:20px;background:linear-gradient(180deg,#102235,#0b1825);border:1px solid #24465c;box-shadow:0 22px 60px rgba(0,0,0,.32)}.login-panel button{width:100%;margin-top:14px}.error{margin-top:10px;padding:11px;border:1px solid #8b3842;background:#2d1115;color:#ffbbc1;border-radius:12px;font-size:10px;font-weight:900}
+.auth{position:fixed;inset:0;z-index:100;background:radial-gradient(700px 380px at 50% 0,rgba(52,139,226,.22),transparent 70%),#07111b;display:flex;align-items:center;justify-content:center;padding:20px}.login-box{width:min(430px,100%)}.login-brand{text-align:center;margin-bottom:22px}.logo{width:min(300px,78vw);height:auto;margin:0 auto 14px;display:block;object-fit:contain;filter:drop-shadow(0 14px 34px rgba(0,174,255,.16))}.login-brand h1{margin:0;font-size:25px}.login-brand p{margin:7px 0 0;color:#7895a7;font-size:11px}.login-panel{padding:18px;border-radius:20px;background:linear-gradient(180deg,#102235,#0b1825);border:1px solid #24465c;box-shadow:0 22px 60px rgba(0,0,0,.32)}.login-panel button{width:100%;margin-top:14px}.error{margin-top:10px;padding:11px;border:1px solid #8b3842;background:#2d1115;color:#ffbbc1;border-radius:12px;font-size:10px;font-weight:900}
 .welcome{position:fixed;inset:0;z-index:110;background:linear-gradient(180deg,#0b1d2d,#07111b);display:none;align-items:center;justify-content:center;padding:22px;text-align:center}.welcome.show{display:flex}.welcome-inner{width:min(430px,100%)}.welcome h2{font-size:25px;margin:18px 0 6px}.welcome p{color:#8ca6b7;font-size:12px}.progress{height:10px;background:#132b3a;border-radius:999px;overflow:hidden;margin-top:24px}.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#45a6ff,#45e487);transition:width .18s ease}.pct{margin-top:8px;color:#7f9aae;font-size:10px;font-weight:950}.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:13px}.step{padding:8px 4px;border:1px solid #20394b;border-radius:9px;color:#617d8f;font-size:7px;font-weight:1000}.step.active{border-color:#3f92c8;color:#d9f1ff;background:#0d2637}.step.done{border-color:#327f60;color:#bdf2d3;background:#0c251c}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 4px}.brand h1{font-size:18px;margin:0}.brand small{color:var(--blue);font-weight:900}.status{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:950}.dot{width:9px;height:9px;border-radius:50%;background:var(--amber)}.status.ok .dot{background:var(--green)}.status.bad .dot{background:var(--red)}
 .toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px}.rolepill{font-size:9px;font-weight:950;color:#c6e4ff;background:#0c2541;border:1px solid #2f6fa8;padding:7px 9px;border-radius:999px}.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 180px}
@@ -39,7 +39,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 <body>
 <section id="auth" class="auth">
   <div class="login-box">
-    <div class="login-brand"><div class="logo">Y</div><h1>YardOn PRIJAM</h1><p id="loginContext">MOBILE · PRIJAVA</p></div>
+    <div class="login-brand"><img class="logo" src="../assets/yardon-logo.webp" alt="YardOn"><h1>YardOn PRIJAM</h1><p id="loginContext">MOBILE · PRIJAVA</p></div>
     <div class="login-panel">
       <label>KORISNIČKO IME</label><input id="username" autocomplete="username" autocapitalize="none">
       <label>LOZINKA</label><input id="password" type="password" autocomplete="current-password">
@@ -50,7 +50,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 </section>
 
 <section id="welcome" class="welcome" aria-hidden="true">
-  <div class="welcome-inner"><div class="logo">Y</div><h2 id="welcomeTitle">YardOn PRIJAM</h2><p id="welcomeSub">Priprema…</p>
+  <div class="welcome-inner"><img class="logo" src="../assets/yardon-logo.webp" alt="YardOn"><h2 id="welcomeTitle">YardOn PRIJAM</h2><p id="welcomeSub">Priprema…</p>
     <div class="progress"><i id="welcomeFill"></i></div><div id="welcomePct" class="pct">0%</div>
     <div class="steps"><div class="step" data-step="login">PRIJAVA</div><div class="step" data-step="scope">OVLASTI</div><div class="step" data-step="warehouse">SKLADIŠTE</div><div class="step" data-step="ready">SPREMNO</div></div>
   </div>
@@ -59,7 +59,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 <div id="app" class="hidden">
 <div class="wrap">
   <div class="brand">
-    <div><h1>YardOn · MOBILE</h1><small>PRIJAM / SCANNER · V3</small></div>
+    <div style="display:flex;align-items:center;gap:10px"><img src="../assets/yardon-logo.webp" alt="YardOn" style="width:150px;max-width:34vw;height:auto;object-fit:contain"><div><h1>YardOn · MOBILE</h1><small>PRIJAM / SCANNER · v1.0</small></div></div>
     <div id="netStatus" class="status"><span class="dot"></span><span>SPREMAN</span></div>
   </div>
 

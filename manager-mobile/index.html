@@ -94,14 +94,14 @@ button{cursor:pointer}
 .auth{position:fixed;inset:0;z-index:100;background:
  radial-gradient(700px 380px at 50% 0,rgba(52,139,226,.22),transparent 70%),#07111b;display:flex;align-items:center;justify-content:center;padding:20px}
 .login-box{width:min(430px,100%)}
-.login-brand{text-align:center;margin-bottom:22px}.login-logo{width:74px;height:74px;margin:0 auto 14px;border-radius:23px;display:grid;place-items:center;background:linear-gradient(145deg,#122b40,#0b1a28);border:1px solid #2f5f7d;box-shadow:0 18px 50px rgba(0,0,0,.35);font-size:28px;font-weight:1000;color:#68bdff}
+.login-brand{text-align:center;margin-bottom:22px}.login-logo{width:min(300px,78vw);height:auto;margin:0 auto 14px;display:block;object-fit:contain;filter:drop-shadow(0 14px 34px rgba(0,174,255,.16))}
 .login-brand h1{margin:0;font-size:25px;letter-spacing:-.02em}.login-brand p{margin:6px 0 0;color:#7895a7;font-size:11px}
 .login-panel{padding:17px;border-radius:20px;background:linear-gradient(180deg,#102235,#0b1825);border:1px solid #24465c;box-shadow:0 22px 60px rgba(0,0,0,.32)}
 .login-panel label{display:block;color:#839dac;font-size:9px;font-weight:1000;margin:10px 0 6px}.login-panel input{width:100%;padding:14px;border-radius:13px;border:1px solid #2a4c63;background:#081824;color:#fff;outline:none}.login-panel input:focus{border-color:#4aa7e7;box-shadow:0 0 0 3px rgba(74,167,231,.11)}
 .login-panel button{width:100%;margin-top:14px;border:0;border-radius:14px;padding:14px;background:linear-gradient(180deg,#62baff,#2c86d7);color:#04111a;font-weight:1000}
 .login-error{margin-top:10px;padding:11px;border:1px solid #8b3842;background:#2d1115;color:#ffbbc1;border-radius:12px;font-size:10px;font-weight:900;line-height:1.45}
 .welcome{position:fixed;inset:0;z-index:110;background:linear-gradient(180deg,#0b1d2d,#07111b);display:none;align-items:center;justify-content:center;padding:22px;text-align:center}
-.welcome.show{display:flex}.welcome-inner{width:min(420px,100%)}.welcome-logo{width:86px;height:86px;border-radius:28px;margin:0 auto 20px;display:grid;place-items:center;background:linear-gradient(145deg,#12324c,#0b1b2a);border:1px solid #3478a4;font-size:34px;font-weight:1000;color:#6bc0ff;box-shadow:0 20px 55px rgba(0,0,0,.35)}
+.welcome.show{display:flex}.welcome-inner{width:min(420px,100%)}.welcome-logo{width:min(320px,82vw);height:auto;margin:0 auto 20px;display:block;object-fit:contain;filter:drop-shadow(0 18px 42px rgba(0,174,255,.18))}
 .welcome h2{margin:0;font-size:26px}.welcome p{margin:8px 0 0;color:#8ca6b7;font-size:12px}.welcome-progress{margin-top:24px;height:9px;border-radius:999px;background:#132b3a;overflow:hidden}.welcome-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#45a6ff,#45e487);border-radius:999px}.welcome small{display:block;margin-top:9px;color:#6f899a;font-size:9px;font-weight:900;letter-spacing:.06em}
 
 /* ===== YardOn MOBILE MAPS V2 · desktop-faithful, touch optimized ===== */
@@ -240,7 +240,7 @@ button{cursor:pointer}
 <div id="auth" class="auth">
   <div class="login-box">
     <div class="login-brand">
-      <div class="login-logo">Y</div>
+      <img class="login-logo" src="../assets/yardon-logo.webp" alt="YardOn">
       <h1>YardOn MANAGER</h1>
       <p>Mobile Operations</p>
     </div>
@@ -257,7 +257,7 @@ button{cursor:pointer}
 
 <div id="welcome" class="welcome">
   <div class="welcome-inner">
-    <div class="welcome-logo">Y</div>
+    <img class="welcome-logo" src="../assets/yardon-logo.webp" alt="YardOn">
     <h2 id="welcomeTitle">DOBRODOŠLI</h2>
     <p id="welcomeSub">Učitavam vašu lokaciju i operativne podatke…</p>
     <div class="welcome-progress"><i id="welcomeFill"></i></div>
@@ -267,7 +267,7 @@ button{cursor:pointer}
 
 <div id="app" class="app hidden">
   <header class="topbar">
-    <div class="brand"><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS</span></div>
+    <div class="brand" style="display:flex;align-items:center;gap:9px"><img src="../assets/yardon-logo.webp" alt="YardOn" style="width:140px;max-width:35vw;height:auto;object-fit:contain"><div><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS · v1.0</span></div></div>
     <div id="dbStatus" class="top-status"><i></i><span>SPAJANJE</span></div>
   </header>
   <div id="scopeControls" class="scope-controls">
