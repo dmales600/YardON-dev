@@ -6,7 +6,7 @@ let finished=false;
 let transitioning=false;
 let rafId=0;
 const WELCOME_MS=4200;
-const FINAL_REVEAL_MS=2000;
+const FINAL_REVEAL_MS=2550;
 
 function loginNode(){
   return document.getElementById('loginScreen')
@@ -25,7 +25,7 @@ function mountLoginBehind(){
     login.style.visibility='visible';
     login.style.opacity='0';
     login.setAttribute('aria-hidden','false');
-    setTimeout(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')),180);
+    setTimeout(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')),240);
   }
   document.documentElement.classList.add('yardivo-login-ready');
   return login;
@@ -134,17 +134,18 @@ function start(){
   function tick(now){
     if(finished||transitioning)return;
     const elapsed=now-startedAt;
-    const value=Math.min(100,Math.round((elapsed/WELCOME_MS)*100));
+    const ratio=Math.min(1,elapsed/WELCOME_MS);
+    const value=Math.min(100,Math.floor(ratio*100));
+    bar.style.transform='translateZ(0) scaleX('+ratio+')';
     if(value!==lastValue){
       lastValue=value;
-      bar.style.transform='scaleX('+(value/100)+')';
       pct.textContent=value+'%';
       while(stage<stages.length&&value>=stages[stage][0]){
         if(status)status.textContent=stages[stage][1];
         stage++;
       }
     }
-    if(value>=100){
+    if(ratio>=1){
       rafId=0;
       startSplitReveal();
       return;
