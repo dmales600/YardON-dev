@@ -207,12 +207,10 @@ jobs:
                 background:cs.backgroundColor,mixBlendMode:cs.mixBlendMode,filter:cs.filter};
             }).catch(()=>null);
             assert(!!loginLogoState, `${name}: login YardOn logo missing`);
-            const loginGlowCount = await page.locator('.login-logo-combo .yardon-logo-glow').count();
-            assert(loginGlowCount===2, `${name}: login targeted glow layers missing: ${loginGlowCount}`);
             const loginGlowState = await page.locator('.login-logo-combo .yardon-logo-glow').evaluateAll(nodes =>
-              nodes.map(n => ({opacity:Number(getComputedStyle(n).opacity),filter:getComputedStyle(n).filter}))
+              nodes.map(n => ({display:getComputedStyle(n).display,opacity:Number(getComputedStyle(n).opacity),filter:getComputedStyle(n).filter}))
             );
-            assert(loginGlowState.some(s => s.opacity > 0.4 && s.filter.includes('drop-shadow')), `${name}: login blue glow not visibly active: ${JSON.stringify(loginGlowState)}`);
+            assert(loginGlowState.every(s => s.display==='none' || s.opacity===0), `${name}: legacy rectangular login glow overlays are still visible: ${JSON.stringify(loginGlowState)}`);
             if(loginLogoState){
               assert(/yardon-logo-exact\.webp/i.test(loginLogoState.src), `${name}: wrong canonical login logo source: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.complete && loginLogoState.naturalWidth>0 && loginLogoState.naturalHeight>0, `${name}: login logo asset broken: ${JSON.stringify(loginLogoState)}`);
