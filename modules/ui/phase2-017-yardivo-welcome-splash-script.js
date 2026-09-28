@@ -282,6 +282,13 @@ async function startSplitReveal(){
       half.style.setProperty('mix-blend-mode','normal','important');
     }
 
+    for(const half of [left,right]){
+      half.style.setProperty('animation','none','important');
+      half.style.setProperty('visibility','visible','important');
+      half.style.setProperty('opacity','1','important');
+      half.style.setProperty('z-index','7','important');
+    }
+
     stage.append(left,right);
     splash.appendChild(stage);
 
@@ -294,14 +301,45 @@ async function startSplitReveal(){
       ]);
     }catch(_){}
 
+    splash.classList.add('yardon-split-reveal');
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+
     source.classList.add('yardon-split-source-hidden');
     source.style.setProperty('visibility','hidden','important');
     source.style.setProperty('opacity','0','important');
+
+    // Own the actual split motion in JS so later brand CSS cannot accidentally
+    // override/remove the center-opening animation.
+    const splitOptions={
+      duration:FINAL_REVEAL_MS,
+      easing:'cubic-bezier(.14,.76,.16,1)',
+      fill:'forwards'
+    };
+    try{
+      left.animate([
+        {transform:'translate3d(0,0,0) scale(1.03)',opacity:1},
+        {transform:'translate3d(-1vw,0,0) scale(1.08)',opacity:1,offset:.18},
+        {transform:'translate3d(-20vw,0,0) scale(1.28)',opacity:.96,offset:.58},
+        {transform:'translate3d(-62vw,0,0) scale(1.68)',opacity:.04}
+      ],splitOptions);
+      right.animate([
+        {transform:'translate3d(0,0,0) scale(1.03)',opacity:1},
+        {transform:'translate3d(1vw,0,0) scale(1.08)',opacity:1,offset:.18},
+        {transform:'translate3d(20vw,0,0) scale(1.28)',opacity:.96,offset:.58},
+        {transform:'translate3d(62vw,0,0) scale(1.68)',opacity:.04}
+      ],splitOptions);
+    }catch(_){
+      left.style.setProperty('animation','yardonSplitLeft '+FINAL_REVEAL_MS+'ms cubic-bezier(.14,.76,.16,1) forwards','important');
+      right.style.setProperty('animation','yardonSplitRight '+FINAL_REVEAL_MS+'ms cubic-bezier(.14,.76,.16,1) forwards','important');
+    }
+  }else{
+    splash?.classList.add('yardon-split-reveal');
   }
 
-  mountLoginBehind();
-  requestAnimationFrame(()=>requestAnimationFrame(()=>splash?.classList.add('yardon-split-reveal')));
-  setTimeout(finishReveal,FINAL_REVEAL_MS+70);
+  // Let the center split become clearly visible before the login begins advancing
+  // from depth behind it.
+  setTimeout(()=>{if(!finished)mountLoginBehind()},180);
+  setTimeout(finishReveal,FINAL_REVEAL_MS+90);
 }
 
 function forceReveal(){
