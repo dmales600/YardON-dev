@@ -337,10 +337,69 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 .mobile-boot.splitting .mobile-boot-inner{visibility:hidden!important}
 
 </style>
+
+<style id="yardon-mobile-cinematic-v1">
+@keyframes yardonMobileLogoGlow{
+  0%,100%{filter:drop-shadow(0 0 3px rgba(0,190,255,.28)) drop-shadow(0 0 8px rgba(0,110,255,.18))}
+  50%{filter:drop-shadow(0 0 7px rgba(0,215,255,.58)) drop-shadow(0 0 16px rgba(0,125,255,.34))}
+}
+.yardon-mobile-cinematic{
+  background:
+    radial-gradient(ellipse at 50% 38%,rgba(0,104,184,.18) 0%,rgba(0,52,104,.08) 38%,rgba(0,18,34,0) 68%),
+    linear-gradient(180deg,#061827 0%,#03111e 64%,#020c15 100%)!important;
+}
+.yardon-mobile-cinematic .mobile-boot-inner{position:relative!important;perspective:1050px!important;transform-style:preserve-3d!important}
+.yardon-mobile-cinematic .mobile-boot-full{visibility:hidden!important;opacity:0!important;animation:none!important;filter:none!important}
+.yardon-mobile-cinematic.yardon-mobile-logo-ready .mobile-boot-full{
+  visibility:visible!important;opacity:1!important;
+  animation:yardonMobileLogoGlow 2.8s ease-in-out infinite!important;
+}
+.yardon-mobile-cinematic .mobile-boot-title,
+.yardon-mobile-cinematic .mobile-boot-copy{display:none!important}
+.yardon-mobile-cinematic .mobile-boot-sub{
+  min-height:24px!important;margin:8px auto 19px!important;
+  color:#f7fbff!important;font-size:11px!important;font-weight:600!important;
+  letter-spacing:.20em!important;line-height:1.65!important;text-transform:uppercase!important;
+  text-shadow:0 0 10px rgba(130,210,255,.16)!important;
+}
+.yardon-mobile-cinematic .mobile-boot-progress,
+.yardon-mobile-cinematic .mobile-boot-meta{
+  opacity:0!important;transform:translate3d(0,7px,0)!important;
+  transition:opacity .32s ease,transform .32s ease!important;
+}
+.yardon-mobile-cinematic.yardon-mobile-progress-ready .mobile-boot-progress,
+.yardon-mobile-cinematic.yardon-mobile-progress-ready .mobile-boot-meta{
+  opacity:1!important;transform:translate3d(0,0,0)!important;
+}
+.yardon-mobile-letter-stage{
+  position:absolute!important;inset:0!important;z-index:6!important;pointer-events:none!important;
+  perspective:1050px!important;transform-style:preserve-3d!important;
+}
+.yardon-mobile-letter-slice{
+  position:absolute!important;left:50%!important;top:50%!important;
+  width:var(--yardon-mobile-logo-width)!important;height:var(--yardon-mobile-logo-height)!important;
+  max-width:none!important;max-height:none!important;margin:0!important;
+  object-fit:contain!important;object-position:center center!important;
+  background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;
+  mix-blend-mode:normal!important;backface-visibility:hidden!important;
+  will-change:transform,opacity,filter!important;
+}
+#auth .login-brand img[data-yardon-logo]{
+  filter:drop-shadow(0 0 5px rgba(0,200,255,.54)) drop-shadow(0 0 14px rgba(0,115,255,.30))!important;
+}
+@media(max-width:430px){
+  .yardon-mobile-cinematic .mobile-boot-sub{font-size:10px!important;letter-spacing:.16em!important}
+  .yardon-mobile-cinematic .mobile-boot-progress{margin-top:18px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .yardon-mobile-cinematic .mobile-boot-full,
+  #auth .login-brand img[data-yardon-logo]{animation:none!important}
+}
+</style>
 </head>
 <body>
 
-<section id="mobileBoot" class="mobile-boot" aria-label="YardOn welcome screen">
+<section id="mobileBoot" class="mobile-boot yardon-mobile-cinematic" aria-label="YardOn welcome screen">
   <div class="mobile-boot-inner">
     <img class="mobile-boot-full" src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3" alt="YardOn" data-yardon-logo>
     <h1 id="mobileBootTitle" class="mobile-boot-title">WELCOME TO YARD<span class="yardon-on">ON</span></h1>
@@ -460,7 +519,11 @@ function prepareYardonMobileLogos(){
     img.style.setProperty('border','0','important');
     img.style.setProperty('outline','0','important');
     img.style.setProperty('box-shadow','none','important');
-    img.style.setProperty('filter','none','important');
+    if(img.closest('.login-brand')){
+      img.style.setProperty('filter','drop-shadow(0 0 5px rgba(0,200,255,.54)) drop-shadow(0 0 14px rgba(0,115,255,.30))','important');
+    }else{
+      img.style.setProperty('filter','none','important');
+    }
     img.style.setProperty('mix-blend-mode','normal','important');
   });
 }
@@ -468,10 +531,83 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function runLinkIntro(){
   const boot=$('mobileBoot'),fill=$('mobileBootFill'),pct=$('mobileBootPct'),statusEl=$('mobileBootStatus');
   if(!boot)return;
-  boot.classList.remove('hidden','full','zooming','splitting');
-  boot.classList.add('full');
-  $('auth')?.classList.remove('yardon-auth-logo-ready');
-  boot.querySelectorAll('.yardon-mobile-split-stage').forEach(n=>n.remove());
+
+  const full=boot.querySelector('.mobile-boot-full');
+  const sub=$('mobileBootSub');
+  const auth=$('auth');
+  const LOGO_POINTS=[22,36,48,60,72,86,100];
+  const SEGMENT_MS=520;
+  const TAGLINE='YARD MANAGEMENT SYSTEM';
+  const TAG_CHAR_MS=42;
+  const PROGRESS_MS=1450;
+
+  boot.classList.remove('hidden','full','zooming','splitting','yardon-mobile-logo-ready','yardon-mobile-progress-ready');
+  boot.classList.add('full','yardon-mobile-cinematic');
+  auth?.classList.remove('yardon-auth-logo-ready');
+  boot.querySelectorAll('.yardon-mobile-split-stage,.yardon-mobile-letter-stage').forEach(n=>n.remove());
+
+  if(full){
+    try{if(typeof full.decode==='function')await full.decode()}catch(_){}
+    full.style.setProperty('visibility','visible','important');
+    full.style.setProperty('opacity','1','important');
+    full.style.setProperty('clip-path','inset(0 100% 0 0)','important');
+    full.style.setProperty('-webkit-clip-path','inset(0 100% 0 0)','important');
+
+    const wrap=full.parentElement;
+    const rect=full.getBoundingClientRect();
+    const stage=document.createElement('div');
+    stage.className='yardon-mobile-letter-stage';
+    stage.style.setProperty('--yardon-mobile-logo-width',rect.width+'px');
+    stage.style.setProperty('--yardon-mobile-logo-height',rect.height+'px');
+    wrap.appendChild(stage);
+
+    const src=full.currentSrc||full.src||MOBILE_LOGO_DATA;
+    let startPct=0;
+    for(const endPct of LOGO_POINTS){
+      stage.replaceChildren();
+      const piece=document.createElement('img');
+      piece.className='yardon-mobile-letter-slice';
+      piece.alt='';piece.setAttribute('aria-hidden','true');
+      piece.decoding='async';piece.loading='eager';piece.src=src;
+      piece.style.setProperty('clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
+      piece.style.setProperty('-webkit-clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
+      stage.appendChild(piece);
+      try{if(typeof piece.decode==='function')await piece.decode()}catch(_){}
+
+      try{
+        const a=piece.animate([
+          {opacity:0,transform:'translate3d(-50%,-50%,-360px) scale(.70)',filter:'blur(8px) brightness(.60) saturate(1.7) drop-shadow(0 0 17px rgba(0,120,255,.82))'},
+          {opacity:.86,offset:.64,transform:'translate3d(-50%,-50%,-58px) scale(.95)',filter:'blur(1.5px) brightness(.94) saturate(1.25) drop-shadow(0 0 13px rgba(0,185,255,.60))'},
+          {opacity:1,transform:'translate3d(-50%,-50%,0) scale(1)',filter:'blur(0) brightness(1) saturate(1) drop-shadow(0 0 6px rgba(0,175,255,.34))'}
+        ],{duration:SEGMENT_MS,easing:'cubic-bezier(.16,.78,.18,1)',fill:'forwards'});
+        await a.finished.catch(()=>{});
+      }catch(_){await sleep(SEGMENT_MS)}
+
+      full.style.setProperty('clip-path',`inset(0 ${100-endPct}% 0 0)`,'important');
+      full.style.setProperty('-webkit-clip-path',`inset(0 ${100-endPct}% 0 0)`,'important');
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      stage.replaceChildren();
+      startPct=endPct;
+    }
+    full.style.removeProperty('clip-path');
+    full.style.removeProperty('-webkit-clip-path');
+    stage.remove();
+    boot.classList.add('yardon-mobile-logo-ready');
+  }
+
+  if(sub){
+    sub.textContent='';
+    sub.setAttribute('aria-label',TAGLINE);
+    await sleep(90);
+    for(let i=1;i<=TAGLINE.length;i++){
+      sub.textContent=TAGLINE.slice(0,i);
+      await sleep(TAG_CHAR_MS);
+    }
+  }
+
+  await sleep(120);
+  boot.classList.add('yardon-mobile-progress-ready');
+  await sleep(260);
 
   if(fill){
     try{fill.getAnimations?.().forEach(a=>a.cancel())}catch(_){}
@@ -479,42 +615,36 @@ async function runLinkIntro(){
     fill.style.transform='translate3d(0,0,0) scaleX(0)';
   }
   if(pct)pct.textContent='0%';
-  if(statusEl)statusEl.textContent='Initializing system';
+  if(statusEl)statusEl.textContent='Loading system';
 
-  const duration=2800;
-  const stages=[[18,'Loading interface'],[42,'Preparing modules'],[67,'Checking local settings'],[86,'Preparing login'],[100,'Ready']];
   let progressAnimation=null;
   if(fill){
     try{
       progressAnimation=fill.animate(
         [{transform:'translate3d(0,0,0) scaleX(0)'},{transform:'translate3d(0,0,0) scaleX(1)'}],
-        {duration,easing:'linear',fill:'forwards'}
+        {duration:PROGRESS_MS,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'}
       );
     }catch(_){}
   }
 
-  const start=performance.now();
-  let lastP=0,stageIndex=0,progressDone=false;
-  const tick=now=>{
-    if(progressDone)return;
-    const ratio=Math.min(1,(now-start)/duration);
-    const p=Math.min(100,Math.floor(ratio*100));
-    if(!progressAnimation&&fill)fill.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
-    if(p===100||p>=lastP+2){lastP=p;if(pct)pct.textContent=p+'%';}
-    while(stageIndex<stages.length&&p>=stages[stageIndex][0]){if(statusEl)statusEl.textContent=stages[stageIndex][1];stageIndex++;}
-    if(ratio<1)requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
-  await sleep(duration);
-  progressDone=true;
+  const progressStart=performance.now();
+  await new Promise(resolve=>{
+    const tick=now=>{
+      const ratio=Math.min(1,(now-progressStart)/PROGRESS_MS);
+      const n=Math.min(100,Math.floor(ratio*100));
+      if(!progressAnimation&&fill)fill.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
+      if(pct)pct.textContent=n+'%';
+      if(ratio>=1){resolve();return}
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
 
   try{progressAnimation?.finish?.()}catch(_){}
   if(fill)fill.style.transform='translate3d(0,0,0) scaleX(1)';
   if(pct)pct.textContent='100%';
   if(statusEl)statusEl.textContent='Ready';
-
-  const full=boot.querySelector('.mobile-boot-full');
-  const auth=$('auth');
+  await sleep(100);
 
   if(full){
     const bootRect=boot.getBoundingClientRect(),rect=full.getBoundingClientRect();
@@ -531,18 +661,18 @@ async function runLinkIntro(){
     const left=document.createElement('img'),right=document.createElement('img');
     left.className='yardon-mobile-split-half left';right.className='yardon-mobile-split-half right';
     left.src=src;right.src=src;left.alt='';right.alt='';
+    left.decoding='async';right.decoding='async';
     for(const half of [left,right]){
       half.style.setProperty('left',(rect.left-bootRect.left)+'px','important');
       half.style.setProperty('top',(rect.top-bootRect.top)+'px','important');
       half.style.setProperty('width',rect.width+'px','important');
       half.style.setProperty('height',rect.height+'px','important');
     }
-    stage.append(left,right);
-    boot.appendChild(stage);
+    stage.append(left,right);boot.appendChild(stage);
+    try{await Promise.all([left.decode?.().catch(()=>{}),right.decode?.().catch(()=>{})])}catch(_){}
   }
 
   boot.classList.add('splitting');
-
   if(auth){
     auth.classList.remove('hidden','yardon-auth-logo-ready');
     auth.classList.add('yardon-auth-arrive');
@@ -551,14 +681,16 @@ async function runLinkIntro(){
   }
 
   await sleep(1850);
-
   boot.classList.add('hidden');
-  boot.querySelectorAll('.yardon-mobile-split-stage').forEach(n=>n.remove());
+  boot.querySelectorAll('.yardon-mobile-split-stage,.yardon-mobile-letter-stage').forEach(n=>n.remove());
   boot.classList.remove('splitting','zooming');
+
   if(auth){
     auth.classList.add('yardon-auth-logo-ready');
     auth.classList.remove('yardon-auth-arrive','yardon-auth-arrive-active');
     auth.style.opacity='1';auth.style.visibility='visible';
+    const loginLogo=auth.querySelector('.login-brand img[data-yardon-logo]');
+    if(loginLogo)loginLogo.style.setProperty('filter','drop-shadow(0 0 5px rgba(0,200,255,.54)) drop-shadow(0 0 14px rgba(0,115,255,.30))','important');
   }
 }
 function today(){
