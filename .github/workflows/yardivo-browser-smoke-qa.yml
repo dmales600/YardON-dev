@@ -102,16 +102,15 @@ jobs:
             });
             assert(resp && resp.ok(), `${name}: index HTTP response not OK`);
 
-            // During the staggered logo reveal, future segments must stay hidden until their turn.
+            // Strict sequential reveal: future letters must not exist in the DOM before their turn.
             const revealStage = page.locator('#yardivoWelcomeSplash .yardon-letter-reveal-stage');
             await revealStage.waitFor({ state:'attached', timeout:2500 }).catch(()=>{});
             if (await revealStage.count()) {
-              const segmentState = await page.locator('#yardivoWelcomeSplash .yardon-intro-logo-segment').evaluateAll(nodes =>
-                nodes.map(n => ({ opacity:Number(getComputedStyle(n).opacity), transform:getComputedStyle(n).transform }))
-              );
-              assert(segmentState.length >= 7, `${name}: incomplete logo reveal segment set: ${JSON.stringify(segmentState)}`);
-              const future = segmentState.slice(-2);
-              assert(future.every(s => s.opacity < 0.05), `${name}: future logo letters visible before their stagger: ${JSON.stringify(segmentState)}`);
+              const initialSegments = await page.locator('#yardivoWelcomeSplash .yardon-intro-logo-segment').count();
+              assert(initialSegments <= 1, `${name}: future logo segments exist too early: ${initialSegments}`);
+              await page.waitForTimeout(900);
+              const earlySegments = await page.locator('#yardivoWelcomeSplash .yardon-intro-logo-segment').count();
+              assert(earlySegments <= 2, `${name}: logo reveal is leaking future letters on the right: ${earlySegments}`);
             }
 
             // Desktop/mobile web intro must use one real transparent logo asset before split.
@@ -166,7 +165,7 @@ jobs:
             })).catch(()=>null);
             assert(!!progressBefore && progressBefore.opacity < 0.2 && !progressBefore.ready, `${name}: progress appeared before logo/tagline sequence: ${JSON.stringify(progressBefore)}`);
 
-            await page.waitForFunction(()=>document.documentElement.classList.contains('yardivo-welcome-complete'),null,{timeout:10000}).catch(()=>{});
+            await page.waitForFunction(()=>document.documentElement.classList.contains('yardivo-welcome-complete'),null,{timeout:14000}).catch(()=>{});
             await page.waitForTimeout(250);
             await page.locator('#loginUser').waitFor({ state:'visible', timeout:10000 }).catch(()=>{});
             
@@ -178,16 +177,21 @@ jobs:
               const r=i.getBoundingClientRect(),cs=getComputedStyle(i);
               return {src:i.getAttribute('src')||'',complete:i.complete,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,
                 width:r.width,height:r.height,display:cs.display,visibility:cs.visibility,opacity:Number(cs.opacity),
-                background:cs.backgroundColor,mixBlendMode:cs.mixBlendMode};
+                background:cs.backgroundColor,mixBlendMode:cs.mixBlendMode,filter:cs.filter};
             }).catch(()=>null);
             assert(!!loginLogoState, `${name}: login YardOn logo missing`);
             const loginGlowCount = await page.locator('.login-logo-combo .yardon-logo-glow').count();
             assert(loginGlowCount===2, `${name}: login targeted glow layers missing: ${loginGlowCount}`);
+            const loginGlowState = await page.locator('.login-logo-combo .yardon-logo-glow').evaluateAll(nodes =>
+              nodes.map(n => ({opacity:Number(getComputedStyle(n).opacity),filter:getComputedStyle(n).filter}))
+            );
+            assert(loginGlowState.some(s => s.opacity > 0.4 && s.filter.includes('drop-shadow')), `${name}: login blue glow not visibly active: ${JSON.stringify(loginGlowState)}`);
             if(loginLogoState){
               assert(/yardon-logo-exact\.webp/i.test(loginLogoState.src), `${name}: wrong canonical login logo source: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.complete && loginLogoState.naturalWidth>0 && loginLogoState.naturalHeight>0, `${name}: login logo asset broken: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.width>120 && loginLogoState.height>20 && loginLogoState.visibility!=='hidden' && loginLogoState.opacity>0, `${name}: login logo not visibly rendered: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.mixBlendMode==='normal', `${name}: login logo uses blend workaround: ${JSON.stringify(loginLogoState)}`);
+              assert(loginLogoState.filter && loginLogoState.filter.includes('drop-shadow'), `${name}: login base logo glow missing: ${JSON.stringify(loginLogoState)}`);
             }
 
             const roles = await page.locator('#loginRole option').evaluateAll(opts =>
