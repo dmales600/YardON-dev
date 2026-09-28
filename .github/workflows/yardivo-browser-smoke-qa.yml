@@ -102,12 +102,62 @@ jobs:
             });
             assert(resp && resp.ok(), `${name}: index HTTP response not OK`);
 
+            // Desktop/mobile web intro must use one real transparent logo asset before split.
+            const welcomeLogo = page.locator('#yardivoWelcomeSplash .yardon-welcome-logo');
+            await welcomeLogo.waitFor({ state:'visible', timeout:3000 }).catch(()=>{});
+            const welcomeState = await welcomeLogo.evaluate(async i => {
+              const r=i.getBoundingClientRect(),cs=getComputedStyle(i);
+              let darkOpaqueRatio=null, transparentRatio=null;
+              try{
+                if(typeof i.decode==='function')await i.decode().catch(()=>{});
+                const canvas=document.createElement('canvas');
+                canvas.width=i.naturalWidth;canvas.height=i.naturalHeight;
+                const ctx=canvas.getContext('2d',{willReadFrequently:true});
+                ctx.drawImage(i,0,0);
+                const d=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+                let darkOpaque=0,transparent=0,total=d.length/4;
+                for(let p=0;p<d.length;p+=4){
+                  const a=d[p+3],m=Math.max(d[p],d[p+1],d[p+2]);
+                  if(a<8)transparent++;
+                  if(a>220&&m<24)darkOpaque++;
+                }
+                darkOpaqueRatio=total?darkOpaque/total:1;
+                transparentRatio=total?transparent/total:0;
+              }catch(_){}
+              return {
+                src:i.getAttribute('src')||'',
+                complete:i.complete,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,
+                width:r.width,height:r.height,display:cs.display,visibility:cs.visibility,
+                opacity:Number(cs.opacity),background:cs.backgroundColor,mixBlendMode:cs.mixBlendMode,
+                darkOpaqueRatio,transparentRatio
+              };
+            });
+            assert(/yardon-logo-transparent-mobile\.png/i.test(welcomeState.src), `${name}: wrong canonical welcome logo source: ${JSON.stringify(welcomeState)}`);
+            assert(welcomeState.complete && welcomeState.naturalWidth>0 && welcomeState.naturalHeight>0, `${name}: welcome logo asset broken: ${JSON.stringify(welcomeState)}`);
+            assert(welcomeState.width>120 && welcomeState.height>20 && welcomeState.visibility!=='hidden' && welcomeState.opacity>0, `${name}: welcome logo not visible: ${JSON.stringify(welcomeState)}`);
+            assert(welcomeState.mixBlendMode==='normal', `${name}: welcome logo uses blend workaround: ${JSON.stringify(welcomeState)}`);
+            assert(welcomeState.darkOpaqueRatio===null || welcomeState.darkOpaqueRatio<0.02, `${name}: welcome logo contains opaque dark frame: ${JSON.stringify(welcomeState)}`);
+            assert(welcomeState.transparentRatio===null || welcomeState.transparentRatio>0.20, `${name}: welcome logo is not materially transparent: ${JSON.stringify(welcomeState)}`);
+
             await page.locator('#loginUser').waitFor({ state:'visible', timeout:10000 }).catch(()=>{});
             
             assert(await page.locator('#loginUser').count() === 1, `${name}: #loginUser missing`);
             assert(await page.locator('#loginPass').count() === 1, `${name}: #loginPass missing`);
             assert(await page.locator('#loginRole').count() === 1, `${name}: #loginRole missing`);
             assert(await page.locator('#loginSubmitBtn').count() === 1, `${name}: #loginSubmitBtn missing`);
+            const loginLogoState = await page.locator('.login-logo-combo img').evaluate(i => {
+              const r=i.getBoundingClientRect(),cs=getComputedStyle(i);
+              return {src:i.getAttribute('src')||'',complete:i.complete,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,
+                width:r.width,height:r.height,display:cs.display,visibility:cs.visibility,opacity:Number(cs.opacity),
+                background:cs.backgroundColor,mixBlendMode:cs.mixBlendMode};
+            }).catch(()=>null);
+            assert(!!loginLogoState, `${name}: login YardOn logo missing`);
+            if(loginLogoState){
+              assert(/yardon-logo-transparent-mobile\.png/i.test(loginLogoState.src), `${name}: wrong canonical login logo source: ${JSON.stringify(loginLogoState)}`);
+              assert(loginLogoState.complete && loginLogoState.naturalWidth>0 && loginLogoState.naturalHeight>0, `${name}: login logo asset broken: ${JSON.stringify(loginLogoState)}`);
+              assert(loginLogoState.width>120 && loginLogoState.height>20 && loginLogoState.visibility!=='hidden' && loginLogoState.opacity>0, `${name}: login logo not visibly rendered: ${JSON.stringify(loginLogoState)}`);
+              assert(loginLogoState.mixBlendMode==='normal', `${name}: login logo uses blend workaround: ${JSON.stringify(loginLogoState)}`);
+            }
 
             const roles = await page.locator('#loginRole option').evaluateAll(opts =>
               opts.map(o => o.value).filter(Boolean)
