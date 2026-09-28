@@ -331,7 +331,34 @@ jobs:
             assert(bootLogoState.display !== 'none' && bootLogoState.visibility !== 'hidden' && Number(bootLogoState.opacity) > 0 && bootLogoState.width > 120 && bootLogoState.height > 20, `${name}: welcome logo not visibly rendered: ${JSON.stringify(bootLogoState)}`);
             assert(!String(bootLogoState.filter||'').includes('blur('), `${name}: canonical mobile logo is blurred instead of sharp: ${JSON.stringify(bootLogoState)}`);
 
-            await page.locator(authSelector).waitFor({ state:'visible', timeout:10000 }).catch(()=>{});
+            const bootBg = await boot.evaluate(el => getComputedStyle(el).backgroundImage);
+            assert(/yardon-desktop-welcome-login-bg\.webp/i.test(bootBg), `${name}: exact desktop-parity background missing on mobile welcome: ${bootBg}`);
+
+            const taglineAtStart = ((await page.locator('#mobileBootSub').textContent().catch(()=>'')) || '').trim();
+            assert(taglineAtStart==='', `${name}: mobile tagline visible before logo reveal completes: ${JSON.stringify(taglineAtStart)}`);
+            await page.waitForFunction(()=>document.getElementById('mobileBoot')?.classList.contains('yardon-mobile-logo-ready'),null,{timeout:8000}).catch(()=>{});
+            assert(await boot.evaluate(el=>el.classList.contains('yardon-mobile-logo-ready')).catch(()=>false), `${name}: mobile logo reveal never completed`);
+            await page.waitForFunction(()=>document.getElementById('mobileBootSub')?.textContent?.trim()==='YARD MANAGEMENT SYSTEM',null,{timeout:3500}).catch(()=>{});
+            const taglineDone = ((await page.locator('#mobileBootSub').textContent().catch(()=>'')) || '').trim();
+            assert(taglineDone==='YARD MANAGEMENT SYSTEM', `${name}: mobile tagline did not type after logo reveal: ${JSON.stringify(taglineDone)}`);
+
+            await page.waitForFunction(()=>document.getElementById('mobileBoot')?.classList.contains('splitting'),null,{timeout:6000}).catch(()=>{});
+            assert(await boot.evaluate(el=>el.classList.contains('splitting')).catch(()=>false), `${name}: mobile split state never started`);
+            const depthStart = await page.locator(authSelector + ' .login-box').evaluate(el=>{
+              const r=el.getBoundingClientRect(),cs=getComputedStyle(el),auth=getComputedStyle(el.closest('.auth'));
+              return {width:r.width,height:r.height,opacity:Number(cs.opacity),transform:cs.transform,authOpacity:Number(auth.opacity),authBg:auth.backgroundImage};
+            }).catch(()=>null);
+            assert(!!depthStart && depthStart.opacity>0.15 && depthStart.transform!=='none', `${name}: login is not visible in distant depth during split: ${JSON.stringify(depthStart)}`);
+            assert(/yardon-desktop-welcome-login-bg\.webp/i.test(depthStart?.authBg||''), `${name}: exact background missing on mobile login: ${JSON.stringify(depthStart)}`);
+            await page.waitForTimeout(420);
+            const depthMoved = await page.locator(authSelector + ' .login-box').evaluate(el=>{
+              const r=el.getBoundingClientRect(),cs=getComputedStyle(el);
+              return {width:r.width,height:r.height,opacity:Number(cs.opacity),transform:cs.transform};
+            }).catch(()=>null);
+            assert(!!depthMoved && depthMoved.width > depthStart.width + 8 && depthMoved.opacity >= depthStart.opacity,
+              `${name}: mobile login did not advance toward user during split: ${JSON.stringify({depthStart,depthMoved})}`);
+
+            await page.locator(authSelector).waitFor({ state:'visible', timeout:14000 }).catch(()=>{});
             assert(await page.locator(authSelector).isVisible().catch(()=>false), `${name}: auth screen not visible after intro`);
 
             // Login intentionally starts arriving while the logo is still splitting.
