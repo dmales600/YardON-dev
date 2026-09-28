@@ -356,20 +356,254 @@ button{cursor:pointer}
 .mobile-boot .yardon-mobile-split-half.right{clip-path:inset(0 0 0 50%);animation:yardonMobileSplitRight 3.15s cubic-bezier(.14,.76,.16,1) forwards}
 .auth.yardon-auth-arrive{display:flex!important;opacity:0;transform:perspective(1000px) translateZ(-650px) scale(.42);transition:transform 2.25s cubic-bezier(.14,.82,.16,1),opacity 1.15s ease;will-change:transform,opacity;backface-visibility:hidden}
 .auth.yardon-auth-arrive.yardon-auth-arrive-active{opacity:1;transform:perspective(1000px) translateZ(0) scale(1)}
+
 .mobile-boot.splitting .mobile-boot-inner{visibility:hidden}
+
+/* YardOn v1.0 canonical mobile welcome — same flow as main app */
+.mobile-boot{
+  background:
+    radial-gradient(ellipse at 50% 38%,rgba(0,128,205,.34) 0%,rgba(3,51,89,.20) 38%,rgba(2,25,50,0) 70%),
+    linear-gradient(180deg,#071d30 0%,#031524 52%,#02111d 100%)!important;
+  padding:22px!important;
+  contain:layout paint!important;
+}
+.mobile-boot-inner{
+  width:min(520px,94vw)!important;
+  position:relative!important;
+  z-index:2!important;
+  transform:translateZ(0)!important;
+}
+.mobile-boot-mark{display:none!important}
+.mobile-boot-full{
+  display:block!important;
+  width:min(500px,91vw)!important;
+  max-width:91vw!important;
+  height:auto!important;
+  margin:0 auto 18px!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:translate3d(0,0,0)!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  image-rendering:auto!important;
+  will-change:auto!important;
+}
+.mobile-boot-inner::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:26%;
+  width:min(560px,112vw);
+  aspect-ratio:1.9/1;
+  transform:translate3d(-50%,-50%,0);
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(0,214,255,.27) 0%,rgba(0,124,255,.14) 42%,rgba(0,70,160,0) 76%);
+  pointer-events:none;
+  z-index:-1;
+  animation:yardonMobileGlow 3.2s ease-in-out infinite;
+  will-change:transform,opacity;
+}
+.mobile-boot-title{
+  margin:4px 0 0!important;
+  font-size:clamp(27px,7.6vw,40px)!important;
+  font-weight:1000!important;
+  line-height:1.02!important;
+  letter-spacing:-.025em!important;
+  color:#fff!important;
+  opacity:1!important;
+  transition:none!important;
+}
+.mobile-boot-title .yardon-on{color:#08bfff;text-shadow:0 0 12px rgba(0,190,255,.60),0 0 28px rgba(0,120,255,.28)}
+.mobile-boot-sub{
+  margin:8px 0 0!important;
+  color:rgba(220,235,250,.84)!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  letter-spacing:.18em!important;
+  text-transform:uppercase!important;
+  opacity:1!important;
+  transition:none!important;
+}
+.mobile-boot-copy{
+  margin:18px auto 0;
+  max-width:360px;
+  color:rgba(224,238,248,.88);
+  font-size:11px;
+  line-height:1.45;
+}
+.mobile-boot-progress{
+  width:min(430px,86vw)!important;
+  height:5px!important;
+  margin:22px auto 0!important;
+  border-radius:999px!important;
+  background:rgba(7,40,65,.86)!important;
+  border:1px solid rgba(78,177,235,.30)!important;
+  overflow:hidden!important;
+  opacity:1!important;
+  transition:none!important;
+}
+.mobile-boot-progress i{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  border-radius:999px!important;
+  background:linear-gradient(90deg,#19c8ff 0%,#1676ff 100%)!important;
+  box-shadow:0 0 10px rgba(0,190,255,.42)!important;
+  transform:translate3d(0,0,0) scaleX(0);
+  transform-origin:left center!important;
+  will-change:transform!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+}
+.mobile-boot-meta{
+  width:min(430px,86vw);
+  margin:6px auto 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  color:#6f91aa;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.mobile-boot-pct{
+  margin:0!important;
+  color:#9fc9e3!important;
+  font-size:8px!important;
+  font-weight:950!important;
+  letter-spacing:.08em!important;
+  opacity:1!important;
+}
+@keyframes yardonMobileBackdropFade{
+  0%,8%{opacity:1}
+  62%{opacity:.10}
+  100%{opacity:0}
+}
+@keyframes yardonMobileSplitLeft{
+  0%{transform:translate3d(0,0,0) scale(1);opacity:1}
+  18%{transform:translate3d(-2vw,0,0) scale(1.02);opacity:1}
+  62%{transform:translate3d(-32vw,0,0) scale(1.18);opacity:.92}
+  100%{transform:translate3d(-74vw,0,0) scale(1.42);opacity:0}
+}
+@keyframes yardonMobileSplitRight{
+  0%{transform:translate3d(0,0,0) scale(1);opacity:1}
+  18%{transform:translate3d(2vw,0,0) scale(1.02);opacity:1}
+  62%{transform:translate3d(32vw,0,0) scale(1.18);opacity:.92}
+  100%{transform:translate3d(74vw,0,0) scale(1.42);opacity:0}
+}
+.mobile-boot .yardon-mobile-split-stage{
+  position:absolute!important;
+  inset:0!important;
+  z-index:5!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+  contain:layout paint!important;
+  transform:translateZ(0)!important;
+  backface-visibility:hidden!important;
+}
+.mobile-boot .yardon-mobile-split-stage::before{
+  content:"";
+  position:absolute;
+  left:var(--yardon-mobile-split-center-x,50%);
+  top:var(--yardon-mobile-split-center-y,50%);
+  width:min(620px,116vw);
+  aspect-ratio:1.8/1;
+  transform:translate3d(-50%,-50%,0);
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(0,220,255,.30) 0%,rgba(0,125,255,.12) 42%,rgba(0,70,160,0) 76%);
+  will-change:transform,opacity;
+  animation:yardonMobileGlow 2.2s ease-in-out infinite;
+}
+.mobile-boot .yardon-mobile-split-stage::after{
+  content:"";
+  position:absolute;
+  left:var(--yardon-mobile-split-center-x,50%);
+  top:var(--yardon-mobile-split-center-y,50%);
+  width:2px;
+  height:min(330px,42vh);
+  transform:translate3d(-50%,-50%,0);
+  background:linear-gradient(180deg,rgba(0,210,255,0),rgba(105,235,255,.96),rgba(0,145,255,.82),rgba(0,210,255,0));
+  box-shadow:0 0 12px rgba(0,220,255,.78),0 0 26px rgba(0,130,255,.42);
+  opacity:0;
+  animation:yardonMobileSeamFlash .55s ease-out forwards;
+}
+.mobile-boot.splitting{
+  background:transparent!important;
+}
+.mobile-boot.splitting::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,#071d30 0%,#031524 52%,#02111d 100%);
+  z-index:1;
+  pointer-events:none;
+  animation:yardonMobileBackdropFade 1.8s cubic-bezier(.18,.72,.16,1) forwards;
+  will-change:opacity;
+}
+.mobile-boot .yardon-mobile-split-half{
+  position:absolute!important;
+  left:var(--yardon-mobile-split-left,50%)!important;
+  top:var(--yardon-mobile-split-top,50%)!important;
+  width:var(--yardon-mobile-split-width,min(500px,91vw))!important;
+  height:var(--yardon-mobile-split-height,auto)!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  transform-origin:center center!important;
+  will-change:transform,opacity!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+}
+.mobile-boot .yardon-mobile-split-half.left{
+  clip-path:inset(0 50% 0 0);
+  animation:yardonMobileSplitLeft 1.8s cubic-bezier(.14,.76,.16,1) forwards!important;
+}
+.mobile-boot .yardon-mobile-split-half.right{
+  clip-path:inset(0 0 0 50%);
+  animation:yardonMobileSplitRight 1.8s cubic-bezier(.14,.76,.16,1) forwards!important;
+}
+.auth.yardon-auth-arrive{
+  display:flex!important;
+  opacity:0!important;
+  transform:perspective(1100px) translateZ(-680px) scale(.42)!important;
+  transition:transform 1.55s cubic-bezier(.12,.82,.14,1),opacity .48s ease-out!important;
+  will-change:transform,opacity!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+}
+.auth.yardon-auth-arrive.yardon-auth-arrive-active{
+  opacity:1!important;
+  transform:perspective(1100px) translateZ(0) scale(1)!important;
+}
+.mobile-boot.splitting .mobile-boot-inner{visibility:hidden!important}
 
 </style>
 </head>
 <body>
 
-<section id="mobileBoot" class="mobile-boot" aria-label="YardOn pokretanje">
+<section id="mobileBoot" class="mobile-boot" aria-label="YardOn welcome screen">
   <div class="mobile-boot-inner">
-    <div class="mobile-boot-mark" aria-label="YardOn"><img src="../assets/yardon-logo-transparent-mobile.png?v=20260928b" alt="" data-yardon-logo></div>
     <img class="mobile-boot-full" src="../assets/yardon-logo-transparent-mobile.png?v=20260928b" alt="YardOn" data-yardon-logo>
-    <h1 id="mobileBootTitle" class="mobile-boot-title">YardOn</h1>
-    <p id="mobileBootSub" class="mobile-boot-sub">Mobile Operations</p>
+    <h1 id="mobileBootTitle" class="mobile-boot-title">WELCOME TO YARD<span class="yardon-on">ON</span></h1>
+    <p id="mobileBootSub" class="mobile-boot-sub">Yard Management System</p>
+    <p class="mobile-boot-copy">Centralized yard operations, supplier visibility and dock coordination.</p>
     <div class="mobile-boot-progress"><i id="mobileBootFill"></i></div>
-    <div id="mobileBootPct" class="mobile-boot-pct">0%</div>
+    <div class="mobile-boot-meta"><span id="mobileBootStatus">Initializing system</span><span id="mobileBootPct" class="mobile-boot-pct">0%</span></div>
   </div>
 </section>
 <div id="auth" class="auth hidden">
@@ -513,7 +747,7 @@ button{cursor:pointer}
 
 <script>
 (()=>{'use strict';
-window.YardOn_MANAGER_MOBILE_BUILD='20260921-v6-explicit-login';
+window.YardOn_MANAGER_MOBILE_BUILD='20260928-v1.0-canonical-welcome';
 const BASE='https://rskticdbiovvgyocpzoc.supabase.co';
 const KEY='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
 const SYNC=BASE+'/functions/v1/yardivo-sync';
@@ -542,49 +776,121 @@ function prepareYardonMobileLogos(){
 }
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function runLinkIntro(){
-  const boot=$('mobileBoot'),fill=$('mobileBootFill'),pct=$('mobileBootPct'),title=$('mobileBootTitle'),sub=$('mobileBootSub');
+  const boot=$('mobileBoot'),fill=$('mobileBootFill'),pct=$('mobileBootPct'),statusEl=$('mobileBootStatus');
   if(!boot)return;
-  boot.classList.remove('hidden','full','zooming');
-  if(fill){fill.style.width='100%';fill.style.transform='scaleX(0)'}if(pct)pct.textContent='0%';
-  await sleep(2000);
+
+  boot.classList.remove('hidden','full','zooming','splitting');
   boot.classList.add('full');
-  if(title)title.textContent='YardOn';
-  if(sub)sub.textContent='VODITELJ · MOBILE';
-  const duration=1750,start=performance.now();let lastP=-1;
+  boot.querySelectorAll('.yardon-mobile-split-stage').forEach(n=>n.remove());
+
+  if(fill){
+    try{fill.getAnimations?.().forEach(a=>a.cancel())}catch(_){}
+    fill.style.width='100%';
+    fill.style.transform='translate3d(0,0,0) scaleX(0)';
+  }
+  if(pct)pct.textContent='0%';
+  if(statusEl)statusEl.textContent='Initializing system';
+
+  const duration=2800;
+  const stages=[
+    [18,'Loading interface'],
+    [42,'Preparing modules'],
+    [67,'Checking local settings'],
+    [86,'Preparing login'],
+    [100,'Ready']
+  ];
+
+  let progressAnimation=null;
+  if(fill){
+    try{
+      progressAnimation=fill.animate(
+        [
+          {transform:'translate3d(0,0,0) scaleX(0)'},
+          {transform:'translate3d(0,0,0) scaleX(1)'}
+        ],
+        {duration,easing:'linear',fill:'forwards'}
+      );
+    }catch(_){}
+  }
+
+  const start=performance.now();
+  let lastP=0,stageIndex=0;
   await new Promise(resolve=>{
     const tick=now=>{
       const ratio=Math.min(1,(now-start)/duration);
       const p=Math.min(100,Math.floor(ratio*100));
-      if(fill)fill.style.transform='translateZ(0) scaleX('+ratio+')';
-      if(p!==lastP){lastP=p;if(pct)pct.textContent=p+'%';}
+      if(!progressAnimation&&fill)fill.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
+
+      if(p===100||p>=lastP+2){
+        lastP=p;
+        if(pct)pct.textContent=p+'%';
+      }
+      while(stageIndex<stages.length&&p>=stages[stageIndex][0]){
+        if(statusEl)statusEl.textContent=stages[stageIndex][1];
+        stageIndex++;
+      }
+
       if(ratio>=1)return resolve();
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
   });
-  if(title)title.textContent='POZDRAV, VODITELJ';
-  if(sub)sub.textContent='YardOn je spreman';
-  await sleep(220);
+
+  try{progressAnimation?.finish?.()}catch(_){}
+  if(fill)fill.style.transform='translate3d(0,0,0) scaleX(1)';
+  if(pct)pct.textContent='100%';
+  if(statusEl)statusEl.textContent='Ready';
+
   const full=boot.querySelector('.mobile-boot-full');
   const auth=$('auth');
+
   if(full){
-    const stage=document.createElement('div');stage.className='yardon-mobile-split-stage';
-    const src=MOBILE_LOGO_DATA;
+    const bootRect=boot.getBoundingClientRect();
+    const rect=full.getBoundingClientRect();
+    const stage=document.createElement('div');
+    stage.className='yardon-mobile-split-stage';
+    stage.style.setProperty('--yardon-mobile-split-left',(rect.left-bootRect.left)+'px');
+    stage.style.setProperty('--yardon-mobile-split-top',(rect.top-bootRect.top)+'px');
+    stage.style.setProperty('--yardon-mobile-split-width',rect.width+'px');
+    stage.style.setProperty('--yardon-mobile-split-height',rect.height+'px');
+    stage.style.setProperty('--yardon-mobile-split-center-x',(rect.left-bootRect.left+rect.width/2)+'px');
+    stage.style.setProperty('--yardon-mobile-split-center-y',(rect.top-bootRect.top+rect.height/2)+'px');
+
+    const src=full.currentSrc||full.src||MOBILE_LOGO_DATA;
     const left=document.createElement('img'),right=document.createElement('img');
-    left.className='yardon-mobile-split-half left';right.className='yardon-mobile-split-half right';
-    left.src=src;right.src=src;left.alt='';right.alt='';stage.append(left,right);boot.appendChild(stage);
+    left.className='yardon-mobile-split-half left';
+    right.className='yardon-mobile-split-half right';
+    left.src=src;right.src=src;left.alt='';right.alt='';
+
+    for(const half of [left,right]){
+      half.style.setProperty('left',(rect.left-bootRect.left)+'px','important');
+      half.style.setProperty('top',(rect.top-bootRect.top)+'px','important');
+      half.style.setProperty('width',rect.width+'px','important');
+      half.style.setProperty('height',rect.height+'px','important');
+    }
+    stage.append(left,right);
+    boot.appendChild(stage);
   }
+
   if(auth){
     auth.classList.remove('hidden');
     auth.classList.add('yardon-auth-arrive');
-    setTimeout(()=>requestAnimationFrame(()=>auth.classList.add('yardon-auth-arrive-active')),240);
+    auth.style.visibility='visible';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>auth.classList.add('yardon-auth-arrive-active')));
   }
-  boot.classList.add('splitting');
-  await sleep(3220);
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>boot.classList.add('splitting')));
+  await sleep(1850);
+
   boot.classList.add('hidden');
   boot.querySelectorAll('.yardon-mobile-split-stage').forEach(n=>n.remove());
   boot.classList.remove('splitting','zooming');
-  if(auth)auth.classList.remove('yardon-auth-arrive','yardon-auth-arrive-active');
+
+  if(auth){
+    auth.classList.remove('yardon-auth-arrive','yardon-auth-arrive-active');
+    auth.style.opacity='1';
+    auth.style.visibility='visible';
+  }
 }
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function nr(v){const n=Number(v);return Number.isFinite(n)?n:0}
