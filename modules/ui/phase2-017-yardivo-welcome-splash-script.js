@@ -117,7 +117,9 @@ async function revealLogoLetters(splash,source){
   source.style.removeProperty('-webkit-clip-path');
   stage.remove();
   splash.classList.remove('yardon-logo-depth-reveal');
-  splash.classList.add('yardon-logo-glow-active');
+  splash.classList.add('yardon-logo-glow-active','yardon-logo-reveal-complete');
+  welcomeDebug.logoRevealComplete=true;
+  welcomeDebug.phase='logo-reveal-complete';
 }
 
 async function revealTagline(sub){
@@ -196,17 +198,19 @@ function loginNode(){
     || document.querySelector('.login-screen,.login-overlay,[data-login-screen]');
 }
 
-function mountLoginBehind(){
+function mountLoginBehind({activate=true}={}){
   const login=loginNode();
   document.body.classList.add('yardivo-prelogin');
   if(login){
-    login.classList.remove('hidden');
+    login.classList.remove('hidden','yardon-login-arrive-active');
     login.classList.add('yardon-login-arrive');
     login.style.display='flex';
     login.style.visibility='visible';
-    login.style.opacity='0';
+    login.style.opacity='1';
     login.setAttribute('aria-hidden','false');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')));
+    if(activate){
+      requestAnimationFrame(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')));
+    }
   }
   document.documentElement.classList.add('yardivo-login-ready');
   return login;
@@ -345,6 +349,10 @@ async function startSplitReveal(){
       ]);
     }catch(_){}
 
+    // Stage the login at a distant Z position before the splash becomes transparent.
+    // The exact moment the center split opens, the login window is already visible
+    // behind it and begins travelling toward the user.
+    const stagedLogin=mountLoginBehind({activate:false});
     splash.classList.add('yardon-split-reveal');
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 
@@ -363,6 +371,10 @@ async function startSplitReveal(){
       easing:'cubic-bezier(.14,.76,.16,1)',
       fill:'forwards'
     };
+    if(stagedLogin){
+      requestAnimationFrame(()=>requestAnimationFrame(()=>stagedLogin.classList.add('yardon-login-arrive-active')));
+    }
+
     try{
       left.animate([
         {transform:'translate3d(0,0,0) scale(1.03)',opacity:1},
@@ -382,9 +394,8 @@ async function startSplitReveal(){
     }
   }
 
-  // Let the center split become clearly visible before the login begins advancing
-  // from depth behind it.
-  setTimeout(()=>{if(!finished)mountLoginBehind()},180);
+  // Login motion is synchronized with the split above: it is already visible
+  // in the distance at split start and arrives as the two logo halves move away.
   setTimeout(finishReveal,FINAL_REVEAL_MS+90);
 }
 
@@ -413,7 +424,7 @@ function start(){
 
   if(splash){
     splash.style.removeProperty('display');
-    splash.classList.remove('hide','yardon-final-zoom','yardon-split-reveal','yardon-logo-glow-active','yardon-progress-ready','yardon-logo-depth-reveal');
+    splash.classList.remove('hide','yardon-final-zoom','yardon-split-reveal','yardon-logo-glow-active','yardon-logo-reveal-complete','yardon-progress-ready','yardon-logo-depth-reveal');
     splash.querySelector('.yardon-split-stage')?.remove();
     splash.querySelector('.yardon-letter-reveal-stage')?.remove();
     const oldSource=splash.querySelector('.yardon-welcome-logo');
@@ -433,6 +444,10 @@ function start(){
   }
   const source=splash?.querySelector('.yardon-welcome-logo');
   const sub=splash?.querySelector('.yardivo-welcome-sub');
+  if(sub){
+    sub.textContent='';
+    sub.setAttribute('aria-label',TAGLINE);
+  }
   welcomeDebug.startSplash=!!splash;
   welcomeDebug.startBar=!!bar;
   welcomeDebug.startPct=!!pct;
