@@ -44,6 +44,10 @@ async function revealLogoLetters(splash,source){
     piece.src=src;
     piece.style.setProperty('clip-path',`inset(0 ${100-end}% 0 ${start}%)`,'important');
     piece.style.setProperty('-webkit-clip-path',`inset(0 ${100-end}% 0 ${start}%)`,'important');
+    // Keep future segments completely hidden during their stagger delay.
+    piece.style.setProperty('opacity','0','important');
+    piece.style.setProperty('transform','translate3d(-50%,-50%,-560px) scale(.58)','important');
+    piece.style.setProperty('filter','blur(10px) brightness(.58) saturate(1.9) drop-shadow(0 0 24px rgba(0,118,255,.92))','important');
     stage.appendChild(piece);
     start=end;
   }
@@ -82,7 +86,7 @@ async function revealLogoLetters(splash,source){
         duration:LOGO_SEGMENT_DURATION_MS,
         delay:index*LOGO_SEGMENT_STAGGER_MS,
         easing:'cubic-bezier(.16,.78,.18,1)',
-        fill:'forwards'
+        fill:'both'
       }
     );
     animations.push(animation.finished.catch(()=>{}));
