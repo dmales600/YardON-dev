@@ -695,6 +695,43 @@ img[data-yardon-runtime-logo="1"][data-yardon-prepared="1"]{
   box-shadow:none!important;
 }
 
+
+/* YardOn final render polish: no login glow rhombus, compositor-stable motion */
+.login-logo-combo::before{
+  content:none!important;
+  display:none!important;
+  animation:none!important;
+  background:none!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+
+#yardivoWelcomeSplash .yardon-welcome-logo{
+  transform:translate3d(0,0,0);
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  transform-style:preserve-3d;
+}
+
+#yardivoWelcomeSplash .yardon-split-stage,
+#yardivoWelcomeSplash .yardon-split-half{
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  transform-style:preserve-3d;
+}
+
+.login-screen.yardon-login-arrive .login-card,
+.login-overlay.yardon-login-arrive .login-card,
+#loginScreen.yardon-login-arrive .login-card,
+#loginOverlay.yardon-login-arrive .login-card,
+#login.yardon-login-arrive .login-card,
+[data-login-screen].yardon-login-arrive .login-card{
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  transform-style:preserve-3d;
+  will-change:transform,opacity!important;
+}
+
 @media(max-width:700px){
   #yardivoWelcomeSplash .yardon-welcome-logo{width:min(92vw,610px)!important;}
   #yardivoWelcomeSplash .yardon-welcome-title{font-size:clamp(26px,7.4vw,42px)!important;}
