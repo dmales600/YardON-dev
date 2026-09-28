@@ -953,6 +953,9 @@ cinematicIntroStyle.textContent=`
 #yardivoWelcomeSplash.yardon-logo-glow-active .yardon-logo-glow{
   animation:yardonTargetGlowPulse 2.25s ease-in-out infinite!important;
 }
+#yardivoWelcomeSplash.yardon-logo-glow-active img.yardon-welcome-logo{
+  filter:drop-shadow(0 0 5px rgba(0,190,255,.48)) drop-shadow(0 0 15px rgba(0,112,255,.28))!important;
+}
 #yardivoWelcomeSplash.yardon-logo-depth-reveal .yardon-logo-glow{
   opacity:0!important;
   animation:none!important;
@@ -968,14 +971,15 @@ cinematicIntroStyle.textContent=`
 .login-logo-combo .yardon-login-logo-base{
   position:relative!important;
   z-index:2!important;
+  filter:drop-shadow(0 0 6px rgba(0,200,255,.58)) drop-shadow(0 0 18px rgba(0,112,255,.34))!important;
 }
 .login-logo-combo img.yardon-logo-glow{
   width:clamp(360px,34vw,520px)!important;
   max-width:92%!important;
   top:50%!important;
-  opacity:.58!important;
+  opacity:.78!important;
   animation:yardonTargetGlowPulse 2.45s ease-in-out infinite!important;
-  filter:drop-shadow(0 0 7px rgba(0,185,255,.68)) drop-shadow(0 0 18px rgba(0,112,255,.45))!important;
+  filter:drop-shadow(0 0 9px rgba(0,205,255,.82)) drop-shadow(0 0 24px rgba(0,118,255,.56))!important;
 }
 .login-screen.yardon-login-arrive:not(.yardon-login-arrive-active) .yardon-logo-glow,
 .login-overlay.yardon-login-arrive:not(.yardon-login-arrive-active) .yardon-logo-glow,
