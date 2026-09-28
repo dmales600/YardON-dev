@@ -245,6 +245,13 @@ async function startSplitReveal(){
     splash.querySelector('.yardon-split-stage')?.remove();
     splash.querySelector('.yardon-letter-reveal-stage')?.remove();
 
+    // Normalize the full approved logo before cloning it into left/right halves.
+    // This also makes the split fail-safe safe if the letter reveal is still mid-step.
+    source.style.removeProperty('clip-path');
+    source.style.removeProperty('-webkit-clip-path');
+    source.style.setProperty('visibility','visible','important');
+    source.style.setProperty('opacity','1','important');
+
     const splashRect=splash.getBoundingClientRect();
     const sourceRect=source.getBoundingClientRect();
     const stage=document.createElement('div');
@@ -404,6 +411,10 @@ if(document.getElementById('yardivoWelcomeSplash')){
   start();
 }
 
-setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},18000);
+// If a browser delays any intro animation/decode, preserve the intended transition:
+  // go to the center split first rather than jumping straight to the login.
+  setTimeout(()=>{if(!finished&&!transitioning)startSplitReveal()},13500);
+  // Last-resort safety only; normal flow and the split fail-safe should finish earlier.
+  setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},22000);
 window.YardivoWelcomeSplash={start,hide:forceReveal};
 })();
