@@ -9,7 +9,8 @@ let progressAnimation=null;
 const PROGRESS_MS=1900;
 const FINAL_REVEAL_MS=1800;
 const LOGO_REVEAL_POINTS=[22,36,48,60,72,86,100];
-const LOGO_STEP_MS=150;
+const LOGO_SEGMENT_STAGGER_MS=300;
+const LOGO_SEGMENT_DURATION_MS=760;
 const TAGLINE='YARD MANAGEMENT SYSTEM';
 const TAGLINE_CHAR_MS=48;
 
@@ -18,20 +19,82 @@ const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function revealLogoLetters(splash,source){
   if(!splash||!source)return;
   try{if(typeof source.decode==='function')await source.decode()}catch(_){}
-  source.style.setProperty('clip-path','inset(0 100% 0 0)','important');
-  source.style.setProperty('-webkit-clip-path','inset(0 100% 0 0)','important');
+
+  const wrap=source.closest('.yardivo-welcome-logo-wrap');
+  if(!wrap)return;
+
+  wrap.querySelector('.yardon-letter-reveal-stage')?.remove();
+  const rect=source.getBoundingClientRect();
+  const stage=document.createElement('div');
+  stage.className='yardon-letter-reveal-stage';
+  stage.style.setProperty('--yardon-intro-logo-width',rect.width+'px');
+  stage.style.setProperty('--yardon-intro-logo-height',rect.height+'px');
+
+  const src=source.currentSrc||source.src;
+  let start=0;
+  const animations=[];
+  for(let i=0;i<LOGO_REVEAL_POINTS.length;i++){
+    const end=LOGO_REVEAL_POINTS[i];
+    const piece=document.createElement('img');
+    piece.className='yardon-intro-logo-segment';
+    piece.alt='';
+    piece.setAttribute('aria-hidden','true');
+    piece.decoding='async';
+    piece.loading='eager';
+    piece.src=src;
+    piece.style.setProperty('clip-path',`inset(0 ${100-end}% 0 ${start}%)`,'important');
+    piece.style.setProperty('-webkit-clip-path',`inset(0 ${100-end}% 0 ${start}%)`,'important');
+    stage.appendChild(piece);
+    start=end;
+  }
+
+  wrap.appendChild(stage);
+  const pieces=[...stage.querySelectorAll('.yardon-intro-logo-segment')];
+  try{
+    await Promise.all(pieces.map(img=>typeof img.decode==='function'?img.decode().catch(()=>{}):Promise.resolve()));
+  }catch(_){}
+
+  source.style.setProperty('visibility','hidden','important');
+  source.style.setProperty('opacity','0','important');
+  splash.classList.add('yardon-logo-depth-reveal');
+
+  pieces.forEach((piece,index)=>{
+    const animation=piece.animate(
+      [
+        {
+          opacity:0,
+          transform:'translate3d(-50%,-50%,-560px) scale(.58)',
+          filter:'blur(10px) brightness(.58) saturate(1.9) drop-shadow(0 0 24px rgba(0,118,255,.92))'
+        },
+        {
+          opacity:.82,
+          offset:.62,
+          transform:'translate3d(-50%,-50%,-90px) scale(.92)',
+          filter:'blur(2px) brightness(.92) saturate(1.35) drop-shadow(0 0 18px rgba(0,180,255,.70))'
+        },
+        {
+          opacity:1,
+          transform:'translate3d(-50%,-50%,0) scale(1)',
+          filter:'blur(0) brightness(1) saturate(1) drop-shadow(0 0 8px rgba(0,170,255,.38))'
+        }
+      ],
+      {
+        duration:LOGO_SEGMENT_DURATION_MS,
+        delay:index*LOGO_SEGMENT_STAGGER_MS,
+        easing:'cubic-bezier(.16,.78,.18,1)',
+        fill:'forwards'
+      }
+    );
+    animations.push(animation.finished.catch(()=>{}));
+  });
+
+  await Promise.all(animations);
+  if(finished||transitioning)return;
+
   source.style.setProperty('visibility','visible','important');
   source.style.setProperty('opacity','1','important');
-  await wait(180);
-  for(const point of LOGO_REVEAL_POINTS){
-    if(finished||transitioning)return;
-    const right=Math.max(0,100-point);
-    source.style.setProperty('clip-path',`inset(0 ${right}% 0 0)`,'important');
-    source.style.setProperty('-webkit-clip-path',`inset(0 ${right}% 0 0)`,'important');
-    await wait(LOGO_STEP_MS);
-  }
-  source.style.removeProperty('clip-path');
-  source.style.removeProperty('-webkit-clip-path');
+  stage.remove();
+  splash.classList.remove('yardon-logo-depth-reveal');
   splash.classList.add('yardon-logo-glow-active');
 }
 
@@ -173,6 +236,7 @@ async function startSplitReveal(){
   const source=splash?.querySelector('.yardon-welcome-logo');
   if(splash&&source){
     splash.querySelector('.yardon-split-stage')?.remove();
+    splash.querySelector('.yardon-letter-reveal-stage')?.remove();
 
     const splashRect=splash.getBoundingClientRect();
     const sourceRect=source.getBoundingClientRect();
@@ -292,6 +356,6 @@ if(document.getElementById('yardivoWelcomeSplash')){
   start();
 }
 
-setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},9000);
+setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},11000);
 window.YardivoWelcomeSplash={start,hide:forceReveal};
 })();
