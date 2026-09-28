@@ -664,7 +664,7 @@ button{cursor:pointer}
   <div class="mobile-boot-inner">
     <img class="mobile-boot-full" src="../assets/yardon-logo-exact.webp?v=20260928-mobile-exact2" alt="YardOn" data-yardon-logo>
     <h1 id="mobileBootTitle" class="mobile-boot-title">WELCOME TO YARD<span class="yardon-on">ON</span></h1>
-    <p id="mobileBootSub" class="mobile-boot-sub">Yard Management System</p>
+    <p id="mobileBootSub" class="mobile-boot-sub" aria-label="YARD MANAGEMENT SYSTEM"></p>
     <p class="mobile-boot-copy">Centralized yard operations, supplier visibility and dock coordination.</p>
     <div class="mobile-boot-progress"><i id="mobileBootFill"></i></div>
     <div class="mobile-boot-meta"><span id="mobileBootStatus">Initializing system</span><span id="mobileBootPct" class="mobile-boot-pct">0%</span></div>
@@ -852,10 +852,10 @@ async function runLinkIntro(){
   const sub=$('mobileBootSub');
   const auth=$('auth');
   const LOGO_POINTS=[22,36,48,60,72,86,100];
-  const LOGO_STEP_MS=360;
+  const LOGO_STEP_MS=760;
   const TAGLINE='YARD MANAGEMENT SYSTEM';
-  const TAG_CHAR_MS=42;
-  const PROGRESS_MS=1450;
+  const TAG_CHAR_MS=48;
+  const PROGRESS_MS=1900;
 
   boot.classList.remove('hidden','full','zooming','splitting','yardon-mobile-logo-ready','yardon-mobile-progress-ready');
   boot.classList.add('full','yardon-mobile-cinematic');
@@ -935,16 +935,16 @@ async function runLinkIntro(){
   if(sub){
     sub.textContent='';
     sub.setAttribute('aria-label',TAGLINE);
-    await sleep(90);
+    await sleep(130);
     for(let i=1;i<=TAGLINE.length;i++){
       sub.textContent=TAGLINE.slice(0,i);
       await sleep(TAG_CHAR_MS);
     }
   }
 
-  await sleep(120);
+  await sleep(170);
   boot.classList.add('yardon-mobile-progress-ready');
-  await sleep(240);
+  await sleep(360);
 
   if(fill){
     try{fill.getAnimations?.().forEach(a=>a.cancel())}catch(_){}
@@ -980,7 +980,7 @@ async function runLinkIntro(){
   if(fill)fill.style.transform='translate3d(0,0,0) scaleX(1)';
   if(pct)pct.textContent='100%';
   if(statusEl)statusEl.textContent='Ready';
-  await sleep(100);
+  await sleep(120);
 
   if(full){
     const bootRect=boot.getBoundingClientRect(),rect=full.getBoundingClientRect();
@@ -1585,6 +1585,107 @@ function closePanel(){opened=false;document.getElementById('mmOpChatSheet')?.cla
 setInterval(()=>{if(window.__YardOn_MANAGER_MOBILE_TOKEN&&!opened)refresh(true)},4000);setTimeout(()=>refresh(true),2500);
 })();
 </script>
+
+<style id="yardon-mobile-desktop-parity-final-owner">
+/* FINAL OWNER · desktop welcome/login parity, mobile viewport optimized only */
+#mobileBoot,
+#mobileBoot.yardon-mobile-cinematic,
+.auth{
+  background-image:
+    linear-gradient(rgba(2,10,20,.34),rgba(2,10,20,.50)),
+    url('../assets/yardon-desktop-welcome-login-bg.webp?v=20260928-exact1')!important;
+  background-size:cover!important;
+  background-position:58% center!important;
+  background-repeat:no-repeat!important;
+}
+#mobileBoot{
+  padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom))!important;
+}
+#mobileBoot .mobile-boot-inner{
+  width:min(430px,92vw)!important;
+}
+#mobileBoot .mobile-boot-full{
+  width:min(390px,88vw)!important;
+  max-width:88vw!important;
+  margin:0 auto 18px!important;
+}
+#mobileBoot .mobile-boot-sub{
+  min-height:24px!important;
+  color:#f7fbff!important;
+  font-size:clamp(9px,2.65vw,11px)!important;
+  letter-spacing:.16em!important;
+  line-height:1.55!important;
+}
+#mobileBoot .mobile-boot-progress{
+  width:min(360px,82vw)!important;
+  margin-top:18px!important;
+}
+#mobileBoot.splitting::after{
+  background-image:
+    linear-gradient(rgba(2,10,20,.34),rgba(2,10,20,.50)),
+    url('../assets/yardon-desktop-welcome-login-bg.webp?v=20260928-exact1')!important;
+  background-size:cover!important;
+  background-position:58% center!important;
+  background-repeat:no-repeat!important;
+  animation:yardonMobileBackdropFade 1.8s cubic-bezier(.18,.72,.16,1) forwards!important;
+}
+#mobileBoot .yardon-mobile-split-stage::before{
+  width:min(500px,108vw)!important;
+}
+#mobileBoot .yardon-mobile-split-stage::after{
+  height:min(290px,38vh)!important;
+}
+#mobileBoot .yardon-mobile-split-half{
+  max-width:none!important;
+}
+.auth{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));
+  overflow:auto;
+}
+.auth.yardon-auth-arrive{
+  opacity:1!important;
+  transform:none!important;
+  transition:none!important;
+}
+.auth.yardon-auth-arrive .login-box{
+  transform:perspective(1200px) translateZ(-980px) scale(.28)!important;
+  opacity:.30!important;
+  transform-origin:center center!important;
+  transition:
+    transform 1.72s cubic-bezier(.12,.82,.14,1),
+    opacity .62s ease-out!important;
+  will-change:transform,opacity!important;
+  backface-visibility:hidden!important;
+}
+.auth.yardon-auth-arrive.yardon-auth-arrive-active .login-box{
+  transform:perspective(1200px) translateZ(0) scale(1)!important;
+  opacity:1!important;
+}
+.auth.yardon-auth-arrive:not(.yardon-auth-logo-ready) .login-brand img[data-yardon-logo]{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+.auth .login-box{
+  width:min(430px,92vw)!important;
+}
+.auth .login-brand img[data-yardon-logo]{
+  width:min(390px,86vw)!important;
+  max-width:86vw!important;
+  filter:drop-shadow(0 0 5px rgba(0,210,255,.68)) drop-shadow(0 0 14px rgba(0,132,255,.40))!important;
+}
+@media(max-width:390px){
+  #mobileBoot,
+  .auth,
+  #mobileBoot.splitting::after{background-position:56% center!important}
+  #mobileBoot .mobile-boot-full{width:min(355px,88vw)!important}
+  .auth .login-brand img[data-yardon-logo]{width:min(355px,86vw)!important}
+}
+</style>
+
 </body>
 </html>
 
