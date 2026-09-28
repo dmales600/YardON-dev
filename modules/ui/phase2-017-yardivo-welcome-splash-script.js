@@ -66,21 +66,49 @@ function startSplitReveal(){
   const splash=document.getElementById('yardivoWelcomeSplash');
   const source=splash?.querySelector('.yardon-welcome-logo');
   if(splash&&source){
+    splash.querySelector('.yardon-split-stage')?.remove();
+
+    const splashRect=splash.getBoundingClientRect();
+    const sourceRect=source.getBoundingClientRect();
     const stage=document.createElement('div');
     stage.className='yardon-split-stage';
-    const src=source.currentSrc||source.src;
+    stage.style.setProperty('--yardon-split-left',(sourceRect.left-splashRect.left)+'px');
+    stage.style.setProperty('--yardon-split-top',(sourceRect.top-splashRect.top)+'px');
+    stage.style.setProperty('--yardon-split-width',sourceRect.width+'px');
+    stage.style.setProperty('--yardon-split-height',sourceRect.height+'px');
+    stage.style.setProperty('--yardon-split-center-x',(sourceRect.left-splashRect.left+sourceRect.width/2)+'px');
+    stage.style.setProperty('--yardon-split-center-y',(sourceRect.top-splashRect.top+sourceRect.height/2)+'px');
+
+    const src=window.__yardonTransparentLogo||source.currentSrc||source.src;
     const left=document.createElement('img');
     const right=document.createElement('img');
     left.className='yardon-split-half left';
     right.className='yardon-split-half right';
     left.alt='';right.alt='';
     left.src=src;right.src=src;
+
+    for(const half of [left,right]){
+      half.style.setProperty('left',(sourceRect.left-splashRect.left)+'px','important');
+      half.style.setProperty('top',(sourceRect.top-splashRect.top)+'px','important');
+      half.style.setProperty('width',sourceRect.width+'px','important');
+      half.style.setProperty('height',sourceRect.height+'px','important');
+      half.style.setProperty('max-width','none','important');
+      half.style.setProperty('max-height','none','important');
+      half.style.setProperty('margin','0','important');
+    }
+
     stage.append(left,right);
     splash.appendChild(stage);
+
+    // The two clipped halves replace the single source pixel-for-pixel.
+    // Hide the source before starting motion so a second full logo never appears.
+    source.classList.add('yardon-split-source-hidden');
+    source.style.setProperty('visibility','hidden','important');
+    source.style.setProperty('opacity','0','important');
   }
 
   mountLoginBehind();
-  requestAnimationFrame(()=>splash?.classList.add('yardon-split-reveal'));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>splash?.classList.add('yardon-split-reveal')));
   setTimeout(finishReveal,FINAL_REVEAL_MS+70);
 }
 
@@ -106,6 +134,13 @@ function start(){
   if(splash){
     splash.style.removeProperty('display');
     splash.classList.remove('hide','yardon-final-zoom','yardon-split-reveal');
+    splash.querySelector('.yardon-split-stage')?.remove();
+    const oldSource=splash.querySelector('.yardon-welcome-logo');
+    if(oldSource){
+      oldSource.classList.remove('yardon-split-source-hidden');
+      oldSource.style.removeProperty('visibility');
+      oldSource.style.removeProperty('opacity');
+    }
   }
   if(login){
     login.classList.remove('yardon-login-arrive','yardon-login-arrive-active');
