@@ -102,6 +102,18 @@ jobs:
             });
             assert(resp && resp.ok(), `${name}: index HTTP response not OK`);
 
+            // During the staggered logo reveal, future segments must stay hidden until their turn.
+            const revealStage = page.locator('#yardivoWelcomeSplash .yardon-letter-reveal-stage');
+            await revealStage.waitFor({ state:'attached', timeout:2500 }).catch(()=>{});
+            if (await revealStage.count()) {
+              const segmentState = await page.locator('#yardivoWelcomeSplash .yardon-intro-logo-segment').evaluateAll(nodes =>
+                nodes.map(n => ({ opacity:Number(getComputedStyle(n).opacity), transform:getComputedStyle(n).transform }))
+              );
+              assert(segmentState.length >= 7, `${name}: incomplete logo reveal segment set: ${JSON.stringify(segmentState)}`);
+              const future = segmentState.slice(-2);
+              assert(future.every(s => s.opacity < 0.05), `${name}: future logo letters visible before their stagger: ${JSON.stringify(segmentState)}`);
+            }
+
             // Desktop/mobile web intro must use one real transparent logo asset before split.
             const welcomeLogo = page.locator('#yardivoWelcomeSplash .yardon-welcome-logo');
             await welcomeLogo.waitFor({ state:'visible', timeout:5000 }).catch(()=>{});
