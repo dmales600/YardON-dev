@@ -1064,7 +1064,11 @@ function patchElement(el){
         el.style.setProperty('border','0','important');
         el.style.setProperty('outline','0','important');
         el.style.setProperty('box-shadow','none','important');
-        el.style.setProperty('filter','none','important');
+        if(el.classList.contains('yardon-login-logo-base')){
+          el.style.setProperty('filter','drop-shadow(0 0 6px rgba(0,200,255,.58)) drop-shadow(0 0 18px rgba(0,112,255,.34))','important');
+        }else{
+          el.style.setProperty('filter','none','important');
+        }
         el.style.setProperty('mix-blend-mode','normal','important');
       }else{
         prepareLogo(el);
