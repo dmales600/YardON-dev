@@ -307,6 +307,8 @@ async function startSplitReveal(){
     source.classList.add('yardon-split-source-hidden');
     source.style.setProperty('visibility','hidden','important');
     source.style.setProperty('opacity','0','important');
+    left.style.removeProperty('opacity');
+    right.style.removeProperty('opacity');
 
     // Own the actual split motion in JS so later brand CSS cannot accidentally
     // override/remove the center-opening animation.
