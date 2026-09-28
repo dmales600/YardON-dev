@@ -61,7 +61,7 @@ function finishReveal(){
   try{YardivoLoginNotificationFix?.clearLoginOnce?.()}catch(_){}
 }
 
-function startSplitReveal(){
+async function startSplitReveal(){
   if(transitioning||finished)return;
   transitioning=true;
 
@@ -96,6 +96,8 @@ function startSplitReveal(){
     left.className='yardon-split-half left';
     right.className='yardon-split-half right';
     left.alt='';right.alt='';
+    left.decoding='async';right.decoding='async';
+    left.loading='eager';right.loading='eager';
     left.src=src;right.src=src;
 
     for(const half of [left,right]){
@@ -106,13 +108,26 @@ function startSplitReveal(){
       half.style.setProperty('max-width','none','important');
       half.style.setProperty('max-height','none','important');
       half.style.setProperty('margin','0','important');
+      half.style.setProperty('background','transparent','important');
+      half.style.setProperty('border','0','important');
+      half.style.setProperty('outline','0','important');
+      half.style.setProperty('box-shadow','none','important');
+      half.style.setProperty('filter','none','important');
+      half.style.setProperty('mix-blend-mode','normal','important');
     }
 
     stage.append(left,right);
     splash.appendChild(stage);
 
-    // The two clipped halves replace the single source pixel-for-pixel.
-    // Hide the source before starting motion so a second full logo never appears.
+    // Keep the source visible until both split clones have decoded. This prevents
+    // a blank/black compositor frame between the static logo and the moving halves.
+    try{
+      await Promise.all([
+        typeof left.decode==='function'?left.decode():Promise.resolve(),
+        typeof right.decode==='function'?right.decode():Promise.resolve()
+      ]);
+    }catch(_){}
+
     source.classList.add('yardon-split-source-hidden');
     source.style.setProperty('visibility','hidden','important');
     source.style.setProperty('opacity','0','important');
