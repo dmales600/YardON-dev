@@ -598,7 +598,7 @@ button{cursor:pointer}
 
 <section id="mobileBoot" class="mobile-boot" aria-label="YardOn welcome screen">
   <div class="mobile-boot-inner">
-    <img class="mobile-boot-full" src="../assets/yardon-logo.webp?v=20260928-mobile-visible1" alt="YardOn" data-yardon-logo>
+    <img class="mobile-boot-full" src="../assets/yardon-logo-transparent-v3.png?v=20260928-mobile-clean1" alt="YardOn" data-yardon-logo>
     <h1 id="mobileBootTitle" class="mobile-boot-title">WELCOME TO YARD<span class="yardon-on">ON</span></h1>
     <p id="mobileBootSub" class="mobile-boot-sub">Yard Management System</p>
     <p class="mobile-boot-copy">Centralized yard operations, supplier visibility and dock coordination.</p>
@@ -609,7 +609,7 @@ button{cursor:pointer}
 <div id="auth" class="auth hidden">
   <div class="login-box">
     <div class="login-brand">
-      <img class="login-logo" src="../assets/yardon-logo.webp?v=20260928-mobile-visible1" alt="YardOn" data-yardon-logo>
+      <img class="login-logo" src="../assets/yardon-logo-transparent-v3.png?v=20260928-mobile-clean1" alt="YardOn" data-yardon-logo>
       <h1>YardOn MANAGER</h1>
       <p>Mobile Operations</p>
     </div>
@@ -626,7 +626,7 @@ button{cursor:pointer}
 
 <div id="welcome" class="welcome">
   <div class="welcome-inner">
-    <img class="welcome-logo" src="../assets/yardon-logo.webp?v=20260928-mobile-visible1" alt="YardOn" data-yardon-logo>
+    <img class="welcome-logo" src="../assets/yardon-logo-transparent-v3.png?v=20260928-mobile-clean1" alt="YardOn" data-yardon-logo>
     <h2 id="welcomeTitle">DOBRODOŠLI</h2>
     <p id="welcomeSub">Učitavam vašu lokaciju i operativne podatke…</p>
     <div class="welcome-progress"><i id="welcomeFill"></i></div>
@@ -636,7 +636,7 @@ button{cursor:pointer}
 
 <div id="app" class="app hidden">
   <header class="topbar">
-    <div class="brand" style="display:flex;align-items:center;gap:9px"><img src="../assets/yardon-logo.webp?v=20260928-mobile-visible1" alt="YardOn" style="width:140px;max-width:35vw;height:auto;object-fit:contain" data-yardon-logo><div><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS · v1.0</span></div></div>
+    <div class="brand" style="display:flex;align-items:center;gap:9px"><img src="../assets/yardon-logo-transparent-v3.png?v=20260928-mobile-clean1" alt="YardOn" style="width:140px;max-width:35vw;height:auto;object-fit:contain" data-yardon-logo><div><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS · v1.0</span></div></div>
     <div id="dbStatus" class="top-status"><i></i><span>SPAJANJE</span></div>
   </header>
   <div id="scopeControls" class="scope-controls">
@@ -763,7 +763,7 @@ const MOBILE_LOGO_DATA="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeAAAACkCA
 function prepareYardonMobileLogos(){
   document.querySelectorAll('img[data-yardon-logo]').forEach(img=>{
     const isHero=!!img.closest('#mobileBoot,.login-brand,.welcome-inner');
-    if(isHero)img.src='../assets/yardon-logo.webp?v=20260928-mobile-visible1';
+    if(isHero)img.src='../assets/yardon-logo-transparent-v3.png?v=20260928-mobile-clean1';
     img.style.setProperty('display','block','important');
     img.style.setProperty('visibility','visible','important');
     img.style.setProperty('opacity','1','important');
@@ -782,6 +782,7 @@ async function runLinkIntro(){
 
   boot.classList.remove('hidden','full','zooming','splitting');
   boot.classList.add('full');
+  $('auth')?.classList.remove('yardon-auth-logo-ready');
   boot.querySelectorAll('.yardon-mobile-split-stage').forEach(n=>n.remove());
 
   if(fill){
@@ -873,6 +874,8 @@ async function runLinkIntro(){
     boot.appendChild(stage);
   }
 
+  boot.classList.add('splitting');
+
   if(auth){
     auth.classList.remove('hidden');
     auth.classList.add('yardon-auth-arrive');
@@ -880,7 +883,6 @@ async function runLinkIntro(){
     requestAnimationFrame(()=>requestAnimationFrame(()=>auth.classList.add('yardon-auth-arrive-active')));
   }
 
-  requestAnimationFrame(()=>requestAnimationFrame(()=>boot.classList.add('splitting')));
   await sleep(1850);
 
   boot.classList.add('hidden');
@@ -888,6 +890,7 @@ async function runLinkIntro(){
   boot.classList.remove('splitting','zooming');
 
   if(auth){
+    auth.classList.add('yardon-auth-logo-ready');
     auth.classList.remove('yardon-auth-arrive','yardon-auth-arrive-active');
     auth.style.opacity='1';
     auth.style.visibility='visible';
@@ -1564,44 +1567,52 @@ img[data-yardon-logo]{
 }
 </style>
 
-<style id="yardon-mobile-logo-visible-final-owner">
+
+
+<style id="yardon-mobile-clean-logo-final-owner">
+/* FINAL OWNER: one transparent YardOn logo, no frame, no duplicate during split */
 #mobileBoot .mobile-boot-full,
 .login-brand img[data-yardon-logo],
-.welcome-inner img[data-yardon-logo]{
+.welcome-inner img[data-yardon-logo],
+.brand img[data-yardon-logo]{
   display:block!important;
-  visibility:visible!important;
-  opacity:1!important;
   background:transparent!important;
   border:0!important;
   outline:0!important;
   box-shadow:none!important;
   filter:none!important;
-  mix-blend-mode:screen!important;
+  mix-blend-mode:normal!important;
   object-fit:contain!important;
   object-position:center center!important;
   image-rendering:auto!important;
 }
 #mobileBoot .mobile-boot-full{
+  visibility:visible!important;
+  opacity:1!important;
   width:min(500px,91vw)!important;
   max-width:91vw!important;
   height:auto!important;
-  min-height:1px!important;
   margin:0 auto 18px!important;
-  transform:translate3d(0,0,0)!important;
 }
-.login-brand img[data-yardon-logo],
-.welcome-inner img[data-yardon-logo]{
-  width:min(420px,86vw)!important;
-  max-width:86vw!important;
-  height:auto!important;
-  margin:0 auto 18px!important;
+.auth.yardon-auth-arrive:not(.yardon-auth-logo-ready) .login-brand img[data-yardon-logo]{
+  visibility:hidden!important;
+  opacity:0!important;
+}
+.auth.yardon-auth-logo-ready .login-brand img[data-yardon-logo],
+.auth:not(.yardon-auth-arrive) .login-brand img[data-yardon-logo]{
+  visibility:visible!important;
+  opacity:1!important;
+}
+.mobile-boot.splitting .mobile-boot-inner{
+  visibility:hidden!important;
+  opacity:0!important;
 }
 .mobile-boot .yardon-mobile-split-half{
-  mix-blend-mode:screen!important;
   background:transparent!important;
   border:0!important;
   outline:0!important;
   box-shadow:none!important;
   filter:none!important;
+  mix-blend-mode:normal!important;
 }
 </style>
