@@ -318,15 +318,16 @@ function start(){
 
   if(splash){
     splash.style.removeProperty('display');
-    splash.classList.remove('hide','yardon-final-zoom','yardon-split-reveal','yardon-logo-glow-active','yardon-progress-ready');
+    splash.classList.remove('hide','yardon-final-zoom','yardon-split-reveal','yardon-logo-glow-active','yardon-progress-ready','yardon-logo-depth-reveal');
     splash.querySelector('.yardon-split-stage')?.remove();
+    splash.querySelector('.yardon-letter-reveal-stage')?.remove();
     const oldSource=splash.querySelector('.yardon-welcome-logo');
     if(oldSource){
       oldSource.classList.remove('yardon-split-source-hidden');
-      oldSource.style.removeProperty('visibility');
-      oldSource.style.removeProperty('opacity');
       oldSource.style.removeProperty('clip-path');
       oldSource.style.removeProperty('-webkit-clip-path');
+      oldSource.style.setProperty('visibility','hidden','important');
+      oldSource.style.setProperty('opacity','0','important');
     }
   }
   if(login){
