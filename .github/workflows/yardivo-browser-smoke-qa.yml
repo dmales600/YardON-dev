@@ -107,10 +107,10 @@ jobs:
             await revealStage.waitFor({ state:'attached', timeout:2500 }).catch(()=>{});
             if (await revealStage.count()) {
               const initialSegments = await page.locator('#yardivoWelcomeSplash .yardon-intro-logo-segment').count();
-              assert(initialSegments <= 1, `${name}: future logo segments exist too early: ${initialSegments}`);
+              assert(initialSegments <= 1, `${name}: more than one reveal slice exists initially: ${initialSegments}`);
               await page.waitForTimeout(900);
               const earlySegments = await page.locator('#yardivoWelcomeSplash .yardon-intro-logo-segment').count();
-              assert(earlySegments <= 2, `${name}: logo reveal is leaking future letters on the right: ${earlySegments}`);
+              assert(earlySegments <= 1, `${name}: more than one reveal slice exists during sequence: ${earlySegments}`);
             }
 
             // Desktop/mobile web intro must retain the canonical transparent source even
