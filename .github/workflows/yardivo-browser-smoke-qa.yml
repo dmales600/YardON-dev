@@ -139,7 +139,7 @@ jobs:
                 darkOpaqueRatio,transparentRatio,bbox:window.__yardonQaBbox||null
               };
             });
-            assert(/yardon-logo-canonical\.svg/i.test(welcomeState.src), `${name}: wrong canonical welcome logo source: ${JSON.stringify(welcomeState)}`);
+            assert(/yardon-logo-exact\.webp/i.test(welcomeState.src), `${name}: wrong canonical welcome logo source: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.complete && welcomeState.naturalWidth>0 && welcomeState.naturalHeight>0, `${name}: welcome logo asset broken: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.width>120 && welcomeState.height>20 && welcomeState.visibility!=='hidden' && welcomeState.opacity>0, `${name}: welcome logo not visible: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.mixBlendMode==='normal', `${name}: welcome logo uses blend workaround: ${JSON.stringify(welcomeState)}`);
@@ -163,7 +163,7 @@ jobs:
             }).catch(()=>null);
             assert(!!loginLogoState, `${name}: login YardOn logo missing`);
             if(loginLogoState){
-              assert(/yardon-logo-canonical\.svg/i.test(loginLogoState.src), `${name}: wrong canonical login logo source: ${JSON.stringify(loginLogoState)}`);
+              assert(/yardon-logo-exact\.webp/i.test(loginLogoState.src), `${name}: wrong canonical login logo source: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.complete && loginLogoState.naturalWidth>0 && loginLogoState.naturalHeight>0, `${name}: login logo asset broken: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.width>120 && loginLogoState.height>20 && loginLogoState.visibility!=='hidden' && loginLogoState.opacity>0, `${name}: login logo not visibly rendered: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.mixBlendMode==='normal', `${name}: login logo uses blend workaround: ${JSON.stringify(loginLogoState)}`);
