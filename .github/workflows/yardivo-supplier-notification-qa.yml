@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: yardon-supplier-notification-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   supplier-notification:
     runs-on: ubuntu-latest
@@ -36,7 +40,15 @@ jobs:
           const assert=(x,m)=>{if(!x)failures.push(m)};
           (async()=>{
             const browser=await chromium.launch({headless:true});
-            const page=await browser.newPage({viewport:{width:1440,height:1000}});
+            const context=await browser.newContext({viewport:{width:1440,height:1000}});
+            await context.route('https://rskticdbiovvgyocpzoc.supabase.co/**',async route=>{
+              const req=route.request();
+              if(req.url().includes('/functions/v1/yardivo-voice'))return route.fulfill({status:200,contentType:'audio/mpeg',body:Buffer.from([0x49,0x44,0x33])});
+              if(req.method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'}});
+              return route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({message:'QA network sandbox: live Supabase disabled'})});
+            });
+            if(typeof context.routeWebSocket==='function')await context.routeWebSocket('wss://rskticdbiovvgyocpzoc.supabase.co/**',ws=>ws.close());
+            const page=await context.newPage();
             const pageErrors=[];
             page.on('pageerror',e=>pageErrors.push(String(e.stack||e.message||e)));
             await page.addInitScript(()=>{
@@ -47,11 +59,6 @@ jobs:
                 pause(){}
               };
             });
-            await page.route('**/functions/v1/yardivo-voice',route=>route.fulfill({
-              status:200,
-              contentType:'audio/mpeg',
-              body:Buffer.from([0x49,0x44,0x33])
-            }));
             await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
             await page.waitForTimeout(2200);
 
@@ -171,6 +178,7 @@ jobs:
 
             assert(pageErrors.length===0,'Page errors: '+pageErrors.join(' | '));
             console.log('SUPPLIER_NOTIFICATION_QA='+JSON.stringify({loginState,newToast,newVoice,deleteCalls,pageErrors}));
+            await context.close();
             await browser.close();
             if(failures.length){console.error('QA_FAILURES='+JSON.stringify(failures));process.exit(1)}
             console.log('YARDON_SUPPLIER_NOTIFICATION_QA_PASS');
