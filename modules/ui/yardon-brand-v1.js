@@ -1,7 +1,7 @@
 (()=>{'use strict';
 if(window.__YARDON_BRAND_V1__)return;
 window.__YARDON_BRAND_V1__=true;
-const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo.webp?v=20260928d';
+const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo-transparent-v3.png?v=20260928e';
 let transparentLogoPromise=null;
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','CODE','PRE','TEXTAREA']);
 const style=document.createElement('style');
@@ -186,7 +186,7 @@ style.textContent=`
   height:auto!important;
   object-fit:contain!important;
   background:transparent!important;
-  mix-blend-mode:screen!important;
+  mix-blend-mode:normal!important;
   filter:none!important;
   transform:translate3d(0,0,0);
   will-change:transform,opacity;
@@ -256,7 +256,7 @@ style.textContent=`
   height:auto!important;
   object-fit:contain!important;
   background:transparent!important;
-  mix-blend-mode:screen!important;
+  mix-blend-mode:normal!important;
   filter:none!important;
   animation:yardonLogoBreathe 2.8s ease-in-out infinite;
   will-change:transform;
@@ -281,7 +281,7 @@ style.textContent=`
 .studenac-market-logo,
 #yardivoSupplierPortal .yardon-supplier-brand img{
   background:transparent!important;
-  mix-blend-mode:screen!important;
+  mix-blend-mode:normal!important;
   filter:none!important;
   animation:yardonLogoBreathe 3s ease-in-out infinite;
   will-change:transform;
@@ -328,7 +328,7 @@ img[data-yardon-runtime-logo="1"]{
   display:block!important;
   object-fit:contain!important;
   background:transparent!important;
-  mix-blend-mode:screen!important;
+  mix-blend-mode:normal!important;
   filter:none!important;
   animation:yardonLogoBreathe 3s ease-in-out infinite;
   will-change:transform;
@@ -493,7 +493,7 @@ img[data-yardon-runtime-logo="1"],
   outline:0!important;
   box-shadow:none!important;
   filter:none!important;
-  mix-blend-mode:screen!important;
+  mix-blend-mode:normal!important;
 }
 #yardivoWelcomeSplash .yardon-welcome-logo{
   width:clamp(620px,60vw,980px)!important;
@@ -510,7 +510,76 @@ img[data-yardon-runtime-logo="1"],
   object-position:center center!important;
 }
 #yardivoWelcomeSplash .yardon-split-half{
-  mix-blend-mode:screen!important;
+  mix-blend-mode:normal!important;
+}
+
+
+/* YardOn canonical transparent v3 — user supplied logo, no frame, no blend workaround */
+#yardivoWelcomeSplash .yardivo-welcome-logo-wrap,
+.login-logo-combo,
+.brand-combo,
+.home-menu-brand,
+.yardon-topbar-brand,
+#yardivoSupplierPortal .yardon-supplier-brand{
+  background:transparent!important;
+  background-color:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+#yardivoWelcomeSplash img.yardon-welcome-logo,
+.login-logo-combo img,
+.brand-combo img,
+.home-menu-brand img,
+.yardon-topbar-brand img,
+.studenac-market-logo,
+#yardivoSupplierPortal img[data-yardon-runtime-logo="1"],
+img[data-yardon-runtime-logo="1"],
+#yardonLoginTransition img,
+#yardivoWelcomeSplash .yardon-split-half{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1;
+  background:transparent!important;
+  background-color:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  mix-blend-mode:normal!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+}
+#yardivoWelcomeSplash .yardon-welcome-logo{
+  width:clamp(680px,62vw,1040px)!important;
+  max-width:94vw!important;
+  height:auto!important;
+  margin:0 auto!important;
+  filter:none!important;
+  animation:yardonLogoBreathe 3.4s ease-in-out infinite!important;
+}
+.login-logo-combo{
+  min-height:110px!important;
+  margin:0 auto 20px!important;
+  padding:0!important;
+}
+.login-logo-combo img{
+  width:clamp(360px,34vw,520px)!important;
+  max-width:92%!important;
+  height:auto!important;
+  margin:0 auto!important;
+  filter:none!important;
+  animation:yardonLogoBreathe 3.2s ease-in-out infinite!important;
+}
+#yardivoWelcomeSplash .yardon-split-half{
+  width:clamp(680px,62vw,1040px)!important;
+  max-width:94vw!important;
+  filter:none!important;
+}
+#yardonLoginTransition img{
+  width:min(1120px,88vw)!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
 }
 
 @media(max-width:700px){
@@ -549,7 +618,7 @@ function prepareLogo(el){
   el.style.setProperty('outline','0','important');
   el.style.setProperty('box-shadow','none','important');
   el.style.setProperty('filter','none','important');
-  el.style.setProperty('mix-blend-mode','screen','important');
+  el.style.setProperty('mix-blend-mode','normal','important');
 }
 function patchElement(el){
   if(!(el instanceof Element))return;
@@ -562,7 +631,7 @@ function patchElement(el){
       el.setAttribute('data-yardon-runtime-logo','1');
       el.style.setProperty('background','transparent','important');
       el.style.setProperty('box-shadow','none','important');
-      el.style.setProperty('mix-blend-mode','screen','important');
+      el.style.setProperty('mix-blend-mode','normal','important');
       const host=el.closest('.brand-combo,.home-menu-brand,.yardon-topbar-brand,.login-logo-combo,.yardivo-welcome-logo-wrap,.ysp-head,.ysp-header,.ysp-top,.ysp-nav,.sidebar,.topbar,[class*="brand"],[class*="logo"]');
       if(host){
         host.classList.add('yardon-role-brand-wrap');
