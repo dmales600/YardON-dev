@@ -5,8 +5,10 @@ let started=false;
 let finished=false;
 let transitioning=false;
 let rafId=0;
-const WELCOME_MS=4200;
-const FINAL_REVEAL_MS=3150;
+let progressAnimation=null;
+
+const WELCOME_MS=3000;
+const FINAL_REVEAL_MS=1650;
 
 function loginNode(){
   return document.getElementById('loginScreen')
@@ -19,13 +21,18 @@ function mountLoginBehind(){
   const login=loginNode();
   document.body.classList.add('yardivo-prelogin');
   if(login){
-    login.classList.remove('hidden');
+    login.classList.remove('hidden','yardon-login-arrive-active');
     login.classList.add('yardon-login-arrive');
     login.style.display='flex';
     login.style.visibility='visible';
     login.style.opacity='0';
     login.setAttribute('aria-hidden','false');
-    setTimeout(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')),520);
+
+    /* Two compositor frames establish the depth start-state, then arrival begins.
+       No artificial 500ms+ hole between split and login. */
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(!finished)login.classList.add('yardon-login-arrive-active');
+    }));
   }
   document.documentElement.classList.add('yardivo-login-ready');
   return login;
@@ -36,6 +43,9 @@ function finishReveal(){
   finished=true;
   transitioning=false;
   if(rafId){cancelAnimationFrame(rafId);rafId=0;}
+  try{progressAnimation?.finish?.()}catch(_){}
+  progressAnimation=null;
+
   const splash=document.getElementById('yardivoWelcomeSplash');
   const login=loginNode();
   if(splash)splash.style.display='none';
@@ -50,6 +60,7 @@ function finishReveal(){
       finalLogo.style.removeProperty('animation');
     }
   }
+
   document.documentElement.classList.remove('yardivo-booting');
   document.documentElement.classList.add('yardivo-welcome-complete');
   document.body.classList.remove('yardivo-welcome-active');
@@ -65,12 +76,16 @@ function startSplitReveal(){
   const bar=document.getElementById('yardivoWelcomeBar');
   const pct=document.getElementById('yardivoWelcomePercent');
   const status=document.getElementById('yardivoWelcomeStatus');
-  if(bar){bar.style.width='100%';bar.style.transform='scaleX(1)';}
+
+  try{progressAnimation?.finish?.()}catch(_){}
+  progressAnimation=null;
+  if(bar)bar.style.transform='translate3d(0,0,0) scaleX(1)';
   if(pct)pct.textContent='100%';
   if(status)status.textContent='Ready';
 
   const splash=document.getElementById('yardivoWelcomeSplash');
   const source=splash?.querySelector('.yardon-welcome-logo');
+
   if(splash&&source){
     splash.querySelector('.yardon-split-stage')?.remove();
 
@@ -92,6 +107,7 @@ function startSplitReveal(){
     right.className='yardon-split-half right';
     left.alt='';right.alt='';
     left.src=src;right.src=src;
+    left.decoding='sync';right.decoding='sync';
 
     for(const half of [left,right]){
       half.style.setProperty('left',(sourceRect.left-splashRect.left)+'px','important');
@@ -106,16 +122,18 @@ function startSplitReveal(){
     stage.append(left,right);
     splash.appendChild(stage);
 
-    // The two clipped halves replace the single source pixel-for-pixel.
-    // Hide the source before starting motion so a second full logo never appears.
     source.classList.add('yardon-split-source-hidden');
     source.style.setProperty('visibility','hidden','important');
     source.style.setProperty('opacity','0','important');
   }
 
+  /* Login starts arriving immediately behind the splitting logo. */
   mountLoginBehind();
-  requestAnimationFrame(()=>requestAnimationFrame(()=>splash?.classList.add('yardon-split-reveal')));
-  setTimeout(finishReveal,FINAL_REVEAL_MS+70);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    splash?.classList.add('yardon-split-reveal');
+  }));
+
+  setTimeout(finishReveal,FINAL_REVEAL_MS+50);
 }
 
 function forceReveal(){
@@ -148,16 +166,19 @@ function start(){
       oldSource.style.removeProperty('opacity');
     }
   }
+
   if(login){
     login.classList.remove('yardon-login-arrive','yardon-login-arrive-active');
     login.style.display='none';
     login.style.visibility='hidden';
     login.style.opacity='0';
   }
+
   if(!bar||!pct){forceReveal();return;}
 
+  try{bar.getAnimations?.().forEach(a=>a.cancel())}catch(_){}
   bar.style.width='100%';
-  bar.style.transform='scaleX(0)';
+  bar.style.transform='translate3d(0,0,0) scaleX(0)';
   pct.textContent='0%';
   if(status)status.textContent='Initializing system';
 
@@ -169,15 +190,33 @@ function start(){
     [100,'Ready']
   ];
 
+  /*
+   The progress fill itself is a compositor animation. Main-thread work can make
+   the number/status skip a frame, but it cannot make the blue bar stutter.
+  */
+  try{
+    progressAnimation=bar.animate(
+      [
+        {transform:'translate3d(0,0,0) scaleX(0)'},
+        {transform:'translate3d(0,0,0) scaleX(1)'}
+      ],
+      {duration:WELCOME_MS,easing:'linear',fill:'forwards'}
+    );
+  }catch(_){progressAnimation=null;}
+
   const startedAt=performance.now();
   let stage=0,lastValue=-1;
 
   function tick(now){
     if(finished||transitioning)return;
+
     const elapsed=now-startedAt;
     const ratio=Math.min(1,elapsed/WELCOME_MS);
     const value=Math.min(100,Math.floor(ratio*100));
-    bar.style.transform='translateZ(0) scaleX('+ratio+')';
+
+    /* Fallback only for browsers without Web Animations compositor support. */
+    if(!progressAnimation)bar.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
+
     if(value!==lastValue){
       lastValue=value;
       pct.textContent=value+'%';
@@ -186,6 +225,7 @@ function start(){
         stage++;
       }
     }
+
     if(ratio>=1){
       rafId=0;
       startSplitReveal();
@@ -193,6 +233,7 @@ function start(){
     }
     rafId=requestAnimationFrame(tick);
   }
+
   rafId=requestAnimationFrame(tick);
 }
 
@@ -202,6 +243,6 @@ if(document.readyState==='loading'){
   start();
 }
 
-setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},9500);
+setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},7200);
 window.YardivoWelcomeSplash={start,hide:forceReveal};
 })();

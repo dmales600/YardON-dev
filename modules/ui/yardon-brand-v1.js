@@ -1,7 +1,7 @@
 (()=>{'use strict';
 if(window.__YARDON_BRAND_V1__)return;
 window.__YARDON_BRAND_V1__=true;
-const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo.webp?v=20260928g';
+const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo-transparent-v3.png?v=20260928smooth1';
 let transparentLogoPromise=null;
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','CODE','PRE','TEXTAREA']);
 const style=document.createElement('style');
@@ -235,6 +235,8 @@ style.textContent=`
   transform:scaleX(0);
   transform-origin:left center;
   will-change:transform;
+  backface-visibility:hidden;
+  contain:paint;
   background:linear-gradient(90deg,#19c8ff 0%,#1676ff 100%)!important;
   box-shadow:0 0 12px rgba(0,190,255,.48);
 }
@@ -378,7 +380,8 @@ img[data-yardon-runtime-logo="1"]{
   100%{opacity:0;transform:translate3d(-50%,-50%,0) scaleY(1.25)}
 }
 @keyframes yardonSplashDissolve{
-  0%,52%{opacity:1}
+  0%,8%{opacity:1}
+  58%{opacity:.12}
   100%{opacity:0}
 }
 #yardivoWelcomeSplash.yardon-split-reveal{
@@ -393,7 +396,7 @@ img[data-yardon-runtime-logo="1"]{
   pointer-events:none;
   z-index:1;
   opacity:1;
-  animation:yardonSplashDissolve 3.15s ease forwards!important;
+  animation:yardonSplashDissolve 1.65s cubic-bezier(.2,.72,.18,1) forwards!important;
   will-change:opacity;
 }
 #yardivoWelcomeSplash.yardon-split-reveal .yardivo-welcome-inner{
@@ -406,6 +409,9 @@ img[data-yardon-runtime-logo="1"]{
   display:grid!important;
   place-items:center!important;
   pointer-events:none!important;
+  contain:layout paint!important;
+  transform:translateZ(0)!important;
+  backface-visibility:hidden!important;
 }
 #yardivoWelcomeSplash .yardon-split-stage::before{
   content:"";
@@ -455,11 +461,11 @@ img[data-yardon-runtime-logo="1"]{
 }
 #yardivoWelcomeSplash .yardon-split-half.left{
   clip-path:inset(0 50% 0 0);
-  animation:yardonSplitLeft 3.15s cubic-bezier(.14,.76,.16,1) forwards!important;
+  animation:yardonSplitLeft 1.65s cubic-bezier(.12,.78,.16,1) forwards!important;
 }
 #yardivoWelcomeSplash .yardon-split-half.right{
   clip-path:inset(0 0 0 50%);
-  animation:yardonSplitRight 3.15s cubic-bezier(.14,.76,.16,1) forwards!important;
+  animation:yardonSplitRight 1.65s cubic-bezier(.12,.78,.16,1) forwards!important;
 }
 .login-screen.yardon-login-arrive,
 .login-overlay.yardon-login-arrive,
@@ -469,7 +475,7 @@ img[data-yardon-runtime-logo="1"]{
 [data-login-screen].yardon-login-arrive{
   transform:none!important;
   opacity:0!important;
-  transition:opacity .55s ease!important;
+  transition:opacity .18s linear!important;
   will-change:opacity;
   backface-visibility:hidden;
 }
@@ -479,25 +485,24 @@ img[data-yardon-runtime-logo="1"]{
 #loginOverlay.yardon-login-arrive .login-card,
 #login.yardon-login-arrive .login-card,
 [data-login-screen].yardon-login-arrive .login-card{
-  transform:perspective(1500px) translateZ(-920px) scale(.34)!important;
+  transform:perspective(1400px) translateZ(-680px) scale(.50)!important;
   opacity:0!important;
-  filter:blur(8px)!important;
+  filter:none!important;
+  transform-origin:center center!important;
   transition:
-    transform 2.85s cubic-bezier(.12,.82,.14,1),
-    opacity 1.7s ease,
-    filter 2.2s ease!important;
-  will-change:transform,opacity,filter;
+    transform 1.30s cubic-bezier(.12,.84,.16,1),
+    opacity .42s ease-out!important;
+  will-change:transform,opacity;
   backface-visibility:hidden;
 }
-.login-screen.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
-.login-overlay.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
-#loginScreen.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
-#loginOverlay.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
-#login.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
-[data-login-screen].yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo{
-  visibility:hidden!important;
-  opacity:0!important;
-  animation:none!important;
+.login-screen.yardon-login-arrive .login-logo-combo,
+.login-overlay.yardon-login-arrive .login-logo-combo,
+#loginScreen.yardon-login-arrive .login-logo-combo,
+#loginOverlay.yardon-login-arrive .login-logo-combo,
+#login.yardon-login-arrive .login-logo-combo,
+[data-login-screen].yardon-login-arrive .login-logo-combo{
+  visibility:visible!important;
+  opacity:1!important;
 }
 .login-screen.yardon-login-arrive.yardon-login-arrive-active,
 .login-overlay.yardon-login-arrive.yardon-login-arrive-active,
@@ -514,9 +519,9 @@ img[data-yardon-runtime-logo="1"]{
 #loginOverlay.yardon-login-arrive.yardon-login-arrive-active .login-card,
 #login.yardon-login-arrive.yardon-login-arrive-active .login-card,
 [data-login-screen].yardon-login-arrive.yardon-login-arrive-active .login-card{
-  transform:perspective(1500px) translateZ(0) scale(1)!important;
+  transform:perspective(1400px) translateZ(0) scale(1)!important;
   opacity:1!important;
-  filter:blur(0)!important;
+  filter:none!important;
 }
 .login-screen.yardon-login-arrive.yardon-login-arrive-active .login-logo-combo,
 .login-overlay.yardon-login-arrive.yardon-login-arrive-active .login-logo-combo,
@@ -679,7 +684,7 @@ img[data-yardon-runtime-logo="1"],
   box-shadow:none!important;
 }
 img[data-yardon-runtime-logo="1"]:not([data-yardon-prepared="1"]){
-  mix-blend-mode:screen!important;
+  mix-blend-mode:normal!important;
 }
 img[data-yardon-runtime-logo="1"][data-yardon-prepared="1"]{
   mix-blend-mode:normal!important;
@@ -713,57 +718,18 @@ function brandText(v){
     .replace(/\bV5\.8\.3\b/gi,VERSION);
 }
 function transparentLogo(){
-  if(transparentLogoPromise)return transparentLogoPromise;
-  transparentLogoPromise=new Promise((resolve,reject)=>{
-    const im=new Image();
-    im.onload=()=>{
-      try{
-        const sw=im.naturalWidth||im.width,sh=im.naturalHeight||im.height;
-        const maxW=1200,scale=Math.min(1,maxW/sw);
-        const w=Math.max(1,Math.round(sw*scale)),h=Math.max(1,Math.round(sh*scale));
-        const canvas=document.createElement('canvas');
-        canvas.width=w;canvas.height=h;
-        const ctx=canvas.getContext('2d',{willReadFrequently:true});
-        ctx.drawImage(im,0,0,w,h);
-        const image=ctx.getImageData(0,0,w,h),d=image.data;
-        let minX=w,minY=h,maxX=-1,maxY=-1;
-        for(let y=0;y<h;y++){
-          for(let x=0;x<w;x++){
-            const i=(y*w+x)*4;
-            const m=Math.max(d[i],d[i+1],d[i+2]);
-            if(m<=20)d[i+3]=0;
-            else if(m<52)d[i+3]=Math.round(d[i+3]*((m-20)/32));
-            if(d[i+3]>8){
-              if(x<minX)minX=x;if(x>maxX)maxX=x;
-              if(y<minY)minY=y;if(y>maxY)maxY=y;
-            }
-          }
-        }
-        ctx.putImageData(image,0,0);
-        let out=canvas;
-        if(maxX>=minX&&maxY>=minY){
-          const pad=10;
-          const sx=Math.max(0,minX-pad),sy=Math.max(0,minY-pad);
-          const ex=Math.min(w,maxX+pad+1),ey=Math.min(h,maxY+pad+1);
-          out=document.createElement('canvas');
-          out.width=ex-sx;out.height=ey-sy;
-          out.getContext('2d').drawImage(canvas,sx,sy,out.width,out.height,0,0,out.width,out.height);
-        }
-        const url=out.toDataURL('image/png');
-        window.__yardonTransparentLogo=url;
-        resolve(url);
-      }catch(e){reject(e)}
-    };
-    im.onerror=reject;
-    im.src=LOGO;
-  });
+  if(!transparentLogoPromise){
+    window.__yardonTransparentLogo=LOGO;
+    transparentLogoPromise=Promise.resolve(LOGO);
+  }
   return transparentLogoPromise;
 }
 function prepareLogo(el){
-  if(!(el instanceof HTMLImageElement)||el.dataset.yardonPreparing==='1'||el.dataset.yardonPrepared==='1')return;
-  el.dataset.yardonPreparing='1';
+  if(!(el instanceof HTMLImageElement))return;
   el.dataset.yardonRuntimeLogo='1';
-  el.src=LOGO;
+  el.dataset.yardonPrepared='1';
+  delete el.dataset.yardonPreparing;
+  if(el.getAttribute('src')!==LOGO)el.src=LOGO;
   el.style.setProperty('display','block','important');
   el.style.setProperty('visibility','visible','important');
   el.style.setProperty('opacity','1','important');
@@ -772,15 +738,8 @@ function prepareLogo(el){
   el.style.setProperty('outline','0','important');
   el.style.setProperty('box-shadow','none','important');
   el.style.setProperty('filter','none','important');
-  el.style.setProperty('mix-blend-mode','screen','important');
-  transparentLogo().then(url=>{
-    el.src=url;
-    el.dataset.yardonPrepared='1';
-    el.style.setProperty('mix-blend-mode','normal','important');
-  }).catch(()=>{
-    el.src=LOGO;
-    el.style.setProperty('mix-blend-mode','screen','important');
-  }).finally(()=>{delete el.dataset.yardonPreparing});
+  el.style.setProperty('mix-blend-mode','normal','important');
+  window.__yardonTransparentLogo=LOGO;
 }
 function patchElement(el){
   if(!(el instanceof Element))return;
