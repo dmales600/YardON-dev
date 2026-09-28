@@ -489,12 +489,12 @@ img[data-yardon-runtime-logo="1"]{
   will-change:transform,opacity,filter;
   backface-visibility:hidden;
 }
-.login-screen.yardon-login-arrive .login-logo-combo,
-.login-overlay.yardon-login-arrive .login-logo-combo,
-#loginScreen.yardon-login-arrive .login-logo-combo,
-#loginOverlay.yardon-login-arrive .login-logo-combo,
-#login.yardon-login-arrive .login-logo-combo,
-[data-login-screen].yardon-login-arrive .login-logo-combo{
+.login-screen.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
+.login-overlay.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
+#loginScreen.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
+#loginOverlay.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
+#login.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
+[data-login-screen].yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo{
   visibility:hidden!important;
   opacity:0!important;
   animation:none!important;
@@ -517,6 +517,15 @@ img[data-yardon-runtime-logo="1"]{
   transform:perspective(1500px) translateZ(0) scale(1)!important;
   opacity:1!important;
   filter:blur(0)!important;
+}
+.login-screen.yardon-login-arrive.yardon-login-arrive-active .login-logo-combo,
+.login-overlay.yardon-login-arrive.yardon-login-arrive-active .login-logo-combo,
+#loginScreen.yardon-login-arrive.yardon-login-arrive-active .login-logo-combo,
+#loginOverlay.yardon-login-arrive.yardon-login-arrive-active .login-logo-combo,
+#login.yardon-login-arrive.yardon-login-arrive-active .login-logo-combo,
+[data-login-screen].yardon-login-arrive.yardon-login-arrive-active .login-logo-combo{
+  visibility:visible!important;
+  opacity:1!important;
 }
 
 
