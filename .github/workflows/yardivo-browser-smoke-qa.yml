@@ -146,6 +146,13 @@ jobs:
             assert(welcomeState.darkOpaqueRatio===null || welcomeState.darkOpaqueRatio<0.02, `${name}: welcome logo contains opaque dark frame: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.transparentRatio===null || welcomeState.transparentRatio>0.20, `${name}: welcome logo is not materially transparent: ${JSON.stringify(welcomeState)}`);
             assert(!welcomeState.bbox || (welcomeState.bbox.widthRatio>0.65 && welcomeState.bbox.heightRatio>0.40), `${name}: welcome logo content is tiny/cropped inside its asset: ${JSON.stringify(welcomeState)}`);
+            const glowCount = await page.locator('#yardivoWelcomeSplash .yardon-logo-glow').count();
+            assert(glowCount===2, `${name}: welcome targeted glow layers missing: ${glowCount}`);
+            const progressBefore = await page.locator('#yardivoWelcomeSplash .yardivo-welcome-progress-wrap').evaluate(el => ({
+              opacity:Number(getComputedStyle(el).opacity),
+              ready:document.getElementById('yardivoWelcomeSplash')?.classList.contains('yardon-progress-ready')||false
+            })).catch(()=>null);
+            assert(!!progressBefore && progressBefore.opacity < 0.2 && !progressBefore.ready, `${name}: progress appeared before logo/tagline sequence: ${JSON.stringify(progressBefore)}`);
 
             await page.waitForFunction(()=>document.documentElement.classList.contains('yardivo-welcome-complete'),null,{timeout:10000}).catch(()=>{});
             await page.waitForTimeout(250);
@@ -155,13 +162,15 @@ jobs:
             assert(await page.locator('#loginPass').count() === 1, `${name}: #loginPass missing`);
             assert(await page.locator('#loginRole').count() === 1, `${name}: #loginRole missing`);
             assert(await page.locator('#loginSubmitBtn').count() === 1, `${name}: #loginSubmitBtn missing`);
-            const loginLogoState = await page.locator('.login-logo-combo img').evaluate(i => {
+            const loginLogoState = await page.locator('.login-logo-combo img.yardon-login-logo-base').evaluate(i => {
               const r=i.getBoundingClientRect(),cs=getComputedStyle(i);
               return {src:i.getAttribute('src')||'',complete:i.complete,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,
                 width:r.width,height:r.height,display:cs.display,visibility:cs.visibility,opacity:Number(cs.opacity),
                 background:cs.backgroundColor,mixBlendMode:cs.mixBlendMode};
             }).catch(()=>null);
             assert(!!loginLogoState, `${name}: login YardOn logo missing`);
+            const loginGlowCount = await page.locator('.login-logo-combo .yardon-logo-glow').count();
+            assert(loginGlowCount===2, `${name}: login targeted glow layers missing: ${loginGlowCount}`);
             if(loginLogoState){
               assert(/yardon-logo-exact\.webp/i.test(loginLogoState.src), `${name}: wrong canonical login logo source: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.complete && loginLogoState.naturalWidth>0 && loginLogoState.naturalHeight>0, `${name}: login logo asset broken: ${JSON.stringify(loginLogoState)}`);
