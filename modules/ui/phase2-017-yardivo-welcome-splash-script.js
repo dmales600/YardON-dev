@@ -272,14 +272,14 @@ async function startSplitReveal(){
     const sourceRect=(liveRect&&liveRect.width>0&&liveRect.height>0)
       ?liveRect
       :welcomeLogoRect;
-    if(!sourceRect||splitRect.width<=0||splitRect.height<=0){
+    if(!sourceRect||sourceRect.width<=0||sourceRect.height<=0){
       const fallbackWidth=Math.min(window.innerWidth*.68,980);
       const fallbackHeight=fallbackWidth*(341/1719);
       const fallbackLeft=(window.innerWidth-fallbackWidth)/2;
       const fallbackTop=Math.max(80,window.innerHeight*.22);
       welcomeLogoRect={left:fallbackLeft,top:fallbackTop,width:fallbackWidth,height:fallbackHeight,right:fallbackLeft+fallbackWidth,bottom:fallbackTop+fallbackHeight};
     }
-    const splitRect=(sourceRect&&splitRect.width>0&&splitRect.height>0)?sourceRect:welcomeLogoRect;
+    const splitRect=(sourceRect&&sourceRect.width>0&&sourceRect.height>0)?sourceRect:welcomeLogoRect;
     const stage=document.createElement('div');
     stage.className='yardon-split-stage';
     stage.style.setProperty('--yardon-split-left',(splitRect.left-splashRect.left)+'px');
