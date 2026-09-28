@@ -5,7 +5,14 @@ const $=id=>document.getElementById(id);
 const SCOPE='yardivo-user-scope';
 const AVAIL='yardivo-supplier-availability';
 const DELIV='yardivo-supplier-deliveries';
-let scope=null,scopeLocations=[],scopeWarehouses=[],month=new Date(),date='',loc='',wh='',availability=null,choice=null,recommended=null,pdf=null,timer=0;
+let scope=null,scopeLocations=[],scopeWarehouses=[],month=new Date(),date='',loc='',wh='',availability=null,choice=null,recommended=null,pdf=null,timer=0,initRunning=false,initDone=false;
+
+function sessionRole(){
+ try{return String(window.currentSession?.role||window.currentSession?.app_role||'').toLowerCase().trim()}catch(_){return''}
+}
+function supplierSessionActive(){
+ return sessionRole()==='supplier' && !!window.currentSession?.serverAuthorized;
+}
 
 async function edge(functionName,body){
  if(!window.YardivoSupplierService?.call)throw new Error('Supplier data service nije spreman.');
@@ -271,6 +278,12 @@ function resetAll(){
  ['sbnPallets','sbnSku','sbnOrder','sbnReference','sbnPlate','sbnTrailer','sbnDriver','sbnDriverContact','sbnNote'].forEach(id=>{if($(id))$(id).value=''});$('sbnScopeStep').hidden=true;$('sbnQtyStep').hidden=true;$('sbnMapStep').hidden=true;$('sbnExtra').hidden=true;$('sbnSend').disabled=true;$('sbnPdf').value='';$('sbnPdfName').textContent='Nije odabran dokument · max 1.5 MB';drawCalendar();status('ODABERI DATUM')
 }
 async function init(){
+ if(!supplierSessionActive()){
+   status('ČEKA PRIJAVU');
+   return false;
+ }
+ if(initRunning||initDone)return true;
+ initRunning=true;
  drawCalendar();bindPdf();status('UČITAVAM DODJELU');
  let last=null;
  for(let i=0;i<5;i++){
@@ -281,8 +294,16 @@ async function init(){
   const fallback=localScope();
   if(fallback.locations.length&&fallback.warehouses.length)commitScope(fallback);
  }
- if(!scope||!locations().length||!warehouses().length){status('DODJELA NIJE DOSTUPNA');alert(String(last?.message||'Admin nije dodijelio lokaciju/skladište.'));return}
+ if(!scope||!locations().length||!warehouses().length){
+   status('DODJELA NIJE DOSTUPNA');
+   initRunning=false;
+   if(supplierSessionActive())alert(String(last?.message||'Admin nije dodijelio lokaciju/skladište.'));
+   return false;
+ }
  status('ODABERI DATUM');
+ initDone=true;
+ initRunning=false;
+ return true;
 }
 
 function applyLocationSelection(){
@@ -344,6 +365,23 @@ $('sbnPallets').addEventListener('input',loadAvailability);$('sbnSku').addEventL
 $('sbnRecommend').onclick=showRecommendation;$('sbnReset').onclick=resetAll;$('sbnSend').onclick=send;
 $('sbnFullscreen').onclick=()=>{const m=$('sbnMapStep'),on=!m.classList.contains('fullscreen');m.classList.toggle('fullscreen',on);document.body.classList.toggle('sbn-fullscreen',on);$('sbnFullscreen').textContent=on?'× ZATVORI':'⛶ POVEĆAJ MAPU'};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('sbnMapStep')?.classList.contains('fullscreen')){$('sbnMapStep').classList.remove('fullscreen');document.body.classList.remove('sbn-fullscreen');$('sbnFullscreen').textContent='⛶ POVEĆAJ MAPU'}});
-setTimeout(init,350);
-window.YARDIVO_DEV_BUILD='20260923-v5.8.3-supplier-history-backend-v16';
+function scheduleSupplierInit(delay=120){
+ setTimeout(()=>{
+   if(!supplierSessionActive())return;
+   void init().catch(e=>{
+     initRunning=false;
+     console.error('YardOn supplier booking init',e);
+   });
+ },delay);
+}
+
+/* Supplier booking is owned by an authenticated Supplier session only.
+   Never call Supplier Edge/Auth from Welcome or the generic Login screen. */
+window.addEventListener('yardivo:login',e=>{
+ const s=e?.detail?.session||window.currentSession||{};
+ if(String(s?.role||s?.app_role||'').toLowerCase().trim()==='supplier')scheduleSupplierInit(120);
+});
+window.addEventListener('yardivo:session-ready',()=>scheduleSupplierInit(120));
+setTimeout(()=>scheduleSupplierInit(0),350);
+window.YARDIVO_DEV_BUILD='20260928-v1.0-supplier-auth-guard';
 })();
