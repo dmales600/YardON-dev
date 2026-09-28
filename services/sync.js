@@ -18,7 +18,7 @@ const CLIENT_KEY='yardivo_client_id_v1';
 
 let accessToken='',refreshToken='',tokenExp=0,ready=false,applying=false,client=null;
 let dirtyAnn=false,dirtyInc=false,pushing=false,pulling=false;
-let realtimeChannel=null,realtimeStatus='OFF',realtimePullTimer=0,realtimeRetryTimer=0,realtimePendingSignal=false,lastRealtimePullAt=0;
+let realtimeChannel=null,realtimeStatus='OFF',realtimePullTimer=0,realtimeRetryTimer=0,realtimePendingSignal=false,lastRealtimePullAt=0,lastSuccessfulPullAt=0;
 const dirtyState=new Map(),timers=new Map();
 let annSnapshot=new Map(),incSnapshot=new Map();
 
@@ -279,6 +279,7 @@ async function pull(){
       renderAll();
       try{window.dispatchEvent(new CustomEvent('yardivo:data-synced',{detail:{source:'online-v2',changed:true}}))}catch(_){}
     }
+    lastSuccessfulPullAt=Date.now();
     status('● ONLINE BAZA · ONLINE','ok');
     return true;
   }catch(e){
@@ -310,12 +311,15 @@ async function pushIncidents(){
   incSnapshot=d.now;dirtyInc=false;return true;
 }
 async function pushState(){
+  const changes=[];
   for(const [k,v] of [...dirtyState.entries()]){
     if(!canWriteStateKey(k)){dirtyState.delete(k);continue}
-    if(v===null)await edge('delete_state',{key:k});
-    else await edge('set_state',{key:k,value:v});
-    dirtyState.delete(k);
+    changes.push(v===null?{op:'delete',key:k}:{op:'set',key:k,value:v});
   }
+  if(!changes.length)return true;
+  await edge('mutate_state',{changes});
+  for(const ch of changes)dirtyState.delete(ch.key);
+  return true;
 }
 async function flush(){
   if(!ready||pushing)return false;
@@ -420,7 +424,7 @@ async function authenticate(a,r){
   if(!serverUser||serverUser!==appUser)throw new Error('ONLINE PROFIL SE NE PODUDARA S PRIJAVLJENIM KORISNIKOM.');
   let d=await edge('bootstrap');
   d=await factoryZeroServerResetIfPending(d);
-  applyBootstrap(d);ready=true;renderAll();status('● ONLINE BAZA · ONLINE','ok');
+  applyBootstrap(d);ready=true;lastSuccessfulPullAt=Date.now();renderAll();status('● ONLINE BAZA · ONLINE','ok');
   try{await startRealtime()}catch(e){console.warn('[YARDIVO REALTIME] nije pokrenut; polling fallback ostaje aktivan.',e)}
   try{window.dispatchEvent(new CustomEvent('yardivo:data-synced',{detail:{source:'online-v2'}}))}catch(_){}
   return true;
@@ -542,7 +546,10 @@ try{
 async function recoverCanonicalConnection(){
   if(ready){
     try{await startRealtime()}catch(_){}
-    return pending()?flush():pull();
+    if(pending())return flush();
+    if(realtimeStatus==='SUBSCRIBED')return true;
+    if(lastSuccessfulPullAt&&Date.now()-lastSuccessfulPullAt<60000)return true;
+    return pull();
   }
   try{
     const c=await getClient();
@@ -561,10 +568,9 @@ window.addEventListener('online',()=>setTimeout(()=>{recoverCanonicalConnection(
 window.addEventListener('focus',()=>setTimeout(()=>{recoverCanonicalConnection()},150));
 window.addEventListener('pagehide',()=>{stopRealtime().catch(()=>{})},{once:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(()=>{recoverCanonicalConnection()},180)});
-/* X10 FAST SAFETY SYNC
-   Realtime/Broadcast is primary. This 2.2 s visible-tab pulse is the hard
-   fallback for mobile/Edge/server writes when Realtime publication or a
-   broadcast is unavailable. It never runs while the tab is hidden. */
+/* Realtime/Broadcast is primary. The 60 s visible-tab pulse is only a
+   fallback for mobile/Edge/server writes when Realtime is unavailable.
+   Focus/visibility recovery is throttled above to avoid redundant bootstraps. */
 window.__yardivoFastSafetySyncTimer&&clearInterval(window.__yardivoFastSafetySyncTimer);
 window.__yardivoFastSafetySyncTimer=setInterval(()=>{
   if(!ready||document.hidden||navigator.onLine===false)return;
