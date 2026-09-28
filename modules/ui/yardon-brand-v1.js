@@ -1010,7 +1010,7 @@ desktopYardBackgroundStyle.id='yardon-desktop-yard-background-owner';
 desktopYardBackgroundStyle.textContent=`
 @media (min-width:769px){
   #yardivoWelcomeSplash{
-    background-image:url("assets/yardon-desktop-yard-bg.webp?v=20260928-bg2")!important;
+    background-image:url("assets/yardon-desktop-welcome-login-bg.webp?v=20260928-exact1")!important;
     background-position:center center!important;
     background-size:cover!important;
     background-repeat:no-repeat!important;
@@ -1018,7 +1018,7 @@ desktopYardBackgroundStyle.textContent=`
   }
   .login-overlay,
   #loginOverlay{
-    background-image:url("assets/yardon-desktop-yard-bg.webp?v=20260928-bg2")!important;
+    background-image:url("assets/yardon-desktop-welcome-login-bg.webp?v=20260928-exact1")!important;
     background-position:center center!important;
     background-size:cover!important;
     background-repeat:no-repeat!important;
@@ -1163,7 +1163,7 @@ function ensureBrandLogos(){
 }
 let brandRuntimeActive=document.documentElement.classList.contains('yardivo-welcome-complete');
 let brandFlushQueued=false;
-const DESKTOP_YARD_BG='url("assets/yardon-desktop-yard-bg.webp?v=20260928-bg2")';
+const DESKTOP_YARD_BG='url("assets/yardon-desktop-welcome-login-bg.webp?v=20260928-exact1")';
 
 function ensureDesktopYardBackground(){
   if(!window.matchMedia?.('(min-width:769px)').matches)return;
