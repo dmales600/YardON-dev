@@ -221,7 +221,7 @@ function requestRealtimePull(payload){
         realtimeRetryTimer=setTimeout(async()=>{
           realtimeRetryTimer=0;
           try{if(ready&&!pending())await pull()}catch(_){}
-        },240);
+        },5000);
       }
     }catch(e){console.warn('[YARDIVO REALTIME] instant refresh fallback.',e)}
   },wait);
@@ -235,7 +235,7 @@ async function startRealtime(){
   const ch=await window.YardivoRealtime.connect({
     key:'core-sync',
     topic:'yardivo-live-sync-v583-fast',
-    channelOptions:{config:{broadcast:{self:false,ack:true}}},
+    channelOptions:{config:{broadcast:{self:false,ack:false}}},
     setup(channel){
       channel.on('broadcast',{event:'data-changed'},requestRealtimePull);
       for(const table of ['yardivo_announcements','yardivo_incidents','yardivo_app_state']){
@@ -283,13 +283,7 @@ async function pull(){
     status('● ONLINE BAZA · ONLINE','ok');
     return true;
   }catch(e){
-    console.error('[YARDIVO ONLINE] UČITAVANJE',e);
-    try{
-      await edge('health');
-      status('● ONLINE BAZA · ONLINE','ok','Veza potvrđena. Zadnje učitavanje: '+errorText(e));
-    }catch(netErr){
-      showOnlineError('VEZA',netErr);
-    }
+    showOnlineError('UČITAVANJE',e);
     return false
   }
   finally{pulling=false}
@@ -331,13 +325,7 @@ async function flush(){
     if(hadChanges)setTimeout(()=>broadcastChange('sync-flush'),0);
     return true;
   }catch(e){
-    console.error('[YARDIVO ONLINE] SPREMANJE',e);
-    try{
-      await edge('health');
-      status('● ONLINE BAZA · ONLINE','ok','Veza potvrđena. Zadnje spremanje: '+errorText(e));
-    }catch(netErr){
-      showOnlineError('VEZA',netErr);
-    }
+    showOnlineError('SPREMANJE',e);
     return false
   }
   finally{pushing=false}
@@ -424,12 +412,11 @@ async function authenticate(a,r){
   const claim=parseJwt(accessToken);
   if(!claim?.sub||claim?.is_anonymous===true)throw new Error('NEVAŽEĆA ONLINE PRIJAVA.');
   const c=await getClient();if(c)await c.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
-  const health=await edge('health');
-  if(Number(health?.version||0)<2)throw new Error('ONLINE SYNC NIJE AŽURIRAN.');
-  const serverUser=String(health?.user?.username||'').toLowerCase();
+  let d=await edge('bootstrap');
+  if(Number(d?.version||0)<7)throw new Error('ONLINE SYNC NIJE AŽURIRAN.');
+  const serverUser=String(d?.user?.username||'').toLowerCase();
   const appUser=String(window.currentSession?.username||window.currentSession?.user||'').toLowerCase();
   if(!serverUser||serverUser!==appUser)throw new Error('ONLINE PROFIL SE NE PODUDARA S PRIJAVLJENIM KORISNIKOM.');
-  let d=await edge('bootstrap');
   d=await factoryZeroServerResetIfPending(d);
   applyBootstrap(d);ready=true;lastSuccessfulPullAt=Date.now();renderAll();status('● ONLINE BAZA · ONLINE','ok');
   try{await startRealtime()}catch(e){console.warn('[YARDIVO REALTIME] nije pokrenut; polling fallback ostaje aktivan.',e)}
