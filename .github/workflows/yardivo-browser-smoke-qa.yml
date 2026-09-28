@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: yardon-browser-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
 # QA trigger
 
 jobs:
@@ -48,9 +52,34 @@ jobs:
           const failures = [];
           const findings = [];
           const assert = (cond, msg) => { if (!cond) failures.push(msg); };
+          const SUPABASE_HOST = 'https://rskticdbiovvgyocpzoc.supabase.co';
+
+          async function sandboxSupabase(context) {
+            await context.route(SUPABASE_HOST + '/**', async route => {
+              const req = route.request();
+              const url = req.url();
+              if (req.method() === 'OPTIONS') {
+                return route.fulfill({ status: 204, headers: {
+                  'access-control-allow-origin':'*',
+                  'access-control-allow-headers':'authorization,apikey,content-type,x-client-info',
+                  'access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'
+                }});
+              }
+              if (url.includes('/auth/v1/token')) {
+                return route.fulfill({ status: 400, contentType:'application/json', body: JSON.stringify({
+                  error:'invalid_grant', error_description:'Invalid login credentials', msg:'Invalid login credentials'
+                }) });
+              }
+              return route.fulfill({ status: 401, contentType:'application/json', body: JSON.stringify({ message:'QA network sandbox: live Supabase disabled' }) });
+            });
+            if (typeof context.routeWebSocket === 'function') {
+              await context.routeWebSocket('wss://rskticdbiovvgyocpzoc.supabase.co/**', ws => ws.close());
+            }
+          }
 
           async function runViewport(browser, name, viewport) {
             const context = await browser.newContext({ viewport });
+            await sandboxSupabase(context);
             const page = await context.newPage();
             const pageErrors = [];
             const consoleErrors = [];
@@ -124,6 +153,7 @@ jobs:
 
           async function runMobileSurface(browser, name, path, authSelector) {
             const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+            await sandboxSupabase(context);
             const page = await context.newPage();
             const pageErrors = [];
             const brokenLocal = [];
