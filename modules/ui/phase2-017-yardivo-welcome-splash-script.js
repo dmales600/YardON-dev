@@ -9,7 +9,6 @@ let progressAnimation=null;
 const PROGRESS_MS=1900;
 const FINAL_REVEAL_MS=1800;
 const LOGO_REVEAL_POINTS=[22,36,48,60,72,86,100];
-const LOGO_SEGMENT_STAGGER_MS=300;
 const LOGO_SEGMENT_DURATION_MS=760;
 const TAGLINE='YARD MANAGEMENT SYSTEM';
 const TAGLINE_CHAR_MS=48;
@@ -31,19 +30,24 @@ async function revealLogoLetters(splash,source){
   stage.style.setProperty('--yardon-intro-logo-height',rect.height+'px');
   wrap.appendChild(stage);
 
-  source.style.setProperty('visibility','hidden','important');
-  source.style.setProperty('opacity','0','important');
+  const src=source.currentSrc||source.src;
+  source.style.setProperty('visibility','visible','important');
+  source.style.setProperty('opacity','1','important');
+  source.style.setProperty('clip-path','inset(0 100% 0 0)','important');
+  source.style.setProperty('-webkit-clip-path','inset(0 100% 0 0)','important');
   splash.classList.add('yardon-logo-depth-reveal');
 
-  const src=source.currentSrc||source.src;
   let startPct=0;
 
-  // Strictly create only the segment whose turn has arrived. Future letters do not
-  // exist in the DOM yet, so they cannot leak through on the right during stagger.
+  // The source holds only already-completed content. Exactly one transient slice
+  // is created for the current letter/segment, so future right-side letters can
+  // never be visible before their turn.
   for(let i=0;i<LOGO_REVEAL_POINTS.length;i++){
     if(finished||transitioning)return;
 
     const endPct=LOGO_REVEAL_POINTS[i];
+    stage.replaceChildren();
+
     const piece=document.createElement('img');
     piece.className='yardon-intro-logo-segment';
     piece.alt='';
@@ -83,12 +87,19 @@ async function revealLogoLetters(splash,source){
       }
     );
     try{await animation.finished}catch(_){}
+
+    // Commit this slice to the single masked source, then remove the temporary
+    // slice before the next one is introduced.
+    source.style.setProperty('clip-path',`inset(0 ${100-endPct}% 0 0)`,'important');
+    source.style.setProperty('-webkit-clip-path',`inset(0 ${100-endPct}% 0 0)`,'important');
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    stage.replaceChildren();
     startPct=endPct;
   }
 
   if(finished||transitioning)return;
-  source.style.setProperty('visibility','visible','important');
-  source.style.setProperty('opacity','1','important');
+  source.style.removeProperty('clip-path');
+  source.style.removeProperty('-webkit-clip-path');
   stage.remove();
   splash.classList.remove('yardon-logo-depth-reveal');
   splash.classList.add('yardon-logo-glow-active');
