@@ -275,7 +275,7 @@ jobs:
                 height:r.height
               };
             });
-            assert(/yardon-logo-transparent-mobile\.png/i.test(bootLogoState.src), `${name}: wrong welcome logo source: ${JSON.stringify(bootLogoState)}`);
+            assert(/yardon-logo-exact\.webp/i.test(bootLogoState.src), `${name}: wrong welcome logo source: ${JSON.stringify(bootLogoState)}`);
             assert(bootLogoState.complete && bootLogoState.naturalWidth > 0 && bootLogoState.naturalHeight > 0, `${name}: welcome logo asset broken: ${JSON.stringify(bootLogoState)}`);
             assert(bootLogoState.display !== 'none' && bootLogoState.visibility !== 'hidden' && Number(bootLogoState.opacity) > 0 && bootLogoState.width > 120 && bootLogoState.height > 20, `${name}: welcome logo not visibly rendered: ${JSON.stringify(bootLogoState)}`);
 
@@ -303,13 +303,18 @@ jobs:
             }));
             assert(imageState.length > 0, `${name}: YardOn images missing`);
             assert(imageState.every(x => x.complete && x.naturalWidth > 0 && x.naturalHeight > 0), `${name}: broken YardOn image: ${JSON.stringify(imageState)}`);
-            const visibleHero = imageState.find(x => /yardon-logo-transparent-mobile\.png/i.test(x.src) && x.display !== 'none' && x.visibility !== 'hidden' && Number(x.opacity) > 0 && x.width > 120 && x.height > 20);
+            const visibleHero = imageState.find(x => /yardon-logo-exact\.webp/i.test(x.src) && x.display !== 'none' && x.visibility !== 'hidden' && Number(x.opacity) > 0 && x.width > 120 && x.height > 20);
             assert(!!visibleHero, `${name}: visible canonical YardOn hero/login logo missing: ${JSON.stringify(imageState)}`);
             const visibleLoginLogos = await page.locator('.login-brand img[data-yardon-logo]').evaluateAll(imgs => imgs.filter(i => {
               const r=i.getBoundingClientRect(),cs=getComputedStyle(i);
               return cs.display!=='none' && cs.visibility!=='hidden' && Number(cs.opacity)>0 && r.width>40 && r.height>10;
             }).length);
             assert(visibleLoginLogos <= 1, `${name}: duplicate visible login YardOn logos: ${visibleLoginLogos}`);
+            const loginGlow = await page.locator('.login-brand img[data-yardon-logo]').evaluateAll(imgs => imgs.map(i => ({
+              visible:getComputedStyle(i).display!=='none' && getComputedStyle(i).visibility!=='hidden' && Number(getComputedStyle(i).opacity)>0,
+              filter:getComputedStyle(i).filter
+            })));
+            assert(loginGlow.some(x => x.visible && x.filter.includes('drop-shadow')), `${name}: mobile login blue glow missing: ${JSON.stringify(loginGlow)}`);
             assert(pageErrors.length === 0, `${name}: page errors: ${pageErrors.join(' | ')}`);
             assert(brokenLocal.length === 0, `${name}: local HTTP errors: ${JSON.stringify(brokenLocal)}`);
 
