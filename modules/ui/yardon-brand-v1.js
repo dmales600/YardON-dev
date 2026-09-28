@@ -467,11 +467,37 @@ img[data-yardon-runtime-logo="1"]{
 #loginOverlay.yardon-login-arrive,
 #login.yardon-login-arrive,
 [data-login-screen].yardon-login-arrive{
-  transform:perspective(1200px) translateZ(-720px) scale(.42)!important;
+  transform:none!important;
   opacity:0!important;
-  transition:transform 2.65s cubic-bezier(.12,.82,.16,1),opacity 1.35s ease!important;
-  will-change:transform,opacity;
+  transition:opacity .55s ease!important;
+  will-change:opacity;
   backface-visibility:hidden;
+}
+.login-screen.yardon-login-arrive .login-card,
+.login-overlay.yardon-login-arrive .login-card,
+#loginScreen.yardon-login-arrive .login-card,
+#loginOverlay.yardon-login-arrive .login-card,
+#login.yardon-login-arrive .login-card,
+[data-login-screen].yardon-login-arrive .login-card{
+  transform:perspective(1500px) translateZ(-920px) scale(.34)!important;
+  opacity:0!important;
+  filter:blur(8px)!important;
+  transition:
+    transform 2.85s cubic-bezier(.12,.82,.14,1),
+    opacity 1.7s ease,
+    filter 2.2s ease!important;
+  will-change:transform,opacity,filter;
+  backface-visibility:hidden;
+}
+.login-screen.yardon-login-arrive .login-logo-combo,
+.login-overlay.yardon-login-arrive .login-logo-combo,
+#loginScreen.yardon-login-arrive .login-logo-combo,
+#loginOverlay.yardon-login-arrive .login-logo-combo,
+#login.yardon-login-arrive .login-logo-combo,
+[data-login-screen].yardon-login-arrive .login-logo-combo{
+  visibility:hidden!important;
+  opacity:0!important;
+  animation:none!important;
 }
 .login-screen.yardon-login-arrive.yardon-login-arrive-active,
 .login-overlay.yardon-login-arrive.yardon-login-arrive-active,
@@ -479,8 +505,18 @@ img[data-yardon-runtime-logo="1"]{
 #loginOverlay.yardon-login-arrive.yardon-login-arrive-active,
 #login.yardon-login-arrive.yardon-login-arrive-active,
 [data-login-screen].yardon-login-arrive.yardon-login-arrive-active{
-  transform:perspective(1200px) translateZ(0) scale(1)!important;
+  transform:none!important;
   opacity:1!important;
+}
+.login-screen.yardon-login-arrive.yardon-login-arrive-active .login-card,
+.login-overlay.yardon-login-arrive.yardon-login-arrive-active .login-card,
+#loginScreen.yardon-login-arrive.yardon-login-arrive-active .login-card,
+#loginOverlay.yardon-login-arrive.yardon-login-arrive-active .login-card,
+#login.yardon-login-arrive.yardon-login-arrive-active .login-card,
+[data-login-screen].yardon-login-arrive.yardon-login-arrive-active .login-card{
+  transform:perspective(1500px) translateZ(0) scale(1)!important;
+  opacity:1!important;
+  filter:blur(0)!important;
 }
 
 

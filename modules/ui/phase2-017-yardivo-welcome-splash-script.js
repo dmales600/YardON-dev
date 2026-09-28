@@ -25,7 +25,7 @@ function mountLoginBehind(){
     login.style.visibility='visible';
     login.style.opacity='0';
     login.setAttribute('aria-hidden','false');
-    setTimeout(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')),320);
+    setTimeout(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')),520);
   }
   document.documentElement.classList.add('yardivo-login-ready');
   return login;
@@ -43,6 +43,12 @@ function finishReveal(){
     login.classList.remove('yardon-login-arrive','yardon-login-arrive-active');
     login.style.opacity='1';
     login.style.visibility='visible';
+    const finalLogo=login.querySelector('.login-logo-combo');
+    if(finalLogo){
+      finalLogo.style.removeProperty('visibility');
+      finalLogo.style.removeProperty('opacity');
+      finalLogo.style.removeProperty('animation');
+    }
   }
   document.documentElement.classList.remove('yardivo-booting');
   document.documentElement.classList.add('yardivo-welcome-complete');
