@@ -841,6 +841,10 @@ cinematicIntroStyle.textContent=`
   0%,100%{filter:drop-shadow(0 0 3px rgba(0,184,255,.24)) drop-shadow(0 0 8px rgba(0,108,255,.12));}
   50%{filter:drop-shadow(0 0 7px rgba(0,210,255,.50)) drop-shadow(0 0 18px rgba(0,122,255,.28));}
 }
+@keyframes yardonLoginLogoBreathe{
+  0%,100%{opacity:.94;transform:translateZ(0) scale(1);}
+  50%{opacity:1;transform:translateZ(0) scale(1.012);}
+}
 #yardivoWelcomeSplash{
   background:
     radial-gradient(ellipse at 50% 39%,rgba(0,108,190,.20) 0%,rgba(0,55,105,.10) 35%,rgba(0,20,39,0) 65%),
@@ -896,7 +900,7 @@ cinematicIntroStyle.textContent=`
   animation:yardonWholeLogoGlow 2.8s ease-in-out infinite!important;
 }
 .login-logo-combo .yardon-login-logo-base{
-  animation:yardonWholeLogoGlow 3s ease-in-out infinite!important;
+  animation:yardonLoginLogoBreathe 3s ease-in-out infinite!important;
 }
 #yardivoWelcomeSplash .yardivo-welcome-sub{
   min-height:30px!important;
@@ -971,15 +975,15 @@ cinematicIntroStyle.textContent=`
 .login-logo-combo img.yardon-login-logo-base[data-yardon-hd-intro="1"]{
   position:relative!important;
   z-index:2!important;
-  filter:drop-shadow(0 0 6px rgba(0,200,255,.58)) drop-shadow(0 0 18px rgba(0,112,255,.34))!important;
+  filter:drop-shadow(0 0 5px rgba(0,210,255,.72)) drop-shadow(0 0 14px rgba(0,132,255,.46)) drop-shadow(0 0 28px rgba(0,92,255,.24))!important;
+  transform-origin:center center!important;
+  will-change:transform,opacity!important;
 }
 .login-logo-combo img.yardon-logo-glow{
-  width:clamp(360px,34vw,520px)!important;
-  max-width:92%!important;
-  top:50%!important;
-  opacity:.78!important;
-  animation:yardonTargetGlowPulse 2.45s ease-in-out infinite!important;
-  filter:drop-shadow(0 0 9px rgba(0,205,255,.82)) drop-shadow(0 0 24px rgba(0,118,255,.56))!important;
+  display:none!important;
+  opacity:0!important;
+  animation:none!important;
+  filter:none!important;
 }
 .login-screen.yardon-login-arrive:not(.yardon-login-arrive-active) .yardon-logo-glow,
 .login-overlay.yardon-login-arrive:not(.yardon-login-arrive-active) .yardon-logo-glow,
