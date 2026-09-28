@@ -605,9 +605,11 @@ button{cursor:pointer}
     linear-gradient(180deg,#061827 0%,#03111e 64%,#020c15 100%)!important;
 }
 .yardon-mobile-cinematic .mobile-boot-inner{position:relative!important;perspective:1050px!important;transform-style:preserve-3d!important}
-.yardon-mobile-cinematic .mobile-boot-full{visibility:hidden!important;opacity:0!important;animation:none!important;filter:none!important}
+.yardon-mobile-cinematic .mobile-boot-full{
+  visibility:visible!important;opacity:1!important;animation:none!important;filter:none!important;
+  transform-origin:center center!important;will-change:clip-path,transform,filter,opacity!important;
+}
 .yardon-mobile-cinematic.yardon-mobile-logo-ready .mobile-boot-full{
-  visibility:visible!important;opacity:1!important;
   animation:yardonMobileLogoGlow 2.8s ease-in-out infinite!important;
 }
 .yardon-mobile-cinematic .mobile-boot-title,
@@ -657,7 +659,7 @@ button{cursor:pointer}
 
 <section id="mobileBoot" class="mobile-boot yardon-mobile-cinematic" aria-label="YardOn welcome screen">
   <div class="mobile-boot-inner">
-    <img class="mobile-boot-full" src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3" alt="YardOn" data-yardon-logo>
+    <img class="mobile-boot-full" src="../assets/yardon-logo-exact.webp?v=20260928-mobile-exact2" alt="YardOn" data-yardon-logo>
     <h1 id="mobileBootTitle" class="mobile-boot-title">WELCOME TO YARD<span class="yardon-on">ON</span></h1>
     <p id="mobileBootSub" class="mobile-boot-sub">Yard Management System</p>
     <p class="mobile-boot-copy">Centralized yard operations, supplier visibility and dock coordination.</p>
@@ -668,7 +670,7 @@ button{cursor:pointer}
 <div id="auth" class="auth hidden">
   <div class="login-box">
     <div class="login-brand">
-      <img class="login-logo" src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3" alt="YardOn" data-yardon-logo>
+      <img class="login-logo" src="../assets/yardon-logo-exact.webp?v=20260928-mobile-exact2" alt="YardOn" data-yardon-logo>
       <h1>YardOn MANAGER</h1>
       <p>Mobile Operations</p>
     </div>
@@ -685,7 +687,7 @@ button{cursor:pointer}
 
 <div id="welcome" class="welcome">
   <div class="welcome-inner">
-    <img class="welcome-logo" src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3" alt="YardOn" data-yardon-logo>
+    <img class="welcome-logo" src="../assets/yardon-logo-exact.webp?v=20260928-mobile-exact2" alt="YardOn" data-yardon-logo>
     <h2 id="welcomeTitle">DOBRODOŠLI</h2>
     <p id="welcomeSub">Učitavam vašu lokaciju i operativne podatke…</p>
     <div class="welcome-progress"><i id="welcomeFill"></i></div>
@@ -695,7 +697,7 @@ button{cursor:pointer}
 
 <div id="app" class="app hidden">
   <header class="topbar">
-    <div class="brand" style="display:flex;align-items:center;gap:9px"><img src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3" alt="YardOn" style="width:140px;max-width:35vw;height:auto;object-fit:contain" data-yardon-logo><div><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS · v1.0</span></div></div>
+    <div class="brand" style="display:flex;align-items:center;gap:9px"><img src="../assets/yardon-logo-exact.webp?v=20260928-mobile-exact2" alt="YardOn" style="width:140px;max-width:35vw;height:auto;object-fit:contain" data-yardon-logo><div><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS · v1.0</span></div></div>
     <div id="dbStatus" class="top-status"><i></i><span>SPAJANJE</span></div>
   </header>
   <div id="scopeControls" class="scope-controls">
@@ -822,7 +824,7 @@ const MOBILE_LOGO_DATA="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeAAAACkCA
 function prepareYardonMobileLogos(){
   document.querySelectorAll('img[data-yardon-logo]').forEach(img=>{
     const isHero=!!img.closest('#mobileBoot,.login-brand,.welcome-inner');
-    if(isHero)img.src='../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3';
+    if(isHero)img.src='../assets/yardon-logo-exact.webp?v=20260928-mobile-exact2';
     img.style.setProperty('display','block','important');
     img.style.setProperty('visibility','visible','important');
     img.style.setProperty('opacity','1','important');
@@ -847,7 +849,7 @@ async function runLinkIntro(){
   const sub=$('mobileBootSub');
   const auth=$('auth');
   const LOGO_POINTS=[22,36,48,60,72,86,100];
-  const SEGMENT_MS=520;
+  const LOGO_STEP_MS=430;
   const TAGLINE='YARD MANAGEMENT SYSTEM';
   const TAG_CHAR_MS=42;
   const PROGRESS_MS=1450;
@@ -859,50 +861,42 @@ async function runLinkIntro(){
 
   if(full){
     try{if(typeof full.decode==='function')await full.decode()}catch(_){}
+    full.style.setProperty('display','block','important');
     full.style.setProperty('visibility','visible','important');
     full.style.setProperty('opacity','1','important');
     full.style.setProperty('clip-path','inset(0 100% 0 0)','important');
     full.style.setProperty('-webkit-clip-path','inset(0 100% 0 0)','important');
+    full.style.setProperty('transform','translate3d(0,0,-180px) scale(.84)','important');
+    full.style.setProperty('filter','blur(5px) brightness(.68) saturate(1.5) drop-shadow(0 0 14px rgba(0,130,255,.72))','important');
 
-    const wrap=full.parentElement;
-    const rect=full.getBoundingClientRect();
-    const stage=document.createElement('div');
-    stage.className='yardon-mobile-letter-stage';
-    stage.style.setProperty('--yardon-mobile-logo-width',rect.width+'px');
-    stage.style.setProperty('--yardon-mobile-logo-height',rect.height+'px');
-    wrap.appendChild(stage);
-
-    const src=full.currentSrc||full.src||MOBILE_LOGO_DATA;
-    let startPct=0;
+    let prev=0;
     for(const endPct of LOGO_POINTS){
-      stage.replaceChildren();
-      const piece=document.createElement('img');
-      piece.className='yardon-mobile-letter-slice';
-      piece.alt='';piece.setAttribute('aria-hidden','true');
-      piece.decoding='async';piece.loading='eager';piece.src=src;
-      piece.style.setProperty('clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
-      piece.style.setProperty('-webkit-clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
-      stage.appendChild(piece);
-      try{if(typeof piece.decode==='function')await piece.decode()}catch(_){}
-
+      const fromRight=100-prev,toRight=100-endPct;
       try{
-        const a=piece.animate([
-          {opacity:0,transform:'translate3d(-50%,-50%,-360px) scale(.70)',filter:'blur(8px) brightness(.60) saturate(1.7) drop-shadow(0 0 17px rgba(0,120,255,.82))'},
-          {opacity:.86,offset:.64,transform:'translate3d(-50%,-50%,-58px) scale(.95)',filter:'blur(1.5px) brightness(.94) saturate(1.25) drop-shadow(0 0 13px rgba(0,185,255,.60))'},
-          {opacity:1,transform:'translate3d(-50%,-50%,0) scale(1)',filter:'blur(0) brightness(1) saturate(1) drop-shadow(0 0 6px rgba(0,175,255,.34))'}
-        ],{duration:SEGMENT_MS,easing:'cubic-bezier(.16,.78,.18,1)',fill:'forwards'});
+        const a=full.animate([
+          {
+            clipPath:`inset(0 ${fromRight}% 0 0)`,
+            opacity:.72,
+            transform:'translate3d(0,0,-180px) scale(.84)',
+            filter:'blur(5px) brightness(.68) saturate(1.5) drop-shadow(0 0 14px rgba(0,130,255,.72))'
+          },
+          {
+            clipPath:`inset(0 ${toRight}% 0 0)`,
+            opacity:1,
+            transform:'translate3d(0,0,0) scale(1)',
+            filter:'blur(0) brightness(1) saturate(1) drop-shadow(0 0 6px rgba(0,180,255,.35))'
+          }
+        ],{duration:LOGO_STEP_MS,easing:'cubic-bezier(.16,.78,.18,1)',fill:'forwards'});
         await a.finished.catch(()=>{});
-      }catch(_){await sleep(SEGMENT_MS)}
-
-      full.style.setProperty('clip-path',`inset(0 ${100-endPct}% 0 0)`,'important');
-      full.style.setProperty('-webkit-clip-path',`inset(0 ${100-endPct}% 0 0)`,'important');
-      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-      stage.replaceChildren();
-      startPct=endPct;
+      }catch(_){await sleep(LOGO_STEP_MS)}
+      full.style.setProperty('clip-path',`inset(0 ${toRight}% 0 0)`,'important');
+      full.style.setProperty('-webkit-clip-path',`inset(0 ${toRight}% 0 0)`,'important');
+      full.style.setProperty('transform','translate3d(0,0,0) scale(1)','important');
+      full.style.setProperty('filter','drop-shadow(0 0 6px rgba(0,180,255,.35))','important');
+      prev=endPct;
     }
     full.style.removeProperty('clip-path');
     full.style.removeProperty('-webkit-clip-path');
-    stage.remove();
     boot.classList.add('yardon-mobile-logo-ready');
   }
 
@@ -918,7 +912,7 @@ async function runLinkIntro(){
 
   await sleep(120);
   boot.classList.add('yardon-mobile-progress-ready');
-  await sleep(260);
+  await sleep(240);
 
   if(fill){
     try{fill.getAnimations?.().forEach(a=>a.cancel())}catch(_){}
@@ -937,7 +931,6 @@ async function runLinkIntro(){
       );
     }catch(_){}
   }
-
   const progressStart=performance.now();
   await new Promise(resolve=>{
     const tick=now=>{
@@ -1001,7 +994,10 @@ async function runLinkIntro(){
     auth.classList.remove('yardon-auth-arrive','yardon-auth-arrive-active');
     auth.style.opacity='1';auth.style.visibility='visible';
     const loginLogo=auth.querySelector('.login-brand img[data-yardon-logo]');
-    if(loginLogo)loginLogo.style.setProperty('filter','drop-shadow(0 0 5px rgba(0,200,255,.54)) drop-shadow(0 0 14px rgba(0,115,255,.30))','important');
+    if(loginLogo){
+      loginLogo.src='../assets/yardon-logo-exact.webp?v=20260928-mobile-exact2';
+      loginLogo.style.setProperty('filter','drop-shadow(0 0 5px rgba(0,200,255,.54)) drop-shadow(0 0 14px rgba(0,115,255,.30))','important');
+    }
   }
 }
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
