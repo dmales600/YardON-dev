@@ -1005,6 +1005,29 @@ cinematicIntroStyle.textContent=`
 `;
 document.head.appendChild(cinematicIntroStyle);
 
+const desktopYardBackgroundStyle=document.createElement('style');
+desktopYardBackgroundStyle.id='yardon-desktop-yard-background-owner';
+desktopYardBackgroundStyle.textContent=`
+@media (min-width:769px){
+  #yardivoWelcomeSplash{
+    background-image:url("assets/yardon-desktop-yard-background.webp?v=20260928-bg1")!important;
+    background-position:center center!important;
+    background-size:cover!important;
+    background-repeat:no-repeat!important;
+    background-color:#03111e!important;
+  }
+  .login-overlay,
+  #loginOverlay{
+    background-image:url("assets/yardon-desktop-yard-background.webp?v=20260928-bg1")!important;
+    background-position:center center!important;
+    background-size:cover!important;
+    background-repeat:no-repeat!important;
+    background-color:#03111e!important;
+  }
+}
+`;
+document.head.appendChild(desktopYardBackgroundStyle);
+
 function brandText(v){
   return String(v??'')
     .replace(/YARDIVO DEV V5\.8\.3/gi,BRAND+' '+VERSION)
