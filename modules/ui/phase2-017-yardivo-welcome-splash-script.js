@@ -61,32 +61,41 @@ async function revealLogoLetters(splash,source){
 
     try{if(typeof piece.decode==='function')await piece.decode()}catch(_){}
 
-    const animation=piece.animate(
-      [
+    try{
+      const animation=piece.animate(
+        [
+          {
+            opacity:0,
+            transform:'translate3d(-50%,-50%,-560px) scale(.58)',
+            filter:'blur(10px) brightness(.58) saturate(1.9) drop-shadow(0 0 24px rgba(0,118,255,.92))'
+          },
+          {
+            opacity:.82,
+            offset:.62,
+            transform:'translate3d(-50%,-50%,-90px) scale(.92)',
+            filter:'blur(2px) brightness(.92) saturate(1.35) drop-shadow(0 0 18px rgba(0,180,255,.70))'
+          },
+          {
+            opacity:1,
+            transform:'translate3d(-50%,-50%,0) scale(1)',
+            filter:'blur(0) brightness(1) saturate(1) drop-shadow(0 0 8px rgba(0,170,255,.38))'
+          }
+        ],
         {
-          opacity:0,
-          transform:'translate3d(-50%,-50%,-560px) scale(.58)',
-          filter:'blur(10px) brightness(.58) saturate(1.9) drop-shadow(0 0 24px rgba(0,118,255,.92))'
-        },
-        {
-          opacity:.82,
-          offset:.62,
-          transform:'translate3d(-50%,-50%,-90px) scale(.92)',
-          filter:'blur(2px) brightness(.92) saturate(1.35) drop-shadow(0 0 18px rgba(0,180,255,.70))'
-        },
-        {
-          opacity:1,
-          transform:'translate3d(-50%,-50%,0) scale(1)',
-          filter:'blur(0) brightness(1) saturate(1) drop-shadow(0 0 8px rgba(0,170,255,.38))'
+          duration:LOGO_SEGMENT_DURATION_MS,
+          easing:'cubic-bezier(.16,.78,.18,1)',
+          fill:'forwards'
         }
-      ],
-      {
-        duration:LOGO_SEGMENT_DURATION_MS,
-        easing:'cubic-bezier(.16,.78,.18,1)',
-        fill:'forwards'
-      }
-    );
-    try{await animation.finished}catch(_){}
+      );
+      await animation.finished.catch(()=>{});
+    }catch(_){
+      // Safari/older engines may reject complex filter interpolation. Commit the
+      // segment instead of aborting the entire intro and skipping the split.
+      piece.style.opacity='1';
+      piece.style.transform='translate3d(-50%,-50%,0) scale(1)';
+      piece.style.filter='none';
+      await wait(120);
+    }
 
     // Commit this slice to the single masked source, then remove the temporary
     // slice before the next one is introduced.
@@ -400,7 +409,7 @@ function start(){
   pct.textContent='0%';
   if(status)status.textContent='';
 
-  runIntroSequence(splash,source,sub,bar,pct,status).catch(()=>forceReveal());
+  runIntroSequence(splash,source,sub,bar,pct,status).catch(()=>startSplitReveal());
 }
 
 if(document.getElementById('yardivoWelcomeSplash')){
