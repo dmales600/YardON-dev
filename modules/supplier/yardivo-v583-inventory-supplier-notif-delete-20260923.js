@@ -3,13 +3,20 @@
 'use strict';
 if(window.__YARDIVO_INVENTORY_SUPPLIER_NOTIF_DELETE_20260923__)return;
 window.__YARDIVO_INVENTORY_SUPPLIER_NOTIF_DELETE_20260923__=true;
-let busy=false,lastSig='';
+let busy=false,lastSig='',loginSession=null;
 
+function sessionSnapshot(){
+  try{
+    const live=window.currentSession||null;
+    if(live?.role||live?.app_role)return live;
+  }catch(_){}
+  return loginSession||{};
+}
 function role(){
-  try{const s=window.currentSession||{};let r=String(s.app_role||s.role||'').toLowerCase().trim();if(r==='zalihe'||r==='upravljanje zalihama')r='inventory';return r}catch(_){return''}
+  try{const s=sessionSnapshot();let r=String(s.app_role||s.role||'').toLowerCase().trim();if(r==='zalihe'||r==='upravljanje zalihama')r='inventory';return r}catch(_){return''}
 }
 function user(){
-  try{const s=window.currentSession||{};return String(s.username||s.user||role()||'anonymous')}catch(_){return'anonymous'}
+  try{const s=sessionSnapshot();return String(s.username||s.user||role()||'anonymous')}catch(_){return'anonymous'}
 }
 function inventory(){return role()==='inventory'}
 function notifId(id){return 'SUPREQ-'+String(id)}
@@ -114,10 +121,14 @@ document.addEventListener('click',e=>{
   }
 },true);
 
-window.addEventListener('yardivo:login',()=>setTimeout(poll,500));
+window.addEventListener('yardivo:login',e=>{
+  loginSession=e?.detail?.session||window.currentSession||loginSession;
+  setTimeout(()=>{syncSupplierBadge();poll()},220);
+});
 window.addEventListener('yardivo:data-synced',()=>setTimeout(syncSupplierBadge,120));
 window.addEventListener('yardivo:supplier-internal-rows',()=>setTimeout(poll,0));
 window.addEventListener('yardivo:supplier-request-updated',()=>setTimeout(()=>window.YardivoSupplierLiveSync?.pullInternal?.(true),80));
+window.addEventListener('yardivo:logout',()=>{loginSession=null;lastSig='';});
 window.addEventListener('focus',poll);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
 /* SupplierLiveSync is the sole list_internal polling owner. */

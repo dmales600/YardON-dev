@@ -4,10 +4,21 @@
 const KEY='yardivo_live_notifications_v1';
 const CUT_KEY='yardivo_notification_clear_cutoff_v583';
 const SEEN='yardivo_notification_seen_v5';
-let fp='';
+let fp='',authSession=null;
+
+function sessionSnapshot(){
+  try{
+    const live=window.currentSession||null;
+    if(live?.role||live?.app_role)return live;
+  }catch(_){}
+  return authSession||null;
+}
 
 function sessionActive(){
-  try{return !!currentSession?.role}catch(e){return false}
+  try{
+    const s=sessionSnapshot();
+    return !!(s?.role||s?.app_role);
+  }catch(e){return false}
 }
 function welcomeActive(){
   const s=document.getElementById('yardivoWelcomeSplash');
@@ -23,11 +34,11 @@ function setPhaseClasses(){
   document.body.classList.toggle('yardivo-welcome-active',welcomeActive());
 }
 function role(){
-  let r='';try{r=String(currentSession?.role||'').toLowerCase().trim()}catch(e){}
+  let r='';try{const s=sessionSnapshot()||{};r=String(s.role||s.app_role||'').toLowerCase().trim()}catch(e){}
   if(r==='prijam')r='reception';if(r==='porta'||r==='portir')r='gate';if(r==='zalihe'||r==='upravljanje zalihama')r='inventory';
   return r;
 }
-function usr(){try{return String(currentSession?.username||currentSession?.user||role()||'anonymous')}catch(e){return'anonymous'}}
+function usr(){try{const s=sessionSnapshot()||{};return String(s.username||s.user||role()||'anonymous')}catch(e){return'anonymous'}}
 function clearCutoffMs(){
   try{
     const raw=localStorage.getItem(CUT_KEY)||'';
@@ -118,7 +129,8 @@ function eventAllowedForRole(n,r){
 }
 function assignedWarehouses(){
   try{
-    const a=Array.isArray(currentSession?.warehouses)?currentSession.warehouses:[];
+    const s=sessionSnapshot()||{};
+    const a=Array.isArray(s.warehouses)?s.warehouses:[];
     return [...new Set(a.map(x=>String(x||'').trim().toUpperCase()).filter(Boolean))];
   }catch(e){return[]}
 }
@@ -420,7 +432,8 @@ window.addEventListener('load',()=>{
     if(!prelogin())checkNew();
   },700);
 });
-window.addEventListener('yardivo:login',()=>{
+window.addEventListener('yardivo:login',e=>{
+  authSession=e?.detail?.session||window.currentSession||authSession;
   try{sessionStorage.removeItem(SEEN)}catch(_){}
   setTimeout(()=>{
     setPhaseClasses();
@@ -438,6 +451,7 @@ window.addEventListener('yardivo:login',()=>{
   },120);
 }));
 window.addEventListener('yardivo:logout',()=>{
+  authSession=null;
   try{sessionStorage.removeItem(SEEN)}catch(_){}
   try{document.getElementById('yardivoToastStack')?.replaceChildren()}catch(_){}
   try{panel?.classList.remove('open')}catch(_){}
