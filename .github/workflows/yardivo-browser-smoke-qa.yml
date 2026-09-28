@@ -104,7 +104,7 @@ jobs:
 
             if (viewport.width >= 769) {
               const welcomeBg = await page.locator('#yardivoWelcomeSplash').evaluate(el => getComputedStyle(el).backgroundImage).catch(()=> '');
-              assert(/yardon-desktop-yard-bg\.webp/i.test(welcomeBg), `${name}: desktop welcome logistics background missing: ${welcomeBg}`);
+              assert(/yardon-desktop-welcome-login-bg\.webp/i.test(welcomeBg), `${name}: desktop welcome logistics background missing: ${welcomeBg}`);
             }
 
             // Strict sequential reveal: future letters must not exist in the DOM before their turn.
@@ -198,7 +198,7 @@ jobs:
             assert(await page.locator('#loginSubmitBtn').count() === 1, `${name}: #loginSubmitBtn missing`);
             if (viewport.width >= 769) {
               const loginBg = await page.locator('#loginOverlay').evaluate(el => getComputedStyle(el).backgroundImage).catch(()=> '');
-              assert(/yardon-desktop-yard-bg\.webp/i.test(loginBg), `${name}: desktop login logistics background missing: ${loginBg}`);
+              assert(/yardon-desktop-welcome-login-bg\.webp/i.test(loginBg), `${name}: desktop login logistics background missing: ${loginBg}`);
             }
             const loginLogoState = await page.locator('.login-logo-combo img.yardon-login-logo-base').evaluate(i => {
               const r=i.getBoundingClientRect(),cs=getComputedStyle(i);
