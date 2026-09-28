@@ -116,29 +116,39 @@ jobs:
                 ctx.drawImage(i,0,0);
                 const d=ctx.getImageData(0,0,canvas.width,canvas.height).data;
                 let darkOpaque=0,transparent=0,total=d.length/4;
+                let minX=canvas.width,minY=canvas.height,maxX=-1,maxY=-1;
                 for(let p=0;p<d.length;p+=4){
+                  const px=(p/4)%canvas.width,py=Math.floor((p/4)/canvas.width);
                   const a=d[p+3],m=Math.max(d[p],d[p+1],d[p+2]);
                   if(a<8)transparent++;
                   if(a>220&&m<24)darkOpaque++;
+                  if(a>24){ if(px<minX)minX=px;if(px>maxX)maxX=px;if(py<minY)minY=py;if(py>maxY)maxY=py; }
                 }
                 darkOpaqueRatio=total?darkOpaque/total:1;
                 transparentRatio=total?transparent/total:0;
+                window.__yardonQaBbox=maxX>=minX&&maxY>=minY?{
+                  widthRatio:(maxX-minX+1)/canvas.width,
+                  heightRatio:(maxY-minY+1)/canvas.height
+                }:null;
               }catch(_){}
               return {
                 src:i.getAttribute('src')||'',
                 complete:i.complete,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,
                 width:r.width,height:r.height,display:cs.display,visibility:cs.visibility,
                 opacity:Number(cs.opacity),background:cs.backgroundColor,mixBlendMode:cs.mixBlendMode,
-                darkOpaqueRatio,transparentRatio
+                darkOpaqueRatio,transparentRatio,bbox:window.__yardonQaBbox||null
               };
             });
-            assert(/yardon-logo-transparent-mobile\.png/i.test(welcomeState.src), `${name}: wrong canonical welcome logo source: ${JSON.stringify(welcomeState)}`);
+            assert(/yardon-logo-canonical\.svg/i.test(welcomeState.src), `${name}: wrong canonical welcome logo source: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.complete && welcomeState.naturalWidth>0 && welcomeState.naturalHeight>0, `${name}: welcome logo asset broken: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.width>120 && welcomeState.height>20 && welcomeState.visibility!=='hidden' && welcomeState.opacity>0, `${name}: welcome logo not visible: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.mixBlendMode==='normal', `${name}: welcome logo uses blend workaround: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.darkOpaqueRatio===null || welcomeState.darkOpaqueRatio<0.02, `${name}: welcome logo contains opaque dark frame: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.transparentRatio===null || welcomeState.transparentRatio>0.20, `${name}: welcome logo is not materially transparent: ${JSON.stringify(welcomeState)}`);
+            assert(!welcomeState.bbox || (welcomeState.bbox.widthRatio>0.65 && welcomeState.bbox.heightRatio>0.40), `${name}: welcome logo content is tiny/cropped inside its asset: ${JSON.stringify(welcomeState)}`);
 
+            await page.waitForFunction(()=>document.documentElement.classList.contains('yardivo-welcome-complete'),null,{timeout:10000}).catch(()=>{});
+            await page.waitForTimeout(250);
             await page.locator('#loginUser').waitFor({ state:'visible', timeout:10000 }).catch(()=>{});
             
             assert(await page.locator('#loginUser').count() === 1, `${name}: #loginUser missing`);
@@ -153,7 +163,7 @@ jobs:
             }).catch(()=>null);
             assert(!!loginLogoState, `${name}: login YardOn logo missing`);
             if(loginLogoState){
-              assert(/yardon-logo-transparent-mobile\.png/i.test(loginLogoState.src), `${name}: wrong canonical login logo source: ${JSON.stringify(loginLogoState)}`);
+              assert(/yardon-logo-canonical\.svg/i.test(loginLogoState.src), `${name}: wrong canonical login logo source: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.complete && loginLogoState.naturalWidth>0 && loginLogoState.naturalHeight>0, `${name}: login logo asset broken: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.width>120 && loginLogoState.height>20 && loginLogoState.visibility!=='hidden' && loginLogoState.opacity>0, `${name}: login logo not visibly rendered: ${JSON.stringify(loginLogoState)}`);
               assert(loginLogoState.mixBlendMode==='normal', `${name}: login logo uses blend workaround: ${JSON.stringify(loginLogoState)}`);
