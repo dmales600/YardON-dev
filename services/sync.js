@@ -360,14 +360,21 @@ function kindFor(k){
 
 const nativeSet=Storage.prototype.setItem,nativeRemove=Storage.prototype.removeItem;
 Storage.prototype.setItem=function(k,v){
+  const key=String(k),next=String(v);
+  let same=false;
+  if(this===window.localStorage&&!applying){
+    try{same=this.getItem(key)===next}catch(_){}
+  }
   const r=nativeSet.apply(this,arguments);
-  if(this===window.localStorage&&!applying){const kind=kindFor(String(k));if(kind)schedule(kind,String(k),String(v))}
+  if(this===window.localStorage&&!applying&&!same){const kind=kindFor(key);if(kind)schedule(kind,key,next)}
   return r;
 };
 Storage.prototype.removeItem=function(k){
   const key=String(k),kind=this===window.localStorage?kindFor(key):'';
+  let existed=false;
+  if(this===window.localStorage&&!applying){try{existed=this.getItem(key)!==null}catch(_){}}
   const r=nativeRemove.apply(this,arguments);
-  if(this===window.localStorage&&!applying&&kind){
+  if(this===window.localStorage&&!applying&&kind&&existed){
     if(kind==='ann'){dirtyAnn=true;schedule('ann',key,'[]')}
     else if(kind==='inc'){dirtyInc=true;schedule('inc',key,'[]')}
     else schedule('state',key,null);
