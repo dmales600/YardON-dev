@@ -575,11 +575,12 @@ window.__yardivoFastSafetySyncTimer&&clearInterval(window.__yardivoFastSafetySyn
 window.__yardivoFastSafetySyncTimer=setInterval(()=>{
   if(!ready||document.hidden||navigator.onLine===false)return;
   if(pending()){flush();return}
-  /* Realtime is authoritative while connected. Do not download a full bootstrap
-     every few seconds when no server-side change happened. */
+  /* Realtime is authoritative while connected. When it is unavailable, use a
+     low-frequency safety pull; focus/online recovery above still refreshes promptly. */
   if(realtimeStatus==='SUBSCRIBED')return;
+  if(lastSuccessfulPullAt&&Date.now()-lastSuccessfulPullAt<240000)return;
   pull();
-},60000);
+},300000);
 
 window.YardivoRealtimeLatencyV583={
   targetMs:3000,
@@ -592,7 +593,7 @@ window.YardivoRealtimeLatencyV583={
     realtime:realtimeStatus,
     pending:pending(),
     targetMs:3000,
-    safetyPulseMs:60000,
+    safetyPulseMs:300000,
     lastPullAt:lastRealtimePullAt||0
   })
 };
