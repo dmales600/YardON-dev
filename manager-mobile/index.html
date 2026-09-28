@@ -1488,17 +1488,20 @@ img[data-yardon-logo]{
   filter:none!important;
   mix-blend-mode:normal!important;
 }
-.mobile-boot-full{
-  display:none!important;
-}
+.mobile-boot-full,
 .mobile-boot.full .mobile-boot-full{
   display:block!important;
-  width:min(500px,90vw)!important;
-  max-width:90vw!important;
+  width:min(500px,91vw)!important;
+  max-width:91vw!important;
   height:auto!important;
-  margin:0 auto 25px!important;
-  transform:none!important;
+  margin:0 auto 18px!important;
+  transform:translate3d(0,0,0)!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
 }
+.mobile-boot-mark{display:none!important}
 .mobile-boot-mark img[data-yardon-logo]{
   height:100%!important;
   width:auto!important;
@@ -1513,5 +1516,49 @@ img[data-yardon-logo]{
   margin:0 auto 18px!important;
   position:static!important;
   transform:none!important;
+}
+</style>
+
+<style id="yardon-mobile-canonical-intro-final-owner">
+/* FINAL OWNER · YardOn v1.0 mobile welcome/login transition */
+.mobile-boot-mark{display:none!important}
+.mobile-boot-full,
+.mobile-boot.full .mobile-boot-full{
+  display:block!important;
+  width:min(500px,91vw)!important;
+  max-width:91vw!important;
+  height:auto!important;
+  margin:0 auto 18px!important;
+  transform:translate3d(0,0,0)!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+}
+.mobile-boot-title,
+.mobile-boot-sub,
+.mobile-boot-progress,
+.mobile-boot-meta{opacity:1!important}
+.mobile-boot-progress i{
+  width:100%!important;
+  transform-origin:left center!important;
+  will-change:transform!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+}
+.mobile-boot .yardon-mobile-split-half{
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  will-change:transform,opacity!important;
+}
+.auth.yardon-auth-arrive{
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  will-change:transform,opacity!important;
 }
 </style>
