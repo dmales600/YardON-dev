@@ -138,11 +138,15 @@ jobs:
 
             const boot = page.locator('#mobileBoot');
             assert(await boot.count() === 1, `${name}: #mobileBoot missing`);
-            assert(await page.locator('#mobileBoot .mobile-boot-mark').count() === 1, `${name}: mark phase missing`);
-            assert(await page.locator('#mobileBoot .mobile-boot-full').count() === 1, `${name}: full logo phase missing`);
+            assert(await page.locator('#mobileBoot .mobile-boot-full').count() === 1, `${name}: canonical full logo missing`);
+            assert(await page.locator('#mobileBootTitle').count() === 1, `${name}: canonical welcome title missing`);
+            const titleText = ((await page.locator('#mobileBootTitle').textContent().catch(()=>'')) || '').replace(/\s+/g,' ').trim();
+            assert(/WELCOME TO YARDON/i.test(titleText), `${name}: unexpected welcome title: ${titleText}`);
+            assert(await page.locator('#mobileBootFill').count() === 1, `${name}: canonical progress fill missing`);
 
             await page.locator(authSelector).waitFor({ state:'visible', timeout:10000 }).catch(()=>{});
             assert(await page.locator(authSelector).isVisible().catch(()=>false), `${name}: auth screen not visible after intro`);
+            assert(await boot.isHidden().catch(()=>false), `${name}: mobile boot did not finish/hide`);
 
             const imageState = await page.locator('img[data-yardon-logo]').evaluateAll(imgs => imgs.map(i => ({
               complete:i.complete,
@@ -165,7 +169,7 @@ jobs:
               await runViewport(browser, 'desktop', { width: 1440, height: 1000 });
               await runViewport(browser, 'mobile', { width: 390, height: 844 });
               await runMobileSurface(browser, 'manager-mobile', 'manager-mobile/', '#auth');
-              await runMobileSurface(browser, 'reception-scanner', 'scanner/', '#auth');
+              await runMobileSurface(browser, 'reception-mobile', 'scanner/?role=reception', '#auth');
             } finally {
               await browser.close();
             }
