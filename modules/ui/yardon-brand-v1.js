@@ -1,7 +1,7 @@
 (()=>{'use strict';
 if(window.__YARDON_BRAND_V1__)return;
 window.__YARDON_BRAND_V1__=true;
-const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo-transparent.svg?v=20260928c';
+const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo.webp?v=20260928d';
 let transparentLogoPromise=null;
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','CODE','PRE','TEXTAREA']);
 const style=document.createElement('style');
@@ -26,10 +26,10 @@ style.textContent=`
 
 
 @keyframes yardonLoginZoom{
-  0%{opacity:0;transform:scale(.42);filter:drop-shadow(0 0 8px rgba(0,183,255,.28)) drop-shadow(0 0 18px rgba(0,120,255,.18));}
+  0%{opacity:0;transform:scale(.42);filter:none!important;}
   18%{opacity:1;transform:scale(.72);}
-  64%{opacity:1;transform:scale(1.28);filter:drop-shadow(0 0 24px rgba(0,220,255,.88)) drop-shadow(0 0 58px rgba(0,135,255,.58)) drop-shadow(0 0 100px rgba(0,80,255,.32));}
-  100%{opacity:0;transform:scale(2.15);filter:drop-shadow(0 0 34px rgba(0,220,255,.22)) drop-shadow(0 0 90px rgba(0,110,255,.12));}
+  64%{opacity:1;transform:scale(1.28);filter:none!important;}
+  100%{opacity:0;transform:scale(2.15);filter:none!important;}
 }
 #yardonLoginTransition{
   position:fixed!important;
@@ -74,7 +74,7 @@ style.textContent=`
   transform:translate3d(-50%,-50%,0);
   border-radius:50%;
   background:radial-gradient(ellipse at center,rgba(0,222,255,.28) 0%,rgba(0,130,255,.15) 42%,rgba(0,70,170,0) 76%);
-  filter:none;
+  filter:none!important;
   pointer-events:none;
   z-index:-1;
   will-change:transform,opacity;
@@ -186,8 +186,8 @@ style.textContent=`
   height:auto!important;
   object-fit:contain!important;
   background:transparent!important;
-  mix-blend-mode:normal;
-  filter:none;
+  mix-blend-mode:screen!important;
+  filter:none!important;
   transform:translate3d(0,0,0);
   will-change:transform,opacity;
   backface-visibility:hidden;
@@ -256,8 +256,8 @@ style.textContent=`
   height:auto!important;
   object-fit:contain!important;
   background:transparent!important;
-  mix-blend-mode:normal;
-  filter:drop-shadow(0 0 9px rgba(0,190,255,.25));
+  mix-blend-mode:screen!important;
+  filter:none!important;
   animation:yardonLogoBreathe 2.8s ease-in-out infinite;
   will-change:transform;
 }
@@ -281,8 +281,8 @@ style.textContent=`
 .studenac-market-logo,
 #yardivoSupplierPortal .yardon-supplier-brand img{
   background:transparent!important;
-  mix-blend-mode:normal;
-  filter:drop-shadow(0 0 7px rgba(0,185,255,.22));
+  mix-blend-mode:screen!important;
+  filter:none!important;
   animation:yardonLogoBreathe 3s ease-in-out infinite;
   will-change:transform;
 }
@@ -328,8 +328,8 @@ img[data-yardon-runtime-logo="1"]{
   display:block!important;
   object-fit:contain!important;
   background:transparent!important;
-  mix-blend-mode:normal;
-  filter:drop-shadow(0 0 7px rgba(0,185,255,.22));
+  mix-blend-mode:screen!important;
+  filter:none!important;
   animation:yardonLogoBreathe 3s ease-in-out infinite;
   will-change:transform;
 }
@@ -438,7 +438,7 @@ img[data-yardon-runtime-logo="1"]{
   max-width:92vw!important;
   height:auto!important;
   object-fit:contain!important;
-  filter:none;
+  filter:none!important;
   will-change:transform,opacity;
   backface-visibility:hidden;
 }
@@ -470,6 +470,47 @@ img[data-yardon-runtime-logo="1"]{
 [data-login-screen].yardon-login-arrive.yardon-login-arrive-active{
   transform:perspective(1200px) translateZ(0) scale(1)!important;
   opacity:1!important;
+}
+
+
+/* YardOn desktop visible frameless render — original logo + screen blend */
+#yardivoWelcomeSplash img.yardon-welcome-logo,
+.login-logo-combo img,
+.brand-combo img,
+.yardon-topbar-brand img,
+.home-menu-brand img,
+.studenac-market-logo,
+#yardivoSupplierPortal img[data-yardon-runtime-logo="1"],
+img[data-yardon-runtime-logo="1"],
+#yardonLoginTransition img,
+#yardivoWelcomeSplash .yardon-split-half{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1;
+  background:transparent!important;
+  background-color:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  mix-blend-mode:screen!important;
+}
+#yardivoWelcomeSplash .yardon-welcome-logo{
+  width:clamp(620px,60vw,980px)!important;
+  height:auto!important;
+  margin:0 auto!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+}
+.login-logo-combo img{
+  width:clamp(360px,34vw,540px)!important;
+  height:auto!important;
+  margin:0 auto!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+}
+#yardivoWelcomeSplash .yardon-split-half{
+  mix-blend-mode:screen!important;
 }
 
 @media(max-width:700px){
@@ -508,7 +549,7 @@ function prepareLogo(el){
   el.style.setProperty('outline','0','important');
   el.style.setProperty('box-shadow','none','important');
   el.style.setProperty('filter','none','important');
-  el.style.setProperty('mix-blend-mode','normal','important');
+  el.style.setProperty('mix-blend-mode','screen','important');
 }
 function patchElement(el){
   if(!(el instanceof Element))return;
@@ -521,7 +562,7 @@ function patchElement(el){
       el.setAttribute('data-yardon-runtime-logo','1');
       el.style.setProperty('background','transparent','important');
       el.style.setProperty('box-shadow','none','important');
-      el.style.setProperty('mix-blend-mode','normal','important');
+      el.style.setProperty('mix-blend-mode','screen','important');
       const host=el.closest('.brand-combo,.home-menu-brand,.yardon-topbar-brand,.login-logo-combo,.yardivo-welcome-logo-wrap,.ysp-head,.ysp-header,.ysp-top,.ysp-nav,.sidebar,.topbar,[class*="brand"],[class*="logo"]');
       if(host){
         host.classList.add('yardon-role-brand-wrap');
