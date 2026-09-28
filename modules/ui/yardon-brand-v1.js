@@ -394,7 +394,7 @@ img[data-yardon-runtime-logo="1"]{
   pointer-events:none;
   z-index:1;
   opacity:1;
-  animation:yardonSplashDissolve 2.1s cubic-bezier(.18,.72,.16,1) forwards!important;
+  animation:yardonSplashDissolve 1.8s cubic-bezier(.18,.72,.16,1) forwards!important;
   will-change:opacity;
 }
 #yardivoWelcomeSplash.yardon-split-reveal .yardivo-welcome-inner{
@@ -458,11 +458,11 @@ img[data-yardon-runtime-logo="1"]{
 }
 #yardivoWelcomeSplash .yardon-split-half.left{
   clip-path:inset(0 50% 0 0);
-  animation:yardonSplitLeft 2.1s cubic-bezier(.14,.76,.16,1) forwards!important;
+  animation:yardonSplitLeft 1.8s cubic-bezier(.14,.76,.16,1) forwards!important;
 }
 #yardivoWelcomeSplash .yardon-split-half.right{
   clip-path:inset(0 0 0 50%);
-  animation:yardonSplitRight 2.1s cubic-bezier(.14,.76,.16,1) forwards!important;
+  animation:yardonSplitRight 1.8s cubic-bezier(.14,.76,.16,1) forwards!important;
 }
 .login-screen.yardon-login-arrive,
 .login-overlay.yardon-login-arrive,
@@ -486,8 +486,8 @@ img[data-yardon-runtime-logo="1"]{
   opacity:0!important;
   filter:none!important;
   transition:
-    transform 1.85s cubic-bezier(.12,.82,.14,1),
-    opacity .72s ease-out!important;
+    transform 1.55s cubic-bezier(.12,.82,.14,1),
+    opacity .48s ease-out!important;
   will-change:transform,opacity;
   backface-visibility:hidden;
 }
@@ -742,6 +742,41 @@ img[data-yardon-runtime-logo="1"][data-yardon-prepared="1"]{
 `
 document.head.appendChild(style);
 
+const loginCleanStyle=document.createElement('style');
+loginCleanStyle.id='yardon-login-clean-final';
+loginCleanStyle.textContent=`
+/* YardOn no-login-rhombus hard stop */
+body.yardivo-prelogin .login-logo-combo::before,
+body.yardivo-prelogin .login-logo-combo::after,
+body.yardivo-prelogin .login-card::before,
+body.yardivo-prelogin .login-card::after,
+body.yardivo-prelogin .login-overlay::before,
+body.yardivo-prelogin .login-overlay::after,
+body.yardivo-prelogin .login-screen::before,
+body.yardivo-prelogin .login-screen::after,
+body.yardivo-prelogin #loginScreen::before,
+body.yardivo-prelogin #loginScreen::after,
+body.yardivo-prelogin #loginOverlay::before,
+body.yardivo-prelogin #loginOverlay::after{
+  content:none!important;
+  display:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  animation:none!important;
+  background:none!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+#yardivoWelcomeSplash .yardivo-welcome-progress i{
+  transform:translate3d(0,0,0) scaleX(0);
+  will-change:transform!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+}
+`;
+document.head.appendChild(loginCleanStyle);
+
 function brandText(v){
   return String(v??'')
     .replace(/YARDIVO DEV V5\.8\.3/gi,BRAND+' '+VERSION)
@@ -758,7 +793,7 @@ function transparentLogo(){
     im.onload=()=>{
       try{
         const sw=im.naturalWidth||im.width,sh=im.naturalHeight||im.height;
-        const maxW=1200,scale=Math.min(1,maxW/sw);
+        const maxW=1000,scale=Math.min(1,maxW/sw);
         const w=Math.max(1,Math.round(sw*scale)),h=Math.max(1,Math.round(sh*scale));
         const canvas=document.createElement('canvas');
         canvas.width=w;canvas.height=h;
@@ -894,19 +929,56 @@ function ensureBrandLogos(){
     }
   }
 }
-function apply(){try{patchTree(document);ensureBrandLogos()}catch(e){console.warn('YardOn brand runtime',e)}}
+let brandRuntimeActive=document.documentElement.classList.contains('yardivo-welcome-complete');
+let brandFlushQueued=false;
+
+function apply(){
+  try{
+    document.title=BRAND+' '+VERSION+' - Yard Management System';
+    document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content',BRAND);
+    document.querySelector('meta[name="application-name"]')?.setAttribute('content',BRAND);
+    if(!brandRuntimeActive)return;
+    patchTree(document);
+    ensureBrandLogos();
+  }catch(e){console.warn('YardOn brand runtime',e)}
+}
+function activateBrandRuntime(){
+  if(brandRuntimeActive)return;
+  brandRuntimeActive=true;
+  const run=()=>{brandFlushQueued=false;apply()};
+  if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:450});
+  else setTimeout(run,0);
+}
+function queueBrandApply(){
+  if(!brandRuntimeActive||brandFlushQueued)return;
+  brandFlushQueued=true;
+  requestAnimationFrame(()=>{
+    const run=()=>{brandFlushQueued=false;apply()};
+    if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:300});
+    else setTimeout(run,0);
+  });
+}
+
 const nativeAlert=window.alert?.bind(window),nativeConfirm=window.confirm?.bind(window),nativePrompt=window.prompt?.bind(window);
 if(nativeAlert)window.alert=(message)=>nativeAlert(brandText(message));
 if(nativeConfirm)window.confirm=(message)=>nativeConfirm(brandText(message));
 if(nativePrompt)window.prompt=(message,defaultValue)=>nativePrompt(brandText(message),defaultValue);
+
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
+window.addEventListener('yardivo:welcome-complete',activateBrandRuntime,{once:true});
+
 new MutationObserver(ms=>{
+  if(!brandRuntimeActive)return;
   for(const m of ms){
     if(m.type==='characterData'&&m.target?.parentElement&&!SKIP.has(m.target.parentElement.tagName)){
       const old=m.target.nodeValue||'',next=brandText(old);if(next!==old)m.target.nodeValue=next;
     }
-    for(const n of m.addedNodes)if(n.nodeType===1)patchTree(n);else if(n.nodeType===3){const old=n.nodeValue||'',next=brandText(old);if(next!==old)n.nodeValue=next} ensureBrandLogos();
+    for(const n of m.addedNodes){
+      if(n.nodeType===1)patchTree(n);
+      else if(n.nodeType===3){const old=n.nodeValue||'',next=brandText(old);if(next!==old)n.nodeValue=next}
+    }
   }
+  queueBrandApply();
 }).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
 
 function runLoginTransition(){

@@ -6,8 +6,8 @@ let finished=false;
 let transitioning=false;
 let rafId=0;
 let progressAnimation=null;
-const WELCOME_MS=3200;
-const FINAL_REVEAL_MS=2100;
+const WELCOME_MS=2800;
+const FINAL_REVEAL_MS=1800;
 
 function loginNode(){
   return document.getElementById('loginScreen')
@@ -185,6 +185,28 @@ function start(){
     );
   }catch(_){progressAnimation=null;}
 
+  const warmTransparentLogo=()=>{
+    try{
+      const p=window.YardOnBrand?.transparentLogo?.();
+      if(!p?.then)return;
+      p.then(url=>{
+        if(!url)return;
+        document.querySelectorAll('#yardivoWelcomeSplash .yardon-welcome-logo,.login-logo-combo img').forEach(img=>{
+          img.src=url;
+          img.dataset.yardonPrepared='1';
+          img.dataset.yardonRuntimeLogo='1';
+          img.style.setProperty('mix-blend-mode','normal','important');
+          img.style.setProperty('background','transparent','important');
+        });
+      }).catch(()=>{});
+    }catch(_){}
+  };
+  if('requestIdleCallback' in window){
+    requestIdleCallback(warmTransparentLogo,{timeout:700});
+  }else{
+    setTimeout(warmTransparentLogo,120);
+  }
+
   const startedAt=performance.now();
   let stage=0,lastValue=-1;
 
@@ -212,12 +234,14 @@ function start(){
   rafId=requestAnimationFrame(tick);
 }
 
-if(document.readyState==='loading'){
+if(document.getElementById('yardivoWelcomeSplash')){
+  start();
+}else if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',start,{once:true});
 }else{
   start();
 }
 
-setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},7600);
+setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},6500);
 window.YardivoWelcomeSplash={start,hide:forceReveal};
 })();
