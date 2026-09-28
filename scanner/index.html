@@ -162,8 +162,8 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 
 <section id="mobileBoot" class="mobile-boot" aria-label="YardOn pokretanje">
   <div class="mobile-boot-inner">
-    <div class="mobile-boot-mark" aria-label="YardOn"><img src="../assets/yardon-logo-mobile-transparent.webp" alt="" data-yardon-logo></div>
-    <img class="mobile-boot-full" src="../assets/yardon-logo-mobile-transparent.webp" alt="YardOn" data-yardon-logo>
+    <div class="mobile-boot-mark" aria-label="YardOn"><img src="../assets/yardon-logo-transparent-mobile.png?v=20260928b" alt="" data-yardon-logo></div>
+    <img class="mobile-boot-full" src="../assets/yardon-logo-transparent-mobile.png?v=20260928b" alt="YardOn" data-yardon-logo>
     <h1 id="mobileBootTitle" class="mobile-boot-title">YardOn</h1>
     <p id="mobileBootSub" class="mobile-boot-sub">Mobile Operations</p>
     <div class="mobile-boot-progress"><i id="mobileBootFill"></i></div>
@@ -172,7 +172,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 </section>
 <section id="auth" class="auth hidden">
   <div class="login-box">
-    <div class="login-brand"><img class="logo" src="../assets/yardon-logo-mobile-transparent.webp" alt="YardOn" data-yardon-logo><h1>YardOn PRIJAM</h1><p id="loginContext">MOBILE · PRIJAVA</p></div>
+    <div class="login-brand"><img class="logo" src="../assets/yardon-logo-transparent-mobile.png?v=20260928b" alt="YardOn" data-yardon-logo><h1>YardOn PRIJAM</h1><p id="loginContext">MOBILE · PRIJAVA</p></div>
     <div class="login-panel">
       <label>KORISNIČKO IME</label><input id="username" autocomplete="username" autocapitalize="none">
       <label>LOZINKA</label><input id="password" type="password" autocomplete="current-password">
@@ -183,7 +183,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 </section>
 
 <section id="welcome" class="welcome" aria-hidden="true">
-  <div class="welcome-inner"><img class="logo" src="../assets/yardon-logo-mobile-transparent.webp" alt="YardOn" data-yardon-logo><h2 id="welcomeTitle">YardOn PRIJAM</h2><p id="welcomeSub">Priprema…</p>
+  <div class="welcome-inner"><img class="logo" src="../assets/yardon-logo-transparent-mobile.png?v=20260928b" alt="YardOn" data-yardon-logo><h2 id="welcomeTitle">YardOn PRIJAM</h2><p id="welcomeSub">Priprema…</p>
     <div class="progress"><i id="welcomeFill"></i></div><div id="welcomePct" class="pct">0%</div>
     <div class="steps"><div class="step" data-step="login">PRIJAVA</div><div class="step" data-step="scope">OVLASTI</div><div class="step" data-step="warehouse">SKLADIŠTE</div><div class="step" data-step="ready">SPREMNO</div></div>
   </div>
@@ -192,7 +192,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 <div id="app" class="hidden">
 <div class="wrap">
   <div class="brand">
-    <div style="display:flex;align-items:center;gap:10px"><img src="../assets/yardon-logo-mobile-transparent.webp" alt="YardOn" style="width:150px;max-width:34vw;height:auto;object-fit:contain" data-yardon-logo><div><h1>YardOn · MOBILE</h1><small>PRIJAM / SCANNER · v1.0</small></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><img src="../assets/yardon-logo-transparent-mobile.png?v=20260928b" alt="YardOn" style="width:150px;max-width:34vw;height:auto;object-fit:contain" data-yardon-logo><div><h1>YardOn · MOBILE</h1><small>PRIJAM / SCANNER · v1.0</small></div></div>
     <div id="netStatus" class="status"><span class="dot"></span><span>SPREMAN</span></div>
   </div>
 
@@ -270,7 +270,7 @@ let scope=null,state=null,currentWarehouse=requestedWarehouse,currentToken='',cu
 
 function prepareYardonMobileLogos(){
   document.querySelectorAll('img[data-yardon-logo]').forEach(img=>{
-    img.src='../assets/yardon-logo-mobile-transparent.webp?v=20260928';
+    img.src='../assets/yardon-logo-transparent-mobile.png?v=20260928';
     img.style.setProperty('background','transparent','important');
     img.style.setProperty('box-shadow','none','important');
     img.style.setProperty('filter','none','important');
@@ -406,4 +406,25 @@ scope=null;$('auth').classList.add('hidden');$('welcome').classList.remove('show
 .login-brand img[data-yardon-logo]{display:block!important;margin-left:auto!important;margin-right:auto!important;position:relative!important;left:auto!important;right:auto!important;top:auto!important}
 .auth .login-box,.auth .auth-card{margin-left:auto!important;margin-right:auto!important}
 .mobile-boot img[data-yardon-logo]{background:transparent!important}
+</style>
+
+<style id="yardon-mobile-logo-png-fix">
+img[data-yardon-logo]{background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important}
+.login-brand img[data-yardon-logo],.welcome-inner img[data-yardon-logo]{
+  width:min(420px,86vw)!important;
+  max-width:86vw!important;
+  height:auto!important;
+  display:block!important;
+  margin:0 auto 18px!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  position:static!important;
+}
+.mobile-boot-full{
+  width:min(500px,90vw)!important;
+  max-width:90vw!important;
+  height:auto!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
 </style>
