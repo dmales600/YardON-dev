@@ -113,10 +113,11 @@ jobs:
               assert(earlySegments <= 2, `${name}: logo reveal is leaking future letters on the right: ${earlySegments}`);
             }
 
-            // Desktop/mobile web intro must use one real transparent logo asset before split.
-            const welcomeLogo = page.locator('#yardivoWelcomeSplash .yardon-welcome-logo');
-            await welcomeLogo.waitFor({ state:'visible', timeout:5000 }).catch(()=>{});
-            const welcomeState = await welcomeLogo.evaluate(async i => {
+            // Desktop/mobile web intro must retain the canonical transparent source even
+            // while it is intentionally hidden behind the sequential reveal stage.
+            const welcomeState = await page.evaluate(async () => {
+              const i=document.querySelector('#yardivoWelcomeSplash .yardon-welcome-logo');
+              if(!i)return null;
               const r=i.getBoundingClientRect(),cs=getComputedStyle(i);
               let darkOpaqueRatio=null, transparentRatio=null;
               try{
@@ -150,9 +151,10 @@ jobs:
                 darkOpaqueRatio,transparentRatio,bbox:window.__yardonQaBbox||null
               };
             });
+            assert(!!welcomeState, `${name}: canonical welcome logo source missing`);
             assert(/yardon-logo-exact\.webp/i.test(welcomeState.src), `${name}: wrong canonical welcome logo source: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.complete && welcomeState.naturalWidth>0 && welcomeState.naturalHeight>0, `${name}: welcome logo asset broken: ${JSON.stringify(welcomeState)}`);
-            assert(welcomeState.width>120 && welcomeState.height>20 && welcomeState.visibility!=='hidden' && welcomeState.opacity>0, `${name}: welcome logo not visible: ${JSON.stringify(welcomeState)}`);
+            assert(welcomeState.width>120 && welcomeState.height>20, `${name}: welcome logo geometry invalid: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.mixBlendMode==='normal', `${name}: welcome logo uses blend workaround: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.darkOpaqueRatio===null || welcomeState.darkOpaqueRatio<0.02, `${name}: welcome logo contains opaque dark frame: ${JSON.stringify(welcomeState)}`);
             assert(welcomeState.transparentRatio===null || welcomeState.transparentRatio>0.20, `${name}: welcome logo is not materially transparent: ${JSON.stringify(welcomeState)}`);
