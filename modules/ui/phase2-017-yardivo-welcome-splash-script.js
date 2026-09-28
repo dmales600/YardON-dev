@@ -90,7 +90,7 @@ function startSplitReveal(){
     stage.style.setProperty('--yardon-split-center-x',(sourceRect.left-splashRect.left+sourceRect.width/2)+'px');
     stage.style.setProperty('--yardon-split-center-y',(sourceRect.top-splashRect.top+sourceRect.height/2)+'px');
 
-    const src=window.__yardonTransparentLogo||source.currentSrc||source.src;
+    const src=source.currentSrc||source.src;
     const left=document.createElement('img');
     const right=document.createElement('img');
     left.className='yardon-split-half left';
@@ -185,30 +185,9 @@ function start(){
     );
   }catch(_){progressAnimation=null;}
 
-  const warmTransparentLogo=()=>{
-    try{
-      const p=window.YardOnBrand?.transparentLogo?.();
-      if(!p?.then)return;
-      p.then(url=>{
-        if(!url)return;
-        document.querySelectorAll('#yardivoWelcomeSplash .yardon-welcome-logo,.login-logo-combo img').forEach(img=>{
-          img.src=url;
-          img.dataset.yardonPrepared='1';
-          img.dataset.yardonRuntimeLogo='1';
-          img.style.setProperty('mix-blend-mode','normal','important');
-          img.style.setProperty('background','transparent','important');
-        });
-      }).catch(()=>{});
-    }catch(_){}
-  };
-  if('requestIdleCallback' in window){
-    requestIdleCallback(warmTransparentLogo,{timeout:700});
-  }else{
-    setTimeout(warmTransparentLogo,120);
-  }
 
   const startedAt=performance.now();
-  let stage=0,lastValue=-1;
+  let stage=0,lastValue=0;
 
   function tick(now){
     if(finished||transitioning)return;
@@ -216,13 +195,13 @@ function start(){
     const ratio=Math.min(1,elapsed/WELCOME_MS);
     const value=Math.min(100,Math.floor(ratio*100));
     if(!progressAnimation)bar.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
-    if(value!==lastValue){
+    if(value===100||value>=lastValue+2){
       lastValue=value;
       pct.textContent=value+'%';
-      while(stage<stages.length&&value>=stages[stage][0]){
-        if(status)status.textContent=stages[stage][1];
-        stage++;
-      }
+    }
+    while(stage<stages.length&&value>=stages[stage][0]){
+      if(status)status.textContent=stages[stage][1];
+      stage++;
     }
     if(ratio>=1){
       rafId=0;

@@ -12,8 +12,8 @@ style.textContent=`
   50%{opacity:.92;transform:translate3d(-50%,-50%,0) scale(1.08)}
 }
 @keyframes yardonLogoBreathe{
-  0%,100%{transform:translate3d(0,0,0) scale(1)}
-  50%{transform:translate3d(0,0,0) scale(1.012)}
+  0%,100%{transform:translate3d(0,0,0);opacity:.97}
+  50%{transform:translate3d(0,0,0);opacity:1}
 }
 @keyframes yardonTextPulse{
   0%,100%{text-shadow:0 0 8px rgba(0,174,255,.20),0 0 20px rgba(0,120,255,.12);}
@@ -688,6 +688,8 @@ img[data-yardon-runtime-logo="1"][data-yardon-prepared="1"]{
 }
 #yardivoWelcomeSplash .yardon-split-half{
   object-fit:contain!important;
+  image-rendering:auto!important;
+  mix-blend-mode:screen!important;
   object-position:center center!important;
   background:transparent!important;
   border:0!important;
@@ -730,6 +732,17 @@ img[data-yardon-runtime-logo="1"][data-yardon-prepared="1"]{
   -webkit-backface-visibility:hidden!important;
   transform-style:preserve-3d;
   will-change:transform,opacity!important;
+}
+
+/* YardOn HD hero logo render: never resample the large welcome/login mark */
+#yardivoWelcomeSplash .yardon-welcome-logo,
+.login-logo-combo img[data-yardon-hd-intro="1"]{
+  image-rendering:auto!important;
+  transform:translate3d(0,0,0);
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  filter:none!important;
+  mix-blend-mode:screen!important;
 }
 
 @media(max-width:700px){
@@ -863,11 +876,27 @@ function patchElement(el){
     if(/assets\/yardivo-logo\.svg(?:\?.*)?$/i.test(src))el.setAttribute('src',LOGO);
     const now=el.getAttribute('src')||'';
     if(/yardon-logo(?:-transparent(?:-v\d+)?)?\.(?:webp|png|svg)(?:\?.*)?$/i.test(now)||el.dataset.yardonPrepared==='1'){
-      prepareLogo(el);
+      const hdHero=el.dataset.yardonHdIntro==='1'||!!el.closest('#yardivoWelcomeSplash,.login-logo-combo');
+      if(hdHero){
+        el.src=LOGO;
+        el.dataset.yardonRuntimeLogo='1';
+        el.dataset.yardonPrepared='hd';
+        el.style.setProperty('display','block','important');
+        el.style.setProperty('visibility','visible','important');
+        el.style.setProperty('opacity','1','important');
+        el.style.setProperty('background','transparent','important');
+        el.style.setProperty('border','0','important');
+        el.style.setProperty('outline','0','important');
+        el.style.setProperty('box-shadow','none','important');
+        el.style.setProperty('filter','none','important');
+        el.style.setProperty('mix-blend-mode','screen','important');
+      }else{
+        prepareLogo(el);
+      }
       el.setAttribute('data-yardon-runtime-logo','1');
       el.style.setProperty('background','transparent','important');
       el.style.setProperty('box-shadow','none','important');
-      el.style.setProperty('mix-blend-mode',el.dataset.yardonPrepared==='1'?'normal':'screen','important');
+      if(!hdHero)el.style.setProperty('mix-blend-mode',el.dataset.yardonPrepared==='1'?'normal':'screen','important');
       const host=el.closest('.brand-combo,.home-menu-brand,.yardon-topbar-brand,.login-logo-combo,.yardivo-welcome-logo-wrap,.ysp-head,.ysp-header,.ysp-top,.ysp-nav,.sidebar,.topbar,[class*="brand"],[class*="logo"]');
       if(host){
         host.classList.add('yardon-role-brand-wrap');
