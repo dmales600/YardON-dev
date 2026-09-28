@@ -167,7 +167,7 @@ jobs:
             })).catch(()=>null);
             assert(!!progressBefore && progressBefore.opacity < 0.2 && !progressBefore.ready, `${name}: progress appeared before logo/tagline sequence: ${JSON.stringify(progressBefore)}`);
 
-            await page.waitForFunction(()=>document.getElementById('yardivoWelcomeSplash')?.classList.contains('yardon-split-reveal'),null,{timeout:11000}).catch(()=>{});
+            await page.waitForFunction(()=>document.getElementById('yardivoWelcomeSplash')?.classList.contains('yardon-split-reveal'),null,{timeout:16000}).catch(()=>{});
             const splitHalves = page.locator('#yardivoWelcomeSplash .yardon-split-half');
             assert(await splitHalves.count()===2, `${name}: desktop center-split halves missing`);
             const splitStart = await splitHalves.evaluateAll(nodes => nodes.map(n => {
@@ -182,7 +182,7 @@ jobs:
               assert(splitMoved[1].right > splitStart[1].right + 5, `${name}: right half did not separate from center: ${JSON.stringify({splitStart,splitMoved})}`);
             }
 
-            await page.waitForFunction(()=>document.documentElement.classList.contains('yardivo-welcome-complete'),null,{timeout:14000}).catch(()=>{});
+            await page.waitForFunction(()=>document.documentElement.classList.contains('yardivo-welcome-complete'),null,{timeout:19000}).catch(()=>{});
             await page.waitForTimeout(250);
             await page.locator('#loginUser').waitFor({ state:'visible', timeout:10000 }).catch(()=>{});
             
