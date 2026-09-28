@@ -1163,12 +1163,26 @@ function ensureBrandLogos(){
 }
 let brandRuntimeActive=document.documentElement.classList.contains('yardivo-welcome-complete');
 let brandFlushQueued=false;
+const DESKTOP_YARD_BG='url("assets/yardon-desktop-yard-background.webp?v=20260928-bg1")';
+
+function ensureDesktopYardBackground(){
+  if(!window.matchMedia?.('(min-width:769px)').matches)return;
+  for(const el of [document.getElementById('yardivoWelcomeSplash'),document.getElementById('loginOverlay')]){
+    if(!el)continue;
+    el.style.setProperty('background-image',DESKTOP_YARD_BG,'important');
+    el.style.setProperty('background-position','center center','important');
+    el.style.setProperty('background-size','cover','important');
+    el.style.setProperty('background-repeat','no-repeat','important');
+    el.style.setProperty('background-color','#03111e','important');
+  }
+}
 
 function apply(){
   try{
     document.title=BRAND+' '+VERSION+' - Yard Management System';
     document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content',BRAND);
     document.querySelector('meta[name="application-name"]')?.setAttribute('content',BRAND);
+    ensureDesktopYardBackground();
     if(!brandRuntimeActive)return;
     patchTree(document);
     ensureBrandLogos();
@@ -1198,6 +1212,8 @@ if(nativePrompt)window.prompt=(message,defaultValue)=>nativePrompt(brandText(mes
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
 window.addEventListener('yardivo:welcome-complete',activateBrandRuntime,{once:true});
+window.addEventListener('yardivo:welcome-complete',()=>setTimeout(ensureDesktopYardBackground,0),{once:true});
+window.addEventListener('resize',ensureDesktopYardBackground,{passive:true});
 
 new MutationObserver(ms=>{
   if(!brandRuntimeActive)return;
