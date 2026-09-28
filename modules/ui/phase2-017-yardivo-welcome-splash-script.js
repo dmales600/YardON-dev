@@ -29,12 +29,21 @@ async function revealLogoLetters(splash,source){
   stage.className='yardon-letter-reveal-stage';
   stage.style.setProperty('--yardon-intro-logo-width',rect.width+'px');
   stage.style.setProperty('--yardon-intro-logo-height',rect.height+'px');
+  wrap.appendChild(stage);
+
+  source.style.setProperty('visibility','hidden','important');
+  source.style.setProperty('opacity','0','important');
+  splash.classList.add('yardon-logo-depth-reveal');
 
   const src=source.currentSrc||source.src;
-  let start=0;
-  const animations=[];
+  let startPct=0;
+
+  // Strictly create only the segment whose turn has arrived. Future letters do not
+  // exist in the DOM yet, so they cannot leak through on the right during stagger.
   for(let i=0;i<LOGO_REVEAL_POINTS.length;i++){
-    const end=LOGO_REVEAL_POINTS[i];
+    if(finished||transitioning)return;
+
+    const endPct=LOGO_REVEAL_POINTS[i];
     const piece=document.createElement('img');
     piece.className='yardon-intro-logo-segment';
     piece.alt='';
@@ -42,27 +51,12 @@ async function revealLogoLetters(splash,source){
     piece.decoding='async';
     piece.loading='eager';
     piece.src=src;
-    piece.style.setProperty('clip-path',`inset(0 ${100-end}% 0 ${start}%)`,'important');
-    piece.style.setProperty('-webkit-clip-path',`inset(0 ${100-end}% 0 ${start}%)`,'important');
-    // Keep future segments completely hidden during their stagger delay.
-    piece.style.setProperty('opacity','0','important');
-    piece.style.setProperty('transform','translate3d(-50%,-50%,-560px) scale(.58)','important');
-    piece.style.setProperty('filter','blur(10px) brightness(.58) saturate(1.9) drop-shadow(0 0 24px rgba(0,118,255,.92))','important');
+    piece.style.setProperty('clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
+    piece.style.setProperty('-webkit-clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
     stage.appendChild(piece);
-    start=end;
-  }
 
-  wrap.appendChild(stage);
-  const pieces=[...stage.querySelectorAll('.yardon-intro-logo-segment')];
-  try{
-    await Promise.all(pieces.map(img=>typeof img.decode==='function'?img.decode().catch(()=>{}):Promise.resolve()));
-  }catch(_){}
+    try{if(typeof piece.decode==='function')await piece.decode()}catch(_){}
 
-  source.style.setProperty('visibility','hidden','important');
-  source.style.setProperty('opacity','0','important');
-  splash.classList.add('yardon-logo-depth-reveal');
-
-  pieces.forEach((piece,index)=>{
     const animation=piece.animate(
       [
         {
@@ -84,17 +78,15 @@ async function revealLogoLetters(splash,source){
       ],
       {
         duration:LOGO_SEGMENT_DURATION_MS,
-        delay:index*LOGO_SEGMENT_STAGGER_MS,
         easing:'cubic-bezier(.16,.78,.18,1)',
-        fill:'both'
+        fill:'forwards'
       }
     );
-    animations.push(animation.finished.catch(()=>{}));
-  });
+    try{await animation.finished}catch(_){}
+    startPct=endPct;
+  }
 
-  await Promise.all(animations);
   if(finished||transitioning)return;
-
   source.style.setProperty('visibility','visible','important');
   source.style.setProperty('opacity','1','important');
   stage.remove();
