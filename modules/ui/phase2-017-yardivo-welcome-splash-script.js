@@ -6,8 +6,103 @@ let finished=false;
 let transitioning=false;
 let rafId=0;
 let progressAnimation=null;
-const WELCOME_MS=2800;
+const PROGRESS_MS=1900;
 const FINAL_REVEAL_MS=1800;
+const LOGO_REVEAL_POINTS=[22,36,48,60,72,86,100];
+const LOGO_STEP_MS=150;
+const TAGLINE='YARD MANAGEMENT SYSTEM';
+const TAGLINE_CHAR_MS=48;
+
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+
+async function revealLogoLetters(splash,source){
+  if(!splash||!source)return;
+  try{if(typeof source.decode==='function')await source.decode()}catch(_){}
+  source.style.setProperty('clip-path','inset(0 100% 0 0)','important');
+  source.style.setProperty('-webkit-clip-path','inset(0 100% 0 0)','important');
+  source.style.setProperty('visibility','visible','important');
+  source.style.setProperty('opacity','1','important');
+  await wait(180);
+  for(const point of LOGO_REVEAL_POINTS){
+    if(finished||transitioning)return;
+    const right=Math.max(0,100-point);
+    source.style.setProperty('clip-path',`inset(0 ${right}% 0 0)`,'important');
+    source.style.setProperty('-webkit-clip-path',`inset(0 ${right}% 0 0)`,'important');
+    await wait(LOGO_STEP_MS);
+  }
+  source.style.removeProperty('clip-path');
+  source.style.removeProperty('-webkit-clip-path');
+  splash.classList.add('yardon-logo-glow-active');
+}
+
+async function revealTagline(sub){
+  if(!sub)return;
+  sub.textContent='';
+  sub.setAttribute('aria-label',TAGLINE);
+  await wait(130);
+  for(let i=1;i<=TAGLINE.length;i++){
+    if(finished||transitioning)return;
+    sub.textContent=TAGLINE.slice(0,i);
+    await wait(TAGLINE_CHAR_MS);
+  }
+}
+
+function runProgress(bar,pct,status){
+  return new Promise(resolve=>{
+    if(!bar||!pct){resolve();return}
+    try{bar.getAnimations?.().forEach(a=>a.cancel())}catch(_){}
+    bar.style.width='100%';
+    bar.style.transform='translate3d(0,0,0) scaleX(0)';
+    pct.textContent='0%';
+    if(status)status.textContent='Loading system';
+
+    try{
+      progressAnimation=bar.animate(
+        [
+          {transform:'translate3d(0,0,0) scaleX(0)'},
+          {transform:'translate3d(0,0,0) scaleX(1)'}
+        ],
+        {duration:PROGRESS_MS,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'}
+      );
+    }catch(_){progressAnimation=null}
+
+    const startedAt=performance.now();
+    let lastValue=-1;
+    function tick(now){
+      if(finished||transitioning){resolve();return}
+      const ratio=Math.min(1,(now-startedAt)/PROGRESS_MS);
+      const value=Math.min(100,Math.floor(ratio*100));
+      if(!progressAnimation)bar.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
+      if(value===100||value>=lastValue+2){
+        lastValue=value;
+        pct.textContent=value+'%';
+      }
+      if(value>=100){
+        if(status)status.textContent='Ready';
+        rafId=0;
+        resolve();
+        return;
+      }
+      rafId=requestAnimationFrame(tick);
+    }
+    rafId=requestAnimationFrame(tick);
+  });
+}
+
+async function runIntroSequence(splash,source,sub,bar,pct,status){
+  await revealLogoLetters(splash,source);
+  if(finished||transitioning)return;
+  await wait(110);
+  await revealTagline(sub);
+  if(finished||transitioning)return;
+  await wait(170);
+  splash?.classList.add('yardon-progress-ready');
+  await wait(360);
+  await runProgress(bar,pct,status);
+  if(finished||transitioning)return;
+  await wait(120);
+  startSplitReveal();
+}
 
 function loginNode(){
   return document.getElementById('loginScreen')
@@ -159,13 +254,15 @@ function start(){
 
   if(splash){
     splash.style.removeProperty('display');
-    splash.classList.remove('hide','yardon-final-zoom','yardon-split-reveal');
+    splash.classList.remove('hide','yardon-final-zoom','yardon-split-reveal','yardon-logo-glow-active','yardon-progress-ready');
     splash.querySelector('.yardon-split-stage')?.remove();
     const oldSource=splash.querySelector('.yardon-welcome-logo');
     if(oldSource){
       oldSource.classList.remove('yardon-split-source-hidden');
       oldSource.style.removeProperty('visibility');
       oldSource.style.removeProperty('opacity');
+      oldSource.style.removeProperty('clip-path');
+      oldSource.style.removeProperty('-webkit-clip-path');
     }
   }
   if(login){
@@ -174,58 +271,17 @@ function start(){
     login.style.visibility='hidden';
     login.style.opacity='0';
   }
-  if(!bar||!pct){forceReveal();return;}
+  const source=splash?.querySelector('.yardon-welcome-logo');
+  const sub=splash?.querySelector('.yardivo-welcome-sub');
+  if(!bar||!pct||!source){forceReveal();return;}
 
   try{bar.getAnimations?.().forEach(a=>a.cancel())}catch(_){}
   bar.style.width='100%';
   bar.style.transform='translate3d(0,0,0) scaleX(0)';
   pct.textContent='0%';
-  if(status)status.textContent='Initializing system';
+  if(status)status.textContent='';
 
-  const stages=[
-    [18,'Loading interface'],
-    [42,'Preparing modules'],
-    [67,'Checking local settings'],
-    [86,'Preparing login'],
-    [100,'Ready']
-  ];
-
-  try{
-    progressAnimation=bar.animate(
-      [
-        {transform:'translate3d(0,0,0) scaleX(0)'},
-        {transform:'translate3d(0,0,0) scaleX(1)'}
-      ],
-      {duration:WELCOME_MS,easing:'linear',fill:'forwards'}
-    );
-  }catch(_){progressAnimation=null;}
-
-
-  const startedAt=performance.now();
-  let stage=0,lastValue=0;
-
-  function tick(now){
-    if(finished||transitioning)return;
-    const elapsed=now-startedAt;
-    const ratio=Math.min(1,elapsed/WELCOME_MS);
-    const value=Math.min(100,Math.floor(ratio*100));
-    if(!progressAnimation)bar.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
-    if(value===100||value>=lastValue+2){
-      lastValue=value;
-      pct.textContent=value+'%';
-    }
-    while(stage<stages.length&&value>=stages[stage][0]){
-      if(status)status.textContent=stages[stage][1];
-      stage++;
-    }
-    if(ratio>=1){
-      rafId=0;
-      startSplitReveal();
-      return;
-    }
-    rafId=requestAnimationFrame(tick);
-  }
-  rafId=requestAnimationFrame(tick);
+  runIntroSequence(splash,source,sub,bar,pct,status).catch(()=>forceReveal());
 }
 
 if(document.getElementById('yardivoWelcomeSplash')){
@@ -236,6 +292,6 @@ if(document.getElementById('yardivoWelcomeSplash')){
   start();
 }
 
-setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},6500);
+setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},9000);
 window.YardivoWelcomeSplash={start,hide:forceReveal};
 })();
