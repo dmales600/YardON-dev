@@ -164,8 +164,13 @@ jobs:
             }));
             assert(imageState.length > 0, `${name}: YardOn images missing`);
             assert(imageState.every(x => x.complete && x.naturalWidth > 0 && x.naturalHeight > 0), `${name}: broken YardOn image: ${JSON.stringify(imageState)}`);
-            const visibleHero = imageState.find(x => /yardon-logo\.webp/i.test(x.src) && x.display !== 'none' && x.visibility !== 'hidden' && Number(x.opacity) > 0 && x.width > 120 && x.height > 20);
+            const visibleHero = imageState.find(x => /yardon-logo-transparent-v3\.png/i.test(x.src) && x.display !== 'none' && x.visibility !== 'hidden' && Number(x.opacity) > 0 && x.width > 120 && x.height > 20);
             assert(!!visibleHero, `${name}: visible canonical YardOn hero/login logo missing: ${JSON.stringify(imageState)}`);
+            const visibleLoginLogos = await page.locator('.login-brand img[data-yardon-logo]').evaluateAll(imgs => imgs.filter(i => {
+              const r=i.getBoundingClientRect(),cs=getComputedStyle(i);
+              return cs.display!=='none' && cs.visibility!=='hidden' && Number(cs.opacity)>0 && r.width>40 && r.height>10;
+            }).length);
+            assert(visibleLoginLogos <= 1, `${name}: duplicate visible login YardOn logos: ${visibleLoginLogos}`);
             assert(pageErrors.length === 0, `${name}: page errors: ${pageErrors.join(' | ')}`);
             assert(brokenLocal.length === 0, `${name}: local HTTP errors: ${JSON.stringify(brokenLocal)}`);
 
