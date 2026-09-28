@@ -204,16 +204,13 @@ window.addEventListener('load',()=>{
     localStorage.setItem(LEGACY_KEY,'off');localStorage.removeItem('yardivo_voice_notifications_v583');
   }catch(_){}
   observeVisibleToasts();
-  setTimeout(prewarmTest,700);
 },{once:true});
 window.addEventListener('yardivo:login',()=>{
   clearQueue();
   stopCurrent();
   tokenCache='';
   tokenCachedAt=0;
-  setTimeout(prewarmTest,120);
 });
-window.addEventListener('yardivo:data-synced',()=>setTimeout(prewarmTest,250));
 document.addEventListener('DOMContentLoaded',observeVisibleToasts,{once:true});
 setTimeout(observeVisibleToasts,200);
 
