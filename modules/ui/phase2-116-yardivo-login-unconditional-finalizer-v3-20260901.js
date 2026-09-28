@@ -61,8 +61,9 @@ function finalizeLogin(){
   return true;
 }
 
-/* This fallback is intentionally independent from DOMContentLoaded/load and
-   from the Welcome custom event. It fires after the normal 5.2s Welcome window. */
+/* Safety-only finalizer.
+   The canonical Welcome controller owns timing, progress, logo split and login reveal.
+   Never cut an active Welcome short just because an old fixed duration elapsed. */
 const rescue=setInterval(()=>{
   if(done){clearInterval(rescue);return}
   const elapsed=performance.now()-started;
@@ -75,11 +76,22 @@ const rescue=setInterval(()=>{
     getComputedStyle(splash).display==='none' ||
     getComputedStyle(splash).visibility==='hidden';
 
-  if((loginAlreadyShown && splashGone) || elapsed>=5900){
+  if(loginAlreadyShown && splashGone){
     finalizeLogin();
     clearInterval(rescue);
+    return;
   }
-},100);
+
+  /* Emergency path only. Give the cinematic owner ample time to complete its
+     logo reveal, tagline, progress, center split and depth login transition. */
+  if(elapsed>=26000){
+    try{window.YardivoWelcomeSplash?.hide?.()}catch(_){}
+    setTimeout(()=>{
+      if(!done)finalizeLogin();
+      clearInterval(rescue);
+    },250);
+  }
+},150);
 
 /* Normal path remains immediate when Welcome completes correctly. */
 window.addEventListener('yardivo:welcome-complete',()=>{
