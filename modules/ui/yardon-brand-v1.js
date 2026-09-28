@@ -1,7 +1,7 @@
 (()=>{'use strict';
 if(window.__YARDON_BRAND_V1__)return;
 window.__YARDON_BRAND_V1__=true;
-const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo-transparent-v3.png?v=20260928e';
+const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo.webp?v=20260928g';
 let transparentLogoPromise=null;
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','CODE','PRE','TEXTAREA']);
 const style=document.createElement('style');
@@ -582,6 +582,61 @@ img[data-yardon-runtime-logo="1"],
   mix-blend-mode:normal!important;
 }
 
+
+/* YardOn runtime transparent canonical desktop logo */
+#yardivoWelcomeSplash .yardivo-welcome-logo-wrap{
+  min-height:190px!important;
+  overflow:visible!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+#yardivoWelcomeSplash img.yardon-welcome-logo{
+  width:clamp(660px,60vw,980px)!important;
+  max-width:92vw!important;
+  height:auto!important;
+  max-height:230px!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+.login-logo-combo{
+  min-height:118px!important;
+  overflow:visible!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.login-logo-combo img{
+  width:clamp(360px,34vw,520px)!important;
+  max-width:92%!important;
+  height:auto!important;
+  max-height:125px!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+img[data-yardon-runtime-logo="1"]:not([data-yardon-prepared="1"]){
+  mix-blend-mode:screen!important;
+}
+img[data-yardon-runtime-logo="1"][data-yardon-prepared="1"]{
+  mix-blend-mode:normal!important;
+}
+#yardivoWelcomeSplash .yardon-split-half{
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+
 @media(max-width:700px){
   #yardivoWelcomeSplash .yardon-welcome-logo{width:min(92vw,610px)!important;}
   #yardivoWelcomeSplash .yardon-welcome-title{font-size:clamp(26px,7.4vw,42px)!important;}
@@ -602,14 +657,57 @@ function brandText(v){
     .replace(/\bV5\.8\.3\b/gi,VERSION);
 }
 function transparentLogo(){
-  window.__yardonTransparentLogo=LOGO;
-  return Promise.resolve(LOGO);
+  if(transparentLogoPromise)return transparentLogoPromise;
+  transparentLogoPromise=new Promise((resolve,reject)=>{
+    const im=new Image();
+    im.onload=()=>{
+      try{
+        const sw=im.naturalWidth||im.width,sh=im.naturalHeight||im.height;
+        const maxW=1200,scale=Math.min(1,maxW/sw);
+        const w=Math.max(1,Math.round(sw*scale)),h=Math.max(1,Math.round(sh*scale));
+        const canvas=document.createElement('canvas');
+        canvas.width=w;canvas.height=h;
+        const ctx=canvas.getContext('2d',{willReadFrequently:true});
+        ctx.drawImage(im,0,0,w,h);
+        const image=ctx.getImageData(0,0,w,h),d=image.data;
+        let minX=w,minY=h,maxX=-1,maxY=-1;
+        for(let y=0;y<h;y++){
+          for(let x=0;x<w;x++){
+            const i=(y*w+x)*4;
+            const m=Math.max(d[i],d[i+1],d[i+2]);
+            if(m<=20)d[i+3]=0;
+            else if(m<52)d[i+3]=Math.round(d[i+3]*((m-20)/32));
+            if(d[i+3]>8){
+              if(x<minX)minX=x;if(x>maxX)maxX=x;
+              if(y<minY)minY=y;if(y>maxY)maxY=y;
+            }
+          }
+        }
+        ctx.putImageData(image,0,0);
+        let out=canvas;
+        if(maxX>=minX&&maxY>=minY){
+          const pad=10;
+          const sx=Math.max(0,minX-pad),sy=Math.max(0,minY-pad);
+          const ex=Math.min(w,maxX+pad+1),ey=Math.min(h,maxY+pad+1);
+          out=document.createElement('canvas');
+          out.width=ex-sx;out.height=ey-sy;
+          out.getContext('2d').drawImage(canvas,sx,sy,out.width,out.height,0,0,out.width,out.height);
+        }
+        const url=out.toDataURL('image/png');
+        window.__yardonTransparentLogo=url;
+        resolve(url);
+      }catch(e){reject(e)}
+    };
+    im.onerror=reject;
+    im.src=LOGO;
+  });
+  return transparentLogoPromise;
 }
 function prepareLogo(el){
-  if(!(el instanceof HTMLImageElement))return;
-  el.src=LOGO;
-  el.dataset.yardonPrepared='1';
+  if(!(el instanceof HTMLImageElement)||el.dataset.yardonPreparing==='1'||el.dataset.yardonPrepared==='1')return;
+  el.dataset.yardonPreparing='1';
   el.dataset.yardonRuntimeLogo='1';
+  el.src=LOGO;
   el.style.setProperty('display','block','important');
   el.style.setProperty('visibility','visible','important');
   el.style.setProperty('opacity','1','important');
@@ -618,7 +716,15 @@ function prepareLogo(el){
   el.style.setProperty('outline','0','important');
   el.style.setProperty('box-shadow','none','important');
   el.style.setProperty('filter','none','important');
-  el.style.setProperty('mix-blend-mode','normal','important');
+  el.style.setProperty('mix-blend-mode','screen','important');
+  transparentLogo().then(url=>{
+    el.src=url;
+    el.dataset.yardonPrepared='1';
+    el.style.setProperty('mix-blend-mode','normal','important');
+  }).catch(()=>{
+    el.src=LOGO;
+    el.style.setProperty('mix-blend-mode','screen','important');
+  }).finally(()=>{delete el.dataset.yardonPreparing});
 }
 function patchElement(el){
   if(!(el instanceof Element))return;
@@ -631,7 +737,7 @@ function patchElement(el){
       el.setAttribute('data-yardon-runtime-logo','1');
       el.style.setProperty('background','transparent','important');
       el.style.setProperty('box-shadow','none','important');
-      el.style.setProperty('mix-blend-mode','normal','important');
+      el.style.setProperty('mix-blend-mode',el.dataset.yardonPrepared==='1'?'normal':'screen','important');
       const host=el.closest('.brand-combo,.home-menu-brand,.yardon-topbar-brand,.login-logo-combo,.yardivo-welcome-logo-wrap,.ysp-head,.ysp-header,.ysp-top,.ysp-nav,.sidebar,.topbar,[class*="brand"],[class*="logo"]');
       if(host){
         host.classList.add('yardon-role-brand-wrap');
