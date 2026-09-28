@@ -107,6 +107,9 @@ jobs:
               assert(/yardon-desktop-welcome-login-bg\.webp/i.test(welcomeBg), `${name}: desktop welcome logistics background missing: ${welcomeBg}`);
             }
 
+            const taglineInitial = ((await page.locator('#yardivoWelcomeSplash .yardivo-welcome-sub').textContent().catch(()=>'')) || '').trim();
+            assert(taglineInitial==='', `${name}: YARD MANAGEMENT SYSTEM is visible before logo reveal starts: ${JSON.stringify(taglineInitial)}`);
+
             // Strict sequential reveal: future letters must not exist in the DOM before their turn.
             const revealStage = page.locator('#yardivoWelcomeSplash .yardon-letter-reveal-stage');
             await revealStage.waitFor({ state:'attached', timeout:2500 }).catch(()=>{});
@@ -116,7 +119,16 @@ jobs:
               await page.waitForTimeout(900);
               const earlySegments = await page.locator('#yardivoWelcomeSplash .yardon-intro-logo-segment').count();
               assert(earlySegments <= 1, `${name}: more than one reveal slice exists during sequence: ${earlySegments}`);
+              const taglineDuringLogo = ((await page.locator('#yardivoWelcomeSplash .yardivo-welcome-sub').textContent().catch(()=>'')) || '').trim();
+              assert(taglineDuringLogo==='', `${name}: YARD MANAGEMENT SYSTEM started before full logo reveal: ${JSON.stringify(taglineDuringLogo)}`);
             }
+
+            await page.waitForFunction(()=>document.getElementById('yardivoWelcomeSplash')?.classList.contains('yardon-logo-reveal-complete'),null,{timeout:10000}).catch(()=>{});
+            const logoRevealComplete = await page.locator('#yardivoWelcomeSplash').evaluate(el=>el.classList.contains('yardon-logo-reveal-complete')).catch(()=>false);
+            assert(logoRevealComplete, `${name}: logo reveal never reached complete state before tagline`);
+            await page.waitForFunction(()=>document.querySelector('#yardivoWelcomeSplash .yardivo-welcome-sub')?.textContent?.trim()==='YARD MANAGEMENT SYSTEM',null,{timeout:3500}).catch(()=>{});
+            const taglineComplete = ((await page.locator('#yardivoWelcomeSplash .yardivo-welcome-sub').textContent().catch(()=>'')) || '').trim();
+            assert(taglineComplete==='YARD MANAGEMENT SYSTEM', `${name}: tagline did not type after full logo reveal: ${JSON.stringify(taglineComplete)}`);
 
             // Desktop/mobile web intro must retain the canonical transparent source even
             // while it is intentionally hidden behind the sequential reveal stage.
@@ -179,10 +191,25 @@ jobs:
             const splitStart = await splitHalves.evaluateAll(nodes => nodes.map(n => {
               const r=n.getBoundingClientRect(); return {left:r.left,right:r.right,width:r.width};
             }));
+            const loginDepthStart = await page.locator('#loginOverlay .login-card').evaluate(el => {
+              const r=el.getBoundingClientRect(),cs=getComputedStyle(el),overlay=getComputedStyle(document.getElementById('loginOverlay'));
+              return {width:r.width,height:r.height,opacity:Number(cs.opacity),transform:cs.transform,overlayOpacity:Number(overlay.opacity),overlayVisibility:overlay.visibility};
+            }).catch(()=>null);
+            assert(!!loginDepthStart && loginDepthStart.overlayVisibility!=='hidden' && loginDepthStart.overlayOpacity>0.9,
+              `${name}: login window is not already visible behind split: ${JSON.stringify(loginDepthStart)}`);
+            assert(loginDepthStart.opacity>0.15 && loginDepthStart.transform!=='none',
+              `${name}: login window is not staged in distant depth at split start: ${JSON.stringify(loginDepthStart)}`);
+
             await page.waitForTimeout(420);
             const splitMoved = await splitHalves.evaluateAll(nodes => nodes.map(n => {
               const r=n.getBoundingClientRect(); return {left:r.left,right:r.right,width:r.width};
             }));
+            const loginDepthMoved = await page.locator('#loginOverlay .login-card').evaluate(el => {
+              const r=el.getBoundingClientRect(),cs=getComputedStyle(el);
+              return {width:r.width,height:r.height,opacity:Number(cs.opacity),transform:cs.transform};
+            }).catch(()=>null);
+            assert(!!loginDepthMoved && loginDepthMoved.width > loginDepthStart.width + 8 && loginDepthMoved.opacity >= loginDepthStart.opacity,
+              `${name}: login window did not advance from depth during split: ${JSON.stringify({loginDepthStart,loginDepthMoved})}`);
             if(splitStart.length===2 && splitMoved.length===2){
               assert(splitMoved[0].left < splitStart[0].left - 5, `${name}: left half did not separate from center: ${JSON.stringify({splitStart,splitMoved})}`);
               assert(splitMoved[1].right > splitStart[1].right + 5, `${name}: right half did not separate from center: ${JSON.stringify({splitStart,splitMoved})}`);
