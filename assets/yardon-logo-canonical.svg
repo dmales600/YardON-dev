@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">YardOn</title>
+  <desc id="desc">YardOn Yard Management System</desc>
+  <g fill="none" fill-rule="evenodd">
+    <text x="600" y="182" text-anchor="middle"
+      font-family="Arial, Helvetica, sans-serif"
+      font-size="168" font-weight="900" letter-spacing="2">
+      <tspan fill="#FFFFFF">YARD</tspan><tspan fill="#12B7F5">ON</tspan>
+    </text>
+    <text x="600" y="250" text-anchor="middle"
+      font-family="Arial, Helvetica, sans-serif"
+      font-size="34" font-weight="700" letter-spacing="12"
+      fill="#A9B8C6">YARD MANAGEMENT SYSTEM</text>
+  </g>
+</svg>
