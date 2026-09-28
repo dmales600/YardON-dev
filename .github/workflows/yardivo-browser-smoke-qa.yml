@@ -271,6 +271,7 @@ jobs:
                 display:cs.display,
                 visibility:cs.visibility,
                 opacity:cs.opacity,
+                filter:cs.filter,
                 width:r.width,
                 height:r.height
               };
@@ -278,6 +279,7 @@ jobs:
             assert(/yardon-logo-exact\.webp/i.test(bootLogoState.src), `${name}: wrong welcome logo source: ${JSON.stringify(bootLogoState)}`);
             assert(bootLogoState.complete && bootLogoState.naturalWidth > 0 && bootLogoState.naturalHeight > 0, `${name}: welcome logo asset broken: ${JSON.stringify(bootLogoState)}`);
             assert(bootLogoState.display !== 'none' && bootLogoState.visibility !== 'hidden' && Number(bootLogoState.opacity) > 0 && bootLogoState.width > 120 && bootLogoState.height > 20, `${name}: welcome logo not visibly rendered: ${JSON.stringify(bootLogoState)}`);
+            assert(!String(bootLogoState.filter||'').includes('blur('), `${name}: canonical mobile logo is blurred instead of sharp: ${JSON.stringify(bootLogoState)}`);
 
             await page.locator(authSelector).waitFor({ state:'visible', timeout:10000 }).catch(()=>{});
             assert(await page.locator(authSelector).isVisible().catch(()=>false), `${name}: auth screen not visible after intro`);
