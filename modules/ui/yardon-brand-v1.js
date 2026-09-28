@@ -471,7 +471,7 @@ img[data-yardon-runtime-logo="1"]{
 #login.yardon-login-arrive,
 [data-login-screen].yardon-login-arrive{
   transform:none!important;
-  opacity:0!important;
+  opacity:1!important;
   transition:opacity .55s ease!important;
   will-change:opacity;
   backface-visibility:hidden;
@@ -482,12 +482,12 @@ img[data-yardon-runtime-logo="1"]{
 #loginOverlay.yardon-login-arrive .login-card,
 #login.yardon-login-arrive .login-card,
 [data-login-screen].yardon-login-arrive .login-card{
-  transform:perspective(1500px) translateZ(-920px) scale(.34)!important;
-  opacity:0!important;
+  transform:perspective(1500px) translateZ(-1180px) scale(.24)!important;
+  opacity:.30!important;
   filter:none!important;
   transition:
-    transform 1.55s cubic-bezier(.12,.82,.14,1),
-    opacity .48s ease-out!important;
+    transform 1.72s cubic-bezier(.12,.82,.14,1),
+    opacity .62s ease-out!important;
   will-change:transform,opacity;
   backface-visibility:hidden;
 }
@@ -497,9 +497,8 @@ img[data-yardon-runtime-logo="1"]{
 #loginOverlay.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
 #login.yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo,
 [data-login-screen].yardon-login-arrive:not(.yardon-login-arrive-active) .login-logo-combo{
-  visibility:hidden!important;
-  opacity:0!important;
-  animation:none!important;
+  visibility:visible!important;
+  opacity:1!important;
 }
 .login-screen.yardon-login-arrive.yardon-login-arrive-active,
 .login-overlay.yardon-login-arrive.yardon-login-arrive-active,
