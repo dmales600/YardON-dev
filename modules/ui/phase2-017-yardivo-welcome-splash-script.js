@@ -9,6 +9,9 @@ let progressAnimation=null;
 let welcomeLogoRef=null;
 let welcomeLogoRect=null;
 let welcomeLogoSrc='';
+const welcomeDebug=window.__yardonWelcomeDebug={
+  started:false,splitCalled:false,stageAppended:false,finished:false,forceReason:'',introError:'',phase:'init'
+};
 const PROGRESS_MS=1900;
 const FINAL_REVEAL_MS=1800;
 const LOGO_REVEAL_POINTS=[22,36,48,60,72,86,100];
@@ -213,6 +216,8 @@ function finishReveal(){
   if(finished)return;
   finished=true;
   transitioning=false;
+  welcomeDebug.finished=true;
+  welcomeDebug.phase='finished';
   if(rafId){cancelAnimationFrame(rafId);rafId=0;}
   try{progressAnimation?.finish?.()}catch(_){}
   progressAnimation=null;
@@ -239,7 +244,9 @@ function finishReveal(){
 }
 
 async function startSplitReveal(){
-  if(transitioning||finished)return;
+  welcomeDebug.splitCalled=true;
+  welcomeDebug.phase='split-called';
+  if(transitioning||finished){welcomeDebug.phase='split-skipped';return;}
   transitioning=true;
 
   const bar=document.getElementById('yardivoWelcomeBar');
@@ -255,6 +262,8 @@ async function startSplitReveal(){
   const source=(welcomeLogoRef&&welcomeLogoRef.isConnected)
     ?welcomeLogoRef
     :(splash?.querySelector('.yardon-welcome-logo,[data-yardon-hd-intro="1"]')||null);
+  welcomeDebug.splitSplash=!!splash;
+  welcomeDebug.splitSource=!!source;
   if(splash){
     splash.querySelector('.yardon-split-stage')?.remove();
     splash.querySelector('.yardon-letter-reveal-stage')?.remove();
@@ -324,6 +333,8 @@ async function startSplitReveal(){
 
     stage.append(left,right);
     splash.appendChild(stage);
+    welcomeDebug.stageAppended=true;
+    welcomeDebug.phase='split-stage-appended';
 
     // Keep the source visible until both split clones have decoded. This prevents
     // a blank/black compositor frame between the static logo and the moving halves.
@@ -377,7 +388,9 @@ async function startSplitReveal(){
   setTimeout(finishReveal,FINAL_REVEAL_MS+90);
 }
 
-function forceReveal(){
+function forceReveal(reason='force'){
+  welcomeDebug.forceReason=String(reason||'force');
+  welcomeDebug.phase='force-reveal';
   if(finished)return;
   mountLoginBehind();
   finishReveal();
@@ -386,6 +399,8 @@ function forceReveal(){
 function start(){
   if(started)return;
   started=true;
+  welcomeDebug.started=true;
+  welcomeDebug.phase='start';
 
   document.documentElement.classList.add('yardivo-booting');
   document.body.classList.add('yardivo-welcome-active','yardivo-prelogin');
@@ -418,7 +433,11 @@ function start(){
   }
   const source=splash?.querySelector('.yardon-welcome-logo');
   const sub=splash?.querySelector('.yardivo-welcome-sub');
-  if(!bar||!pct||!source){forceReveal();return;}
+  welcomeDebug.startSplash=!!splash;
+  welcomeDebug.startBar=!!bar;
+  welcomeDebug.startPct=!!pct;
+  welcomeDebug.startSource=!!source;
+  if(!bar||!pct||!source){forceReveal('start-missing-node');return;}
   welcomeLogoRef=source;
   welcomeLogoSrc=source.currentSrc||source.src||'assets/yardon-logo-exact.webp?v=20260928-exact1';
   {
@@ -434,7 +453,11 @@ function start(){
   pct.textContent='0%';
   if(status)status.textContent='';
 
-  runIntroSequence(splash,source,sub,bar,pct,status).catch(()=>startSplitReveal());
+  runIntroSequence(splash,source,sub,bar,pct,status).catch(e=>{
+    welcomeDebug.introError=String(e?.stack||e?.message||e||'intro-error');
+    welcomeDebug.phase='intro-error';
+    startSplitReveal();
+  });
 }
 
 if(document.getElementById('yardivoWelcomeSplash')){
@@ -447,8 +470,13 @@ if(document.getElementById('yardivoWelcomeSplash')){
 
 // If a browser delays any intro animation/decode, preserve the intended transition:
   // go to the center split first rather than jumping straight to the login.
-  setTimeout(()=>{if(!finished&&!transitioning)startSplitReveal()},13500);
+  setTimeout(()=>{
+    if(!finished&&!transitioning){
+      welcomeDebug.phase='split-failsafe';
+      startSplitReveal();
+    }
+  },13500);
   // Last-resort safety only; normal flow and the split fail-safe should finish earlier.
-  setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},22000);
+  setTimeout(()=>{if(!finished&&!transitioning)forceReveal('last-resort-timeout')},22000);
 window.YardivoWelcomeSplash={start,hide:forceReveal};
 })();
