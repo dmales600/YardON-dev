@@ -816,27 +816,27 @@ async function runLinkIntro(){
   }
 
   const start=performance.now();
-  let lastP=0,stageIndex=0;
-  await new Promise(resolve=>{
-    const tick=now=>{
-      const ratio=Math.min(1,(now-start)/duration);
-      const p=Math.min(100,Math.floor(ratio*100));
-      if(!progressAnimation&&fill)fill.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
+  let lastP=0,stageIndex=0,progressDone=false;
+  const tick=now=>{
+    if(progressDone)return;
+    const ratio=Math.min(1,(now-start)/duration);
+    const p=Math.min(100,Math.floor(ratio*100));
+    if(!progressAnimation&&fill)fill.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
 
-      if(p===100||p>=lastP+2){
-        lastP=p;
-        if(pct)pct.textContent=p+'%';
-      }
-      while(stageIndex<stages.length&&p>=stages[stageIndex][0]){
-        if(statusEl)statusEl.textContent=stages[stageIndex][1];
-        stageIndex++;
-      }
+    if(p===100||p>=lastP+2){
+      lastP=p;
+      if(pct)pct.textContent=p+'%';
+    }
+    while(stageIndex<stages.length&&p>=stages[stageIndex][0]){
+      if(statusEl)statusEl.textContent=stages[stageIndex][1];
+      stageIndex++;
+    }
 
-      if(ratio>=1)return resolve();
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  });
+    if(ratio<1)requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  await sleep(duration);
+  progressDone=true;
 
   try{progressAnimation?.finish?.()}catch(_){}
   if(fill)fill.style.transform='translate3d(0,0,0) scaleX(1)';
