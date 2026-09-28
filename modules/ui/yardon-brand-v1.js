@@ -393,7 +393,7 @@ img[data-yardon-runtime-logo="1"]{
   pointer-events:none;
   z-index:1;
   opacity:1;
-  animation:yardonSplashDissolve 2.55s ease forwards!important;
+  animation:yardonSplashDissolve 3.15s ease forwards!important;
   will-change:opacity;
 }
 #yardivoWelcomeSplash.yardon-split-reveal .yardivo-welcome-inner{
@@ -444,11 +444,11 @@ img[data-yardon-runtime-logo="1"]{
 }
 #yardivoWelcomeSplash .yardon-split-half.left{
   clip-path:inset(0 50% 0 0);
-  animation:yardonSplitLeft 2.55s cubic-bezier(.16,.78,.18,1) forwards!important;
+  animation:yardonSplitLeft 3.15s cubic-bezier(.14,.76,.16,1) forwards!important;
 }
 #yardivoWelcomeSplash .yardon-split-half.right{
   clip-path:inset(0 0 0 50%);
-  animation:yardonSplitRight 2.55s cubic-bezier(.16,.78,.18,1) forwards!important;
+  animation:yardonSplitRight 3.15s cubic-bezier(.14,.76,.16,1) forwards!important;
 }
 .login-screen.yardon-login-arrive,
 .login-overlay.yardon-login-arrive,
@@ -458,7 +458,7 @@ img[data-yardon-runtime-logo="1"]{
 [data-login-screen].yardon-login-arrive{
   transform:perspective(1200px) translateZ(-720px) scale(.42)!important;
   opacity:0!important;
-  transition:transform 2.25s cubic-bezier(.14,.82,.16,1),opacity 1.15s ease!important;
+  transition:transform 2.65s cubic-bezier(.12,.82,.16,1),opacity 1.35s ease!important;
   will-change:transform,opacity;
   backface-visibility:hidden;
 }
