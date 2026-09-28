@@ -28,7 +28,13 @@ function loginActive(){
   const l=document.getElementById('loginOverlay')||document.getElementById('loginScreen');
   return !!l && getComputedStyle(l).display!=='none';
 }
-function prelogin(){return welcomeActive()||loginActive()||!sessionActive()}
+function authLifecycleActive(){
+  try{return !!(authSession?.role||authSession?.app_role)}catch(_){return false}
+}
+function prelogin(){
+  if(authLifecycleActive())return false;
+  return welcomeActive()||loginActive()||!sessionActive();
+}
 function setPhaseClasses(){
   document.body.classList.toggle('yardivo-prelogin',prelogin());
   document.body.classList.toggle('yardivo-welcome-active',welcomeActive());
@@ -432,8 +438,11 @@ window.addEventListener('load',()=>{
     if(!prelogin())checkNew();
   },700);
 });
-window.addEventListener('yardivo:login',e=>{
+function commitAuthSession(e){
   authSession=e?.detail?.session||window.currentSession||authSession;
+}
+window.addEventListener('yardivo:login',e=>{
+  commitAuthSession(e);
   try{sessionStorage.removeItem(SEEN)}catch(_){}
   setTimeout(()=>{
     setPhaseClasses();
@@ -442,6 +451,10 @@ window.addEventListener('yardivo:login',e=>{
        baseline history for this login and must not replay as a burst of "new" toasts. */
     baselineVisible();
   },220);
+});
+window.addEventListener('yardivo:session-ready',e=>{
+  commitAuthSession(e);
+  setTimeout(()=>{setPhaseClasses();render();baselineVisible()},80);
 });
 ['yardivo:data-synced','yardivo:online-ready'].forEach(ev=>window.addEventListener(ev,()=>{
   setTimeout(()=>{

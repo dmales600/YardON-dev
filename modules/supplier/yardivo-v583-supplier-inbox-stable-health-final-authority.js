@@ -34,44 +34,13 @@ function ensureUi(){
 function fp(rows){try{return JSON.stringify((rows||[]).map(x=>[
  x.id,x.status,x.updated_at,x.warehouse,x.delivery_date,x.requested_time,x.review_note||x.reviewNote||''
 ]))}catch(_){return String(Date.now())}}
-function paintBadge(rows){
- const n=(rows||[]).filter(x=>String(x.status||'').toLowerCase()==='pending').length;
- const b=document.getElementById('supplierRequestsBadge');
- if(!b)return;
- b.textContent=String(n);
- b.classList.toggle('yv-has-pending',n>0);
- b.style.setProperty('display',n?'inline-flex':'none','important');
+function paintBadge(){
+ /* Retired: badge ownership belongs to
+    yardivo-v583-inventory-supplier-notif-delete-20260923.js. */
 }
-function notify(rows){
- if(!allowed())return;
- const pending=(rows||[]).filter(x=>String(x.status||'').toLowerCase()==='pending');
- let list=[];
- try{
-   list=window.YardivoNotifications?.load?.()||JSON.parse(localStorage.getItem('yardivo_live_notifications_v1')||'[]');
-   if(!Array.isArray(list))list=[];
- }catch(_){list=[]}
- let changed=false;
- for(const x of pending){
-   const id='SUPPLIER_REQUEST-'+String(x.id);
-   if(list.some(n=>String(n?.id)===id))continue;
-   list.unshift({
-     id,event:'SUPPLIER_REQUEST',type:'info',title:'NOVA NAJAVA DOBAVLJAČA',
-     body:`${x.supplier_name||x.supplier_username||'Dobavljač'} · ${whName(x.warehouse)} · ${dateHr(x.delivery_date)} ${tm(x.requested_time)} · ${Number(x.pallets||0)} pal. · ${Number(x.sku_count||0)} SKU`,
-     at:String(x.created_at||x.updated_at||new Date().toISOString()),
-     createdAt:String(x.created_at||x.updated_at||new Date().toISOString()),
-     roles:['admin','inventory'],warehouse:String(x.warehouse||''),location:String(x.location||''),
-     supplierDeliveryId:String(x.id),readBy:{}
-   });
-   changed=true;
- }
- if(changed){
-   list=list.slice(0,300);
-   try{
-     if(window.YardivoNotifications?.save)window.YardivoNotifications.save(list);
-     else localStorage.setItem('yardivo_live_notifications_v1',JSON.stringify(list));
-   }catch(_){}
-   try{window.YardivoNotifications?.render?.()}catch(_){}
- }
+function notify(){
+ /* Retired: Supplier Edge/sync notification state is canonical.
+    This renderer must never synthesize local SUPPLIER_REQUEST notifications. */
 }
 async function loadRows(){
  const live=window.YardivoSupplierLiveSync;
@@ -102,7 +71,7 @@ async function refresh(force=false){
      if(!rendered){
        try{window.YardivoSupplierRequests?.render?.(rows)}catch(_){}
      }
-     notify(rows);
+     /* Notification generation is owned by canonical notification sync. */
    }
    paintBadge(rows);
  }catch(e){

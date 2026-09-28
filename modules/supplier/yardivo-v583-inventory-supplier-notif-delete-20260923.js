@@ -3,7 +3,7 @@
 'use strict';
 if(window.__YARDIVO_INVENTORY_SUPPLIER_NOTIF_DELETE_20260923__)return;
 window.__YARDIVO_INVENTORY_SUPPLIER_NOTIF_DELETE_20260923__=true;
-let busy=false,lastSig='',loginSession=null;
+let busy=false,lastSig='',loginSession=null,liveRowsCache=null;
 
 function sessionSnapshot(){
   try{
@@ -36,8 +36,14 @@ function isUnreadSupplier(n){
 function pendingRows(){
   try{
     const rows=window.YardivoSupplierLiveSync?.internalRows?.();
-    return Array.isArray(rows)?rows.filter(x=>String(x?.status||'').toLowerCase()==='pending'):[];
-  }catch(_){return[]}
+    if(Array.isArray(rows)){
+      liveRowsCache=rows;
+      return rows.filter(x=>String(x?.status||'').toLowerCase()==='pending');
+    }
+  }catch(_){}
+  return Array.isArray(liveRowsCache)
+    ? liveRowsCache.filter(x=>String(x?.status||'').toLowerCase()==='pending')
+    : [];
 }
 function syncSupplierBadge(){
   if(!inventory())return;
@@ -123,12 +129,22 @@ document.addEventListener('click',e=>{
 
 window.addEventListener('yardivo:login',e=>{
   loginSession=e?.detail?.session||window.currentSession||loginSession;
-  setTimeout(()=>{syncSupplierBadge();poll()},220);
+  try{
+    const rows=window.YardivoSupplierLiveSync?.internalRows?.();
+    if(Array.isArray(rows))liveRowsCache=rows;
+  }catch(_){}
+  syncSupplierBadge();
+  setTimeout(()=>{syncSupplierBadge();poll()},160);
+  setTimeout(syncSupplierBadge,520);
 });
 window.addEventListener('yardivo:data-synced',()=>setTimeout(syncSupplierBadge,120));
-window.addEventListener('yardivo:supplier-internal-rows',()=>setTimeout(poll,0));
+window.addEventListener('yardivo:supplier-internal-rows',e=>{
+  if(Array.isArray(e?.detail?.rows))liveRowsCache=e.detail.rows;
+  syncSupplierBadge();
+  setTimeout(poll,0);
+});
 window.addEventListener('yardivo:supplier-request-updated',()=>setTimeout(()=>window.YardivoSupplierLiveSync?.pullInternal?.(true),80));
-window.addEventListener('yardivo:logout',()=>{loginSession=null;lastSig='';});
+window.addEventListener('yardivo:logout',()=>{loginSession=null;liveRowsCache=null;lastSig='';});
 window.addEventListener('focus',poll);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
 /* SupplierLiveSync is the sole list_internal polling owner. */
