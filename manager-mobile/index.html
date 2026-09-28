@@ -94,7 +94,7 @@ button{cursor:pointer}
 .auth{position:fixed;inset:0;z-index:100;background:
  radial-gradient(700px 380px at 50% 0,rgba(52,139,226,.22),transparent 70%),#07111b;display:flex;align-items:center;justify-content:center;padding:20px}
 .login-box{width:min(430px,100%)}
-.login-brand{text-align:center;margin-bottom:22px}.login-logo{width:min(300px,78vw);height:auto;margin:0 auto 14px;display:block;object-fit:contain;filter:drop-shadow(0 14px 34px rgba(0,174,255,.16))}
+.login-brand{text-align:center;margin-bottom:22px}.login-logo{display:block;width:min(420px,88vw);max-width:100%;height:auto;margin:0 auto 18px!important;object-fit:contain;object-position:center center;background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important;transform:none!important}
 .login-brand h1{margin:0;font-size:25px;letter-spacing:-.02em}.login-brand p{margin:6px 0 0;color:#7895a7;font-size:11px}
 .login-panel{padding:17px;border-radius:20px;background:linear-gradient(180deg,#102235,#0b1825);border:1px solid #24465c;box-shadow:0 22px 60px rgba(0,0,0,.32)}
 .login-panel label{display:block;color:#839dac;font-size:9px;font-weight:1000;margin:10px 0 6px}.login-panel input{width:100%;padding:14px;border-radius:13px;border:1px solid #2a4c63;background:#081824;color:#fff;outline:none}.login-panel input:focus{border-color:#4aa7e7;box-shadow:0 0 0 3px rgba(74,167,231,.11)}
@@ -256,11 +256,16 @@ button{cursor:pointer}
   overflow:hidden;
 }
 .mobile-boot.hidden{display:none!important}
-.mobile-boot-inner{width:min(520px,94vw)}
+.mobile-boot-inner{width:min(520px,94vw);margin:0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .mobile-boot-mark{
-  width:min(230px,58vw);aspect-ratio:1/1;margin:0 auto;
+  width:min(205px,52vw);
+  height:min(205px,52vw);
+  margin:0 auto;
   overflow:hidden;
   position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
   animation:yardonMobileMarkIn .42s ease-out both;
   transform:translate3d(0,0,0);
   will-change:transform,opacity;
@@ -277,8 +282,8 @@ button{cursor:pointer}
   will-change:transform,opacity;
   animation:yardonMobileGlow 2.5s ease-in-out infinite;
 }
-.mobile-boot-mark img{height:100%;width:auto;max-width:none;display:block}
-.mobile-boot-full{display:none;width:min(500px,91vw);height:auto;margin:0 auto 25px;filter:none;transform:translate3d(0,0,0);will-change:transform,opacity}
+.mobile-boot-mark img{display:block;height:100%;width:auto;max-width:none;object-fit:contain;object-position:left center;margin:0!important;transform:none!important;filter:none!important;mix-blend-mode:normal!important}
+.mobile-boot-full{display:none;width:min(500px,91vw);max-width:91vw;height:auto;margin:0 auto 25px!important;object-fit:contain;object-position:center center;background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important;transform:translate3d(0,0,0);will-change:transform,opacity}
 .mobile-boot.full .mobile-boot-mark{display:none}
 .mobile-boot.full .mobile-boot-full{display:block}
 .mobile-boot-title{margin:8px 0 0;font-size:clamp(25px,7vw,38px);font-weight:1000;letter-spacing:-.025em;color:#fff;opacity:0;transition:opacity .25s ease}
@@ -327,26 +332,26 @@ button{cursor:pointer}
   100%{opacity:0}
 }
 @keyframes yardonMobileSplitLeft{
-  0%{transform:translate3d(0,0,0) scale(1.02);opacity:1}
-  18%{transform:translate3d(-1.5vw,0,0) scale(1.07);opacity:1}
-  58%{transform:translate3d(-22vw,0,0) scale(1.30);opacity:.95}
-  100%{transform:translate3d(-66vw,0,0) scale(1.80);opacity:.04}
+  0%{transform:translate3d(-50%,-50%,0) scale(1.02);opacity:1}
+  18%{transform:translate3d(calc(-50% - 1.5vw),-50%,0) scale(1.07);opacity:1}
+  58%{transform:translate3d(calc(-50% - 22vw),-50%,0) scale(1.30);opacity:.95}
+  100%{transform:translate3d(calc(-50% - 68vw),-50%,0) scale(1.80);opacity:.03}
 }
 @keyframes yardonMobileSplitRight{
-  0%{transform:translate3d(0,0,0) scale(1.02);opacity:1}
-  18%{transform:translate3d(1.5vw,0,0) scale(1.07);opacity:1}
-  58%{transform:translate3d(22vw,0,0) scale(1.30);opacity:.95}
-  100%{transform:translate3d(66vw,0,0) scale(1.80);opacity:.04}
+  0%{transform:translate3d(-50%,-50%,0) scale(1.02);opacity:1}
+  18%{transform:translate3d(calc(-50% + 1.5vw),-50%,0) scale(1.07);opacity:1}
+  58%{transform:translate3d(calc(-50% + 22vw),-50%,0) scale(1.30);opacity:.95}
+  100%{transform:translate3d(calc(-50% + 68vw),-50%,0) scale(1.80);opacity:.03}
 }
-.mobile-boot .yardon-mobile-split-stage{position:absolute;inset:0;display:grid;place-items:center;z-index:4;pointer-events:none}
+.mobile-boot .yardon-mobile-split-stage{position:absolute;inset:0;display:grid;place-items:center;z-index:4;pointer-events:none;overflow:hidden}
 .mobile-boot .yardon-mobile-split-stage::before{content:"";position:absolute;left:50%;top:50%;width:min(620px,116vw);aspect-ratio:1.8/1;transform:translate3d(-50%,-50%,0);border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,220,255,.42) 0%,rgba(0,125,255,.18) 42%,rgba(0,70,160,0) 76%);will-change:transform,opacity;animation:yardonMobileGlow 1.9s ease-in-out infinite}
 .mobile-boot .yardon-mobile-split-stage::after{content:"";position:absolute;left:50%;top:50%;width:2px;height:min(330px,42vh);transform:translate3d(-50%,-50%,0);background:linear-gradient(180deg,rgba(0,210,255,0),rgba(105,235,255,.98),rgba(0,145,255,.88),rgba(0,210,255,0));box-shadow:0 0 12px rgba(0,220,255,.90),0 0 30px rgba(0,130,255,.58);opacity:0;will-change:transform,opacity;animation:yardonMobileSeamFlash .62s ease-out forwards}
 .mobile-boot.splitting{background:transparent!important}
-.mobile-boot.splitting::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#064a88 0%,#032b55 48%,#021932 100%);z-index:1;pointer-events:none;animation:yardonMobileBackdropFade 2.55s ease forwards;will-change:opacity}
+.mobile-boot.splitting::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#064a88 0%,#032b55 48%,#021932 100%);z-index:1;pointer-events:none;animation:yardonMobileBackdropFade 3.15s ease forwards;will-change:opacity}
 .mobile-boot.splitting .yardon-mobile-split-stage{z-index:5}
-.mobile-boot .yardon-mobile-split-half{position:absolute;width:min(500px,91vw);height:auto;filter:none;mix-blend-mode:screen;will-change:transform,opacity;backface-visibility:hidden}
-.mobile-boot .yardon-mobile-split-half.left{clip-path:inset(0 50% 0 0);animation:yardonMobileSplitLeft 2.55s cubic-bezier(.16,.78,.18,1) forwards}
-.mobile-boot .yardon-mobile-split-half.right{clip-path:inset(0 0 0 50%);animation:yardonMobileSplitRight 2.55s cubic-bezier(.16,.78,.18,1) forwards}
+.mobile-boot .yardon-mobile-split-half{position:absolute;left:50%;top:50%;width:min(500px,91vw);max-width:91vw;height:auto;margin:0!important;object-fit:contain;object-position:center center;background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important;mix-blend-mode:normal!important;transform-origin:center center;will-change:transform,opacity;backface-visibility:hidden}
+.mobile-boot .yardon-mobile-split-half.left{clip-path:inset(0 50% 0 0);animation:yardonMobileSplitLeft 3.15s cubic-bezier(.14,.76,.16,1) forwards}
+.mobile-boot .yardon-mobile-split-half.right{clip-path:inset(0 0 0 50%);animation:yardonMobileSplitRight 3.15s cubic-bezier(.14,.76,.16,1) forwards}
 .auth.yardon-auth-arrive{display:flex!important;opacity:0;transform:perspective(1000px) translateZ(-650px) scale(.42);transition:transform 2.25s cubic-bezier(.14,.82,.16,1),opacity 1.15s ease;will-change:transform,opacity;backface-visibility:hidden}
 .auth.yardon-auth-arrive.yardon-auth-arrive-active{opacity:1;transform:perspective(1000px) translateZ(0) scale(1)}
 .mobile-boot.splitting .mobile-boot-inner{visibility:hidden}
@@ -357,8 +362,8 @@ button{cursor:pointer}
 
 <section id="mobileBoot" class="mobile-boot" aria-label="YardOn pokretanje">
   <div class="mobile-boot-inner">
-    <div class="mobile-boot-mark" aria-label="YardOn"><img src="../assets/yardon-logo.webp" alt="" data-yardon-logo></div>
-    <img class="mobile-boot-full" src="../assets/yardon-logo.webp" alt="YardOn" data-yardon-logo>
+    <div class="mobile-boot-mark" aria-label="YardOn"><img src="../assets/yardon-logo-mobile-transparent.webp" alt="" data-yardon-logo></div>
+    <img class="mobile-boot-full" src="../assets/yardon-logo-mobile-transparent.webp" alt="YardOn" data-yardon-logo>
     <h1 id="mobileBootTitle" class="mobile-boot-title">YardOn</h1>
     <p id="mobileBootSub" class="mobile-boot-sub">Mobile Operations</p>
     <div class="mobile-boot-progress"><i id="mobileBootFill"></i></div>
@@ -368,7 +373,7 @@ button{cursor:pointer}
 <div id="auth" class="auth hidden">
   <div class="login-box">
     <div class="login-brand">
-      <img class="login-logo" src="../assets/yardon-logo.webp" alt="YardOn" data-yardon-logo>
+      <img class="login-logo" src="../assets/yardon-logo-mobile-transparent.webp" alt="YardOn" data-yardon-logo>
       <h1>YardOn MANAGER</h1>
       <p>Mobile Operations</p>
     </div>
@@ -385,7 +390,7 @@ button{cursor:pointer}
 
 <div id="welcome" class="welcome">
   <div class="welcome-inner">
-    <img class="welcome-logo" src="../assets/yardon-logo.webp" alt="YardOn" data-yardon-logo>
+    <img class="welcome-logo" src="../assets/yardon-logo-mobile-transparent.webp" alt="YardOn" data-yardon-logo>
     <h2 id="welcomeTitle">DOBRODOŠLI</h2>
     <p id="welcomeSub">Učitavam vašu lokaciju i operativne podatke…</p>
     <div class="welcome-progress"><i id="welcomeFill"></i></div>
@@ -395,7 +400,7 @@ button{cursor:pointer}
 
 <div id="app" class="app hidden">
   <header class="topbar">
-    <div class="brand" style="display:flex;align-items:center;gap:9px"><img src="../assets/yardon-logo.webp" alt="YardOn" style="width:140px;max-width:35vw;height:auto;object-fit:contain" data-yardon-logo><div><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS · v1.0</span></div></div>
+    <div class="brand" style="display:flex;align-items:center;gap:9px"><img src="../assets/yardon-logo-mobile-transparent.webp" alt="YardOn" style="width:140px;max-width:35vw;height:auto;object-fit:contain" data-yardon-logo><div><strong>YardOn MANAGER</strong><span id="scopeText">MOBILE OPERATIONS · v1.0</span></div></div>
     <div id="dbStatus" class="top-status"><i></i><span>SPAJANJE</span></div>
   </header>
   <div id="scopeControls" class="scope-controls">
@@ -518,32 +523,14 @@ const pad=n=>String(n).padStart(2,'0');
 function localIso(d=new Date()){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 
 
-let yardonMobileLogoPromise=null;
-function yardonMobileTransparentLogo(){
-  if(yardonMobileLogoPromise)return yardonMobileLogoPromise;
-  yardonMobileLogoPromise=new Promise((resolve,reject)=>{
-    const im=new Image();
-    im.onload=()=>{
-      try{
-        const cv=document.createElement('canvas');const sw=im.naturalWidth,sh=im.naturalHeight,maxW=520,scale=Math.min(1,maxW/sw);cv.width=Math.max(1,Math.round(sw*scale));cv.height=Math.max(1,Math.round(sh*scale));
-        const x=cv.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0,cv.width,cv.height);
-        const pic=x.getImageData(0,0,cv.width,cv.height),d=pic.data;
-        for(let i=0;i<d.length;i+=4){const m=Math.max(d[i],d[i+1],d[i+2]);if(m<=20)d[i+3]=0;else if(m<48)d[i+3]=Math.round(d[i+3]*((m-20)/28))}
-        x.putImageData(pic,0,0);resolve(cv.toDataURL('image/png'));
-      }catch(e){reject(e)}
-    };
-    im.onerror=reject;im.src='../assets/yardon-logo.webp?brand=1.0';
-  });
-  return yardonMobileLogoPromise;
-}
 function prepareYardonMobileLogos(){
-  const imgs=[...document.querySelectorAll('img[data-yardon-logo]')];
-  imgs.forEach(i=>{i.style.mixBlendMode='screen';i.style.visibility='visible'});
-  const run=async()=>{
-    try{const src=await yardonMobileTransparentLogo();imgs.forEach(i=>{i.src=src;i.style.mixBlendMode='normal'})}
-    catch(_){imgs.forEach(i=>{i.style.mixBlendMode='screen'})}
-  };
-  setTimeout(run,6400);
+  document.querySelectorAll('img[data-yardon-logo]').forEach(img=>{
+    img.src='../assets/yardon-logo-mobile-transparent.webp?v=20260928';
+    img.style.setProperty('background','transparent','important');
+    img.style.setProperty('box-shadow','none','important');
+    img.style.setProperty('filter','none','important');
+    img.style.setProperty('mix-blend-mode','normal','important');
+  });
 }
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function runLinkIntro(){
@@ -585,8 +572,9 @@ async function runLinkIntro(){
     setTimeout(()=>requestAnimationFrame(()=>auth.classList.add('yardon-auth-arrive-active')),240);
   }
   boot.classList.add('splitting');
-  await sleep(2600);
+  await sleep(3220);
   boot.classList.add('hidden');
+  boot.querySelectorAll('.yardon-mobile-split-stage').forEach(n=>n.remove());
   boot.classList.remove('splitting','zooming');
   if(auth)auth.classList.remove('yardon-auth-arrive','yardon-auth-arrive-active');
 }
@@ -1145,3 +1133,10 @@ setInterval(()=>{if(window.__YardOn_MANAGER_MOBILE_TOKEN&&!opened)refresh(true)}
 </script>
 </body>
 </html>
+
+<style id="yardon-mobile-logo-center-fix">
+.login-brand{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;width:100%!important}
+.login-brand img[data-yardon-logo]{display:block!important;margin-left:auto!important;margin-right:auto!important;position:relative!important;left:auto!important;right:auto!important;top:auto!important}
+.auth .login-box,.auth .auth-card{margin-left:auto!important;margin-right:auto!important}
+.mobile-boot img[data-yardon-logo]{background:transparent!important}
+</style>
