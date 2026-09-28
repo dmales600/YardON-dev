@@ -837,6 +837,10 @@ cinematicIntroStyle.textContent=`
   from{opacity:0;transform:translate3d(0,7px,0)}
   to{opacity:1;transform:translate3d(0,0,0)}
 }
+@keyframes yardonWholeLogoGlow{
+  0%,100%{filter:drop-shadow(0 0 3px rgba(0,184,255,.24)) drop-shadow(0 0 8px rgba(0,108,255,.12));}
+  50%{filter:drop-shadow(0 0 7px rgba(0,210,255,.50)) drop-shadow(0 0 18px rgba(0,122,255,.28));}
+}
 #yardivoWelcomeSplash{
   background:
     radial-gradient(ellipse at 50% 39%,rgba(0,108,190,.20) 0%,rgba(0,55,105,.10) 35%,rgba(0,20,39,0) 65%),
@@ -849,14 +853,50 @@ cinematicIntroStyle.textContent=`
 #yardivoWelcomeSplash .yardivo-welcome-logo-wrap{
   position:relative!important;
   isolation:isolate!important;
+  perspective:1400px!important;
+  transform-style:preserve-3d!important;
   min-height:220px!important;
   margin:0 auto 8px!important;
+}
+#yardivoWelcomeSplash .yardon-letter-reveal-stage{
+  position:absolute!important;
+  inset:0!important;
+  z-index:4!important;
+  pointer-events:none!important;
+  transform-style:preserve-3d!important;
+  perspective:1400px!important;
+}
+#yardivoWelcomeSplash .yardon-intro-logo-segment{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:var(--yardon-intro-logo-width)!important;
+  height:var(--yardon-intro-logo-height)!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  mix-blend-mode:normal!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  will-change:transform,opacity,filter!important;
 }
 #yardivoWelcomeSplash .yardon-welcome-logo{
   position:relative!important;
   z-index:2!important;
   animation:none!important;
   filter:none!important;
+}
+#yardivoWelcomeSplash.yardon-logo-glow-active .yardon-welcome-logo{
+  animation:yardonWholeLogoGlow 2.8s ease-in-out infinite!important;
+}
+.login-logo-combo .yardon-login-logo-base{
+  animation:yardonWholeLogoGlow 3s ease-in-out infinite!important;
 }
 #yardivoWelcomeSplash .yardivo-welcome-sub{
   min-height:30px!important;
@@ -913,6 +953,10 @@ cinematicIntroStyle.textContent=`
 #yardivoWelcomeSplash.yardon-logo-glow-active .yardon-logo-glow{
   animation:yardonTargetGlowPulse 2.25s ease-in-out infinite!important;
 }
+#yardivoWelcomeSplash.yardon-logo-depth-reveal .yardon-logo-glow{
+  opacity:0!important;
+  animation:none!important;
+}
 #yardivoWelcomeSplash.yardon-split-reveal .yardon-logo-glow{
   opacity:0!important;
   animation:none!important;
@@ -942,6 +986,10 @@ cinematicIntroStyle.textContent=`
 }
 @media(max-width:700px){
   #yardivoWelcomeSplash .yardivo-welcome-logo-wrap{min-height:132px!important;}
+  #yardivoWelcomeSplash .yardon-intro-logo-segment{
+    width:var(--yardon-intro-logo-width)!important;
+    height:var(--yardon-intro-logo-height)!important;
+  }
   .yardon-logo-glow{width:min(92vw,610px)!important;}
   #yardivoWelcomeSplash .yardivo-welcome-sub{
     font-size:12px!important;
