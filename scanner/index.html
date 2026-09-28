@@ -350,8 +350,10 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 }
 .yardon-mobile-cinematic .mobile-boot-inner{position:relative!important;perspective:1050px!important;transform-style:preserve-3d!important}
 .yardon-mobile-cinematic .mobile-boot-full{
-  visibility:visible!important;opacity:1!important;animation:none!important;filter:none!important;
-  transform-origin:center center!important;will-change:clip-path,transform,filter,opacity!important;
+  visibility:visible!important;opacity:1!important;animation:none!important;
+  filter:none!important;transform:none!important;
+  transform-origin:center center!important;will-change:clip-path!important;
+  backface-visibility:hidden!important;-webkit-backface-visibility:hidden!important;
 }
 .yardon-mobile-cinematic.yardon-mobile-logo-ready .mobile-boot-full{
   animation:yardonMobileLogoGlow 2.8s ease-in-out infinite!important;
@@ -375,7 +377,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 }
 .yardon-mobile-letter-stage{
   position:absolute!important;inset:0!important;z-index:6!important;pointer-events:none!important;
-  perspective:1050px!important;transform-style:preserve-3d!important;
+  perspective:900px!important;transform-style:preserve-3d!important;
 }
 .yardon-mobile-letter-slice{
   position:absolute!important;left:50%!important;top:50%!important;
@@ -385,6 +387,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
   background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;
   mix-blend-mode:normal!important;backface-visibility:hidden!important;
   will-change:transform,opacity,filter!important;
+  image-rendering:auto!important;
 }
 #auth .login-brand img[data-yardon-logo]{
   filter:drop-shadow(0 0 5px rgba(0,200,255,.54)) drop-shadow(0 0 14px rgba(0,115,255,.30))!important;
@@ -538,7 +541,7 @@ async function runLinkIntro(){
   const sub=$('mobileBootSub');
   const auth=$('auth');
   const LOGO_POINTS=[22,36,48,60,72,86,100];
-  const LOGO_STEP_MS=430;
+  const LOGO_STEP_MS=360;
   const TAGLINE='YARD MANAGEMENT SYSTEM';
   const TAG_CHAR_MS=42;
   const PROGRESS_MS=1450;
@@ -555,37 +558,66 @@ async function runLinkIntro(){
     full.style.setProperty('opacity','1','important');
     full.style.setProperty('clip-path','inset(0 100% 0 0)','important');
     full.style.setProperty('-webkit-clip-path','inset(0 100% 0 0)','important');
-    full.style.setProperty('transform','translate3d(0,0,-180px) scale(.84)','important');
-    full.style.setProperty('filter','blur(5px) brightness(.68) saturate(1.5) drop-shadow(0 0 14px rgba(0,130,255,.72))','important');
+    full.style.setProperty('transform','none','important');
+    full.style.setProperty('filter','none','important');
 
-    let prev=0;
+    const wrap=full.parentElement;
+    const rect=full.getBoundingClientRect();
+    const letterStage=document.createElement('div');
+    letterStage.className='yardon-mobile-letter-stage';
+    letterStage.style.setProperty('--yardon-mobile-logo-width',rect.width+'px');
+    letterStage.style.setProperty('--yardon-mobile-logo-height',rect.height+'px');
+    wrap.appendChild(letterStage);
+
+    const src=full.currentSrc||full.src||MOBILE_LOGO_DATA;
+    let startPct=0;
     for(const endPct of LOGO_POINTS){
-      const fromRight=100-prev,toRight=100-endPct;
+      letterStage.replaceChildren();
+
+      const piece=document.createElement('img');
+      piece.className='yardon-mobile-letter-slice';
+      piece.src=src;
+      piece.alt='';
+      piece.setAttribute('aria-hidden','true');
+      piece.decoding='async';
+      piece.loading='eager';
+      piece.style.setProperty('clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
+      piece.style.setProperty('-webkit-clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
+      letterStage.appendChild(piece);
+
+      try{if(typeof piece.decode==='function')await piece.decode()}catch(_){}
+
       try{
-        const a=full.animate([
+        const a=piece.animate([
           {
-            clipPath:`inset(0 ${fromRight}% 0 0)`,
-            opacity:.72,
-            transform:'translate3d(0,0,-180px) scale(.84)',
-            filter:'blur(5px) brightness(.68) saturate(1.5) drop-shadow(0 0 14px rgba(0,130,255,.72))'
+            opacity:0,
+            transform:'translate3d(-50%,-50%,-220px) scale(.88)',
+            filter:'blur(2.5px) brightness(.76) saturate(1.35) drop-shadow(0 0 10px rgba(0,130,255,.54))'
           },
           {
-            clipPath:`inset(0 ${toRight}% 0 0)`,
             opacity:1,
-            transform:'translate3d(0,0,0) scale(1)',
-            filter:'blur(0) brightness(1) saturate(1) drop-shadow(0 0 6px rgba(0,180,255,.35))'
+            transform:'translate3d(-50%,-50%,0) scale(1)',
+            filter:'blur(0) brightness(1) saturate(1) drop-shadow(0 0 4px rgba(0,175,255,.24))'
           }
-        ],{duration:LOGO_STEP_MS,easing:'cubic-bezier(.16,.78,.18,1)',fill:'forwards'});
+        ],{
+          duration:LOGO_STEP_MS,
+          easing:'cubic-bezier(.16,.78,.18,1)',
+          fill:'forwards'
+        });
         await a.finished.catch(()=>{});
       }catch(_){await sleep(LOGO_STEP_MS)}
-      full.style.setProperty('clip-path',`inset(0 ${toRight}% 0 0)`,'important');
-      full.style.setProperty('-webkit-clip-path',`inset(0 ${toRight}% 0 0)`,'important');
-      full.style.setProperty('transform','translate3d(0,0,0) scale(1)','important');
-      full.style.setProperty('filter','drop-shadow(0 0 6px rgba(0,180,255,.35))','important');
-      prev=endPct;
+
+      full.style.setProperty('clip-path',`inset(0 ${100-endPct}% 0 0)`,'important');
+      full.style.setProperty('-webkit-clip-path',`inset(0 ${100-endPct}% 0 0)`,'important');
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      letterStage.replaceChildren();
+      startPct=endPct;
     }
+
     full.style.removeProperty('clip-path');
     full.style.removeProperty('-webkit-clip-path');
+    full.style.setProperty('filter','none','important');
+    letterStage.remove();
     boot.classList.add('yardon-mobile-logo-ready');
   }
 
