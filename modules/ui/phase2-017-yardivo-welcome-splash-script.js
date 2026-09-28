@@ -404,6 +404,6 @@ if(document.getElementById('yardivoWelcomeSplash')){
   start();
 }
 
-setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},11000);
+setTimeout(()=>{if(!finished&&!transitioning)forceReveal()},18000);
 window.YardivoWelcomeSplash={start,hide:forceReveal};
 })();
