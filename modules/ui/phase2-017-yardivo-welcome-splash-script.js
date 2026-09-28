@@ -6,7 +6,7 @@ let finished=false;
 let transitioning=false;
 let rafId=0;
 const WELCOME_MS=4200;
-const FINAL_REVEAL_MS=2550;
+const FINAL_REVEAL_MS=3150;
 
 function loginNode(){
   return document.getElementById('loginScreen')
@@ -25,7 +25,7 @@ function mountLoginBehind(){
     login.style.visibility='visible';
     login.style.opacity='0';
     login.setAttribute('aria-hidden','false');
-    setTimeout(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')),240);
+    setTimeout(()=>requestAnimationFrame(()=>login.classList.add('yardon-login-arrive-active')),320);
   }
   document.documentElement.classList.add('yardivo-login-ready');
   return login;
