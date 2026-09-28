@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: yardon-role-ui-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   role-ui:
     runs-on: ubuntu-latest
@@ -36,6 +40,15 @@ jobs:
           node <<'NODE'
           const { chromium } = require('playwright');
           const roles=['admin','manager','inventory','reception','gate','supplier'];
+          const SUPABASE_HOST='https://rskticdbiovvgyocpzoc.supabase.co';
+          async function sandboxSupabase(context){
+            await context.route(SUPABASE_HOST+'/**',async route=>{
+              const req=route.request();
+              if(req.method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'}});
+              return route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({message:'QA network sandbox: live Supabase disabled'})});
+            });
+            if(typeof context.routeWebSocket==='function')await context.routeWebSocket('wss://rskticdbiovvgyocpzoc.supabase.co/**',ws=>ws.close());
+          }
           const viewports=[
             {name:'desktop',width:1440,height:1000},
             {name:'mobile',width:390,height:844}
@@ -54,6 +67,7 @@ jobs:
             for(const vp of viewports){
               for(const role of roles){
                 const context=await browser.newContext({viewport:{width:vp.width,height:vp.height}});
+                await sandboxSupabase(context);
                 const page=await context.newPage();
                 const errors=[];
                 page.on('pageerror',e=>errors.push(String(e.stack||e.message||e)));
