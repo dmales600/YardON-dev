@@ -968,7 +968,7 @@ cinematicIntroStyle.textContent=`
   position:relative!important;
   isolation:isolate!important;
 }
-.login-logo-combo .yardon-login-logo-base{
+.login-logo-combo img.yardon-login-logo-base[data-yardon-hd-intro="1"]{
   position:relative!important;
   z-index:2!important;
   filter:drop-shadow(0 0 6px rgba(0,200,255,.58)) drop-shadow(0 0 18px rgba(0,112,255,.34))!important;
