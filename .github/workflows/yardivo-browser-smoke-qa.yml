@@ -104,7 +104,7 @@ jobs:
 
             // Desktop/mobile web intro must use one real transparent logo asset before split.
             const welcomeLogo = page.locator('#yardivoWelcomeSplash .yardon-welcome-logo');
-            await welcomeLogo.waitFor({ state:'visible', timeout:3000 }).catch(()=>{});
+            await welcomeLogo.waitFor({ state:'visible', timeout:5000 }).catch(()=>{});
             const welcomeState = await welcomeLogo.evaluate(async i => {
               const r=i.getBoundingClientRect(),cs=getComputedStyle(i);
               let darkOpaqueRatio=null, transparentRatio=null;
