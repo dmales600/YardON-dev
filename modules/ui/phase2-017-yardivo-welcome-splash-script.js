@@ -6,6 +6,9 @@ let finished=false;
 let transitioning=false;
 let rafId=0;
 let progressAnimation=null;
+let welcomeLogoRef=null;
+let welcomeLogoRect=null;
+let welcomeLogoSrc='';
 const PROGRESS_MS=1900;
 const FINAL_REVEAL_MS=1800;
 const LOGO_REVEAL_POINTS=[22,36,48,60,72,86,100];
@@ -249,30 +252,44 @@ async function startSplitReveal(){
   if(status)status.textContent='Ready';
 
   const splash=document.getElementById('yardivoWelcomeSplash');
-  const source=splash?.querySelector('.yardon-welcome-logo');
-  if(splash&&source){
+  const source=(welcomeLogoRef&&welcomeLogoRef.isConnected)
+    ?welcomeLogoRef
+    :(splash?.querySelector('.yardon-welcome-logo,[data-yardon-hd-intro="1"]')||null);
+  if(splash){
     splash.querySelector('.yardon-split-stage')?.remove();
     splash.querySelector('.yardon-letter-reveal-stage')?.remove();
 
-    // Normalize the full approved logo before cloning it into left/right halves.
-    // This also makes the split fail-safe safe if the letter reveal is still mid-step.
-    source.style.removeProperty('clip-path');
-    source.style.removeProperty('-webkit-clip-path');
-    source.style.setProperty('visibility','visible','important');
-    source.style.setProperty('opacity','1','important');
+    if(source){
+      // Normalize the full approved logo before cloning it into left/right halves.
+      source.style.removeProperty('clip-path');
+      source.style.removeProperty('-webkit-clip-path');
+      source.style.setProperty('visibility','visible','important');
+      source.style.setProperty('opacity','1','important');
+    }
 
     const splashRect=splash.getBoundingClientRect();
-    const sourceRect=source.getBoundingClientRect();
+    const liveRect=source?.getBoundingClientRect?.();
+    const sourceRect=(liveRect&&liveRect.width>0&&liveRect.height>0)
+      ?liveRect
+      :welcomeLogoRect;
+    if(!sourceRect||splitRect.width<=0||splitRect.height<=0){
+      const fallbackWidth=Math.min(window.innerWidth*.68,980);
+      const fallbackHeight=fallbackWidth*(341/1719);
+      const fallbackLeft=(window.innerWidth-fallbackWidth)/2;
+      const fallbackTop=Math.max(80,window.innerHeight*.22);
+      welcomeLogoRect={left:fallbackLeft,top:fallbackTop,width:fallbackWidth,height:fallbackHeight,right:fallbackLeft+fallbackWidth,bottom:fallbackTop+fallbackHeight};
+    }
+    const splitRect=(sourceRect&&splitRect.width>0&&splitRect.height>0)?sourceRect:welcomeLogoRect;
     const stage=document.createElement('div');
     stage.className='yardon-split-stage';
-    stage.style.setProperty('--yardon-split-left',(sourceRect.left-splashRect.left)+'px');
-    stage.style.setProperty('--yardon-split-top',(sourceRect.top-splashRect.top)+'px');
-    stage.style.setProperty('--yardon-split-width',sourceRect.width+'px');
-    stage.style.setProperty('--yardon-split-height',sourceRect.height+'px');
-    stage.style.setProperty('--yardon-split-center-x',(sourceRect.left-splashRect.left+sourceRect.width/2)+'px');
-    stage.style.setProperty('--yardon-split-center-y',(sourceRect.top-splashRect.top+sourceRect.height/2)+'px');
+    stage.style.setProperty('--yardon-split-left',(splitRect.left-splashRect.left)+'px');
+    stage.style.setProperty('--yardon-split-top',(splitRect.top-splashRect.top)+'px');
+    stage.style.setProperty('--yardon-split-width',splitRect.width+'px');
+    stage.style.setProperty('--yardon-split-height',splitRect.height+'px');
+    stage.style.setProperty('--yardon-split-center-x',(splitRect.left-splashRect.left+splitRect.width/2)+'px');
+    stage.style.setProperty('--yardon-split-center-y',(splitRect.top-splashRect.top+splitRect.height/2)+'px');
 
-    const src=source.currentSrc||source.src;
+    const src=(source&&(source.currentSrc||source.src))||welcomeLogoSrc||'assets/yardon-logo-exact.webp?v=20260928-exact1';
     const left=document.createElement('img');
     const right=document.createElement('img');
     left.className='yardon-split-half left';
@@ -283,10 +300,10 @@ async function startSplitReveal(){
     left.src=src;right.src=src;
 
     for(const half of [left,right]){
-      half.style.setProperty('left',(sourceRect.left-splashRect.left)+'px','important');
-      half.style.setProperty('top',(sourceRect.top-splashRect.top)+'px','important');
-      half.style.setProperty('width',sourceRect.width+'px','important');
-      half.style.setProperty('height',sourceRect.height+'px','important');
+      half.style.setProperty('left',(splitRect.left-splashRect.left)+'px','important');
+      half.style.setProperty('top',(splitRect.top-splashRect.top)+'px','important');
+      half.style.setProperty('width',splitRect.width+'px','important');
+      half.style.setProperty('height',splitRect.height+'px','important');
       half.style.setProperty('max-width','none','important');
       half.style.setProperty('max-height','none','important');
       half.style.setProperty('margin','0','important');
@@ -320,9 +337,11 @@ async function startSplitReveal(){
     splash.classList.add('yardon-split-reveal');
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 
-    source.classList.add('yardon-split-source-hidden');
-    source.style.setProperty('visibility','hidden','important');
-    source.style.setProperty('opacity','0','important');
+    if(source){
+      source.classList.add('yardon-split-source-hidden');
+      source.style.setProperty('visibility','hidden','important');
+      source.style.setProperty('opacity','0','important');
+    }
     left.style.removeProperty('opacity');
     right.style.removeProperty('opacity');
 
@@ -350,8 +369,6 @@ async function startSplitReveal(){
       left.style.setProperty('animation','yardonSplitLeft '+FINAL_REVEAL_MS+'ms cubic-bezier(.14,.76,.16,1) forwards','important');
       right.style.setProperty('animation','yardonSplitRight '+FINAL_REVEAL_MS+'ms cubic-bezier(.14,.76,.16,1) forwards','important');
     }
-  }else{
-    splash?.classList.add('yardon-split-reveal');
   }
 
   // Let the center split become clearly visible before the login begins advancing
@@ -402,6 +419,14 @@ function start(){
   const source=splash?.querySelector('.yardon-welcome-logo');
   const sub=splash?.querySelector('.yardivo-welcome-sub');
   if(!bar||!pct||!source){forceReveal();return;}
+  welcomeLogoRef=source;
+  welcomeLogoSrc=source.currentSrc||source.src||'assets/yardon-logo-exact.webp?v=20260928-exact1';
+  {
+    const r=source.getBoundingClientRect();
+    if(r.width>0&&r.height>0){
+      welcomeLogoRect={left:r.left,top:r.top,width:r.width,height:r.height,right:r.right,bottom:r.bottom};
+    }
+  }
 
   try{bar.getAnimations?.().forEach(a=>a.cancel())}catch(_){}
   bar.style.width='100%';
