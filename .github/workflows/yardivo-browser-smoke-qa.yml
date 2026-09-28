@@ -164,7 +164,11 @@ jobs:
 
             await page.locator(authSelector).waitFor({ state:'visible', timeout:10000 }).catch(()=>{});
             assert(await page.locator(authSelector).isVisible().catch(()=>false), `${name}: auth screen not visible after intro`);
-            assert(await boot.isHidden().catch(()=>false), `${name}: mobile boot did not finish/hide`);
+
+            // Login intentionally starts arriving while the logo is still splitting.
+            // Wait for the canonical intro completion before asserting boot is gone.
+            await boot.waitFor({ state:'hidden', timeout:5000 }).catch(()=>{});
+            assert(await boot.isHidden().catch(()=>false), `${name}: mobile boot did not finish/hide after split`);
 
             const imageState = await page.locator('img[data-yardon-logo]').evaluateAll(imgs => imgs.map(i => {
               const r=i.getBoundingClientRect(),cs=getComputedStyle(i);
