@@ -1,7 +1,7 @@
 (()=>{'use strict';
 if(window.__YARDON_BRAND_V1__)return;
 window.__YARDON_BRAND_V1__=true;
-const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo-transparent-mobile.png?v=20260928-clean-logo2';
+const BRAND='YardOn',VERSION='v1.0',LOGO='assets/yardon-logo-canonical.svg?v=20260928-canonical1';
 let transparentLogoPromise=null;
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','CODE','PRE','TEXTAREA']);
 const style=document.createElement('style');
@@ -870,7 +870,7 @@ function patchElement(el){
     const src=el.getAttribute('src')||'';
     if(/assets\/yardivo-logo\.svg(?:\?.*)?$/i.test(src))el.setAttribute('src',LOGO);
     const now=el.getAttribute('src')||'';
-    if(/yardon-logo(?:-transparent(?:-v\d+)?)?\.(?:webp|png|svg)(?:\?.*)?$/i.test(now)||el.dataset.yardonPrepared==='1'){
+    if(/yardon-logo(?:-canonical|-transparent(?:-v\d+)?)?\.(?:webp|png|svg)(?:\?.*)?$/i.test(now)||el.dataset.yardonPrepared==='1'){
       const hdHero=el.dataset.yardonHdIntro==='1'||!!el.closest('#yardivoWelcomeSplash,.login-logo-combo');
       if(hdHero){
         // Hero source is owned by HTML. Runtime src rewrites during intro/split caused frame glitches.
