@@ -342,7 +342,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 
 <section id="mobileBoot" class="mobile-boot" aria-label="YardOn welcome screen">
   <div class="mobile-boot-inner">
-    <img class="mobile-boot-full" src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean2" alt="YardOn" data-yardon-logo>
+    <img class="mobile-boot-full" src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3" alt="YardOn" data-yardon-logo>
     <h1 id="mobileBootTitle" class="mobile-boot-title">WELCOME TO YARD<span class="yardon-on">ON</span></h1>
     <p id="mobileBootSub" class="mobile-boot-sub">Yard Management System</p>
     <p class="mobile-boot-copy">Centralized yard operations, supplier visibility and dock coordination.</p>
@@ -352,7 +352,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 </section>
 <section id="auth" class="auth hidden">
   <div class="login-box">
-    <div class="login-brand"><img class="logo" src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean2" alt="YardOn" data-yardon-logo><h1>YardOn PRIJAM</h1><p id="loginContext">MOBILE · PRIJAVA</p></div>
+    <div class="login-brand"><img class="logo" src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3" alt="YardOn" data-yardon-logo><h1>YardOn PRIJAM</h1><p id="loginContext">MOBILE · PRIJAVA</p></div>
     <div class="login-panel">
       <label>KORISNIČKO IME</label><input id="username" autocomplete="username" autocapitalize="none">
       <label>LOZINKA</label><input id="password" type="password" autocomplete="current-password">
@@ -363,7 +363,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 </section>
 
 <section id="welcome" class="welcome" aria-hidden="true">
-  <div class="welcome-inner"><img class="logo" src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean2" alt="YardOn" data-yardon-logo><h2 id="welcomeTitle">YardOn PRIJAM</h2><p id="welcomeSub">Priprema…</p>
+  <div class="welcome-inner"><img class="logo" src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3" alt="YardOn" data-yardon-logo><h2 id="welcomeTitle">YardOn PRIJAM</h2><p id="welcomeSub">Priprema…</p>
     <div class="progress"><i id="welcomeFill"></i></div><div id="welcomePct" class="pct">0%</div>
     <div class="steps"><div class="step" data-step="login">PRIJAVA</div><div class="step" data-step="scope">OVLASTI</div><div class="step" data-step="warehouse">SKLADIŠTE</div><div class="step" data-step="ready">SPREMNO</div></div>
   </div>
@@ -372,7 +372,7 @@ body.scan-state-red #scannerView>.card{border-color:#b63c48;box-shadow:0 0 0 1px
 <div id="app" class="hidden">
 <div class="wrap">
   <div class="brand">
-    <div style="display:flex;align-items:center;gap:10px"><img src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean2" alt="YardOn" style="width:150px;max-width:34vw;height:auto;object-fit:contain" data-yardon-logo><div><h1>YardOn · MOBILE</h1><small>PRIJAM / SCANNER · v1.0</small></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><img src="../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3" alt="YardOn" style="width:150px;max-width:34vw;height:auto;object-fit:contain" data-yardon-logo><div><h1>YardOn · MOBILE</h1><small>PRIJAM / SCANNER · v1.0</small></div></div>
     <div id="netStatus" class="status"><span class="dot"></span><span>SPREMAN</span></div>
   </div>
 
@@ -452,7 +452,7 @@ const MOBILE_LOGO_DATA="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeAAAACkCA
 function prepareYardonMobileLogos(){
   document.querySelectorAll('img[data-yardon-logo]').forEach(img=>{
     const isHero=!!img.closest('#mobileBoot,.login-brand,.welcome-inner');
-    if(isHero)img.src='../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean2';
+    if(isHero)img.src='../assets/yardon-logo-transparent-mobile.png?v=20260928-mobile-clean3';
     img.style.setProperty('display','block','important');
     img.style.setProperty('visibility','visible','important');
     img.style.setProperty('opacity','1','important');
@@ -494,19 +494,19 @@ async function runLinkIntro(){
   }
 
   const start=performance.now();
-  let lastP=0,stageIndex=0;
-  await new Promise(resolve=>{
-    const tick=now=>{
-      const ratio=Math.min(1,(now-start)/duration);
-      const p=Math.min(100,Math.floor(ratio*100));
-      if(!progressAnimation&&fill)fill.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
-      if(p===100||p>=lastP+2){lastP=p;if(pct)pct.textContent=p+'%';}
-      while(stageIndex<stages.length&&p>=stages[stageIndex][0]){if(statusEl)statusEl.textContent=stages[stageIndex][1];stageIndex++;}
-      if(ratio>=1)return resolve();
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  });
+  let lastP=0,stageIndex=0,progressDone=false;
+  const tick=now=>{
+    if(progressDone)return;
+    const ratio=Math.min(1,(now-start)/duration);
+    const p=Math.min(100,Math.floor(ratio*100));
+    if(!progressAnimation&&fill)fill.style.transform='translate3d(0,0,0) scaleX('+ratio+')';
+    if(p===100||p>=lastP+2){lastP=p;if(pct)pct.textContent=p+'%';}
+    while(stageIndex<stages.length&&p>=stages[stageIndex][0]){if(statusEl)statusEl.textContent=stages[stageIndex][1];stageIndex++;}
+    if(ratio<1)requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  await sleep(duration);
+  progressDone=true;
 
   try{progressAnimation?.finish?.()}catch(_){}
   if(fill)fill.style.transform='translate3d(0,0,0) scaleX(1)';
@@ -544,7 +544,7 @@ async function runLinkIntro(){
   boot.classList.add('splitting');
 
   if(auth){
-    auth.classList.remove('hidden');
+    auth.classList.remove('hidden','yardon-auth-logo-ready');
     auth.classList.add('yardon-auth-arrive');
     auth.style.visibility='visible';
     requestAnimationFrame(()=>requestAnimationFrame(()=>auth.classList.add('yardon-auth-arrive-active')));
@@ -560,6 +560,10 @@ async function runLinkIntro(){
     auth.classList.remove('yardon-auth-arrive','yardon-auth-arrive-active');
     auth.style.opacity='1';auth.style.visibility='visible';
   }
+}
+function today(){
+  const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
 }
 function type(){if(role()==='gate')return'gate';if(role()==='reception')return'dock';return $('adminMode').value||'dock'}
 function prettyRole(r){return({gate:'PORTA',reception:'PRIJAM',admin:'ADMIN'})[r]||String(r||'').toUpperCase()}
@@ -804,5 +808,59 @@ img[data-yardon-logo]{
   box-shadow:none!important;
   filter:none!important;
   mix-blend-mode:normal!important;
+}
+</style>
+
+<style id="yardon-mobile-clean3-final-owner">
+/* FINAL FINAL OWNER · one transparent YardOn logo through welcome → split → login */
+#mobileBoot .mobile-boot-full{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  width:min(560px,91vw)!important;
+  max-width:91vw!important;
+  height:auto!important;
+  margin:0 auto 18px!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+}
+.mobile-boot.splitting .mobile-boot-inner{
+  visibility:hidden!important;
+  opacity:0!important;
+}
+.mobile-boot .yardon-mobile-split-half{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  object-fit:contain!important;
+}
+.auth.yardon-auth-arrive:not(.yardon-auth-logo-ready) .login-brand img[data-yardon-logo]{
+  visibility:hidden!important;
+  opacity:0!important;
+}
+.auth.yardon-auth-logo-ready .login-brand img[data-yardon-logo],
+.auth:not(.yardon-auth-arrive) .login-brand img[data-yardon-logo]{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  object-fit:contain!important;
 }
 </style>
