@@ -239,21 +239,26 @@ window.YardivoSupplierLiveSync={
   mineRows:()=>Array.isArray(__yardivoSupplierMineRows)?__yardivoSupplierMineRows:null
 };
 
-window.addEventListener('yardivo:login',()=>setTimeout(syncNow,250));
+let __yardivoSupplierSyncScheduleTimer=0;
+function scheduleSync(delay=250){
+  clearTimeout(__yardivoSupplierSyncScheduleTimer);
+  __yardivoSupplierSyncScheduleTimer=setTimeout(()=>{__yardivoSupplierSyncScheduleTimer=0;syncNow()},Math.max(0,Number(delay)||0));
+}
+window.addEventListener('yardivo:login',()=>scheduleSync(350));
 document.addEventListener('click',e=>{
   if(!supplier())return;
   const b=e.target.closest?.('#yardivoSupplierPortal [data-ysp-view="status"]');
   if(b)setTimeout(()=>pullSupplier().catch(err=>console.error('Supplier history refresh',err)),30);
 },true);
-window.addEventListener('load',()=>setTimeout(syncNow,650));
-window.addEventListener('focus',()=>setTimeout(syncNow,120));
-window.addEventListener('yardivo:server-change',()=>setTimeout(syncNow,80));
-window.addEventListener('yardivo:context-changed',()=>setTimeout(syncNow,60));
-/* Supplier requests/reschedules are operational data too: max ~2.3 s safety
-   refresh while the tab is visible. Planner editing remains protected. */
+window.addEventListener('load',()=>scheduleSync(750));
+window.addEventListener('focus',()=>scheduleSync(500));
+window.addEventListener('yardivo:server-change',()=>scheduleSync(450));
+window.addEventListener('yardivo:context-changed',()=>scheduleSync(350));
+/* Event-driven refresh is primary. This visible-tab pulse is only a five-minute
+   safety fallback, preventing thousands of supplier Edge calls per open tab. */
 window.__yardivoSupplierLiveSyncTimer&&clearInterval(window.__yardivoSupplierLiveSyncTimer);
 window.__yardivoSupplierLiveSyncTimer=setInterval(()=>{
   if(document.hidden)return;
   if(!document.getElementById('ysrPlannerOverlay')?.classList.contains('open'))syncNow();
-},30000);
+},300000);
 })();
