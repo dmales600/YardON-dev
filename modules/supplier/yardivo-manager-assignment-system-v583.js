@@ -27,6 +27,7 @@ const SECTION_LABELS={
  liveYard:'Live Yard',
  yardivoWarRoom:'War Room',
  smartReplanning:'Smart Replanning',
+ aiOperations:'AI Operations',
  notifications:'Notifikacije',
  warnings:'Upozorenja',
  calendar:'Kalendar',
