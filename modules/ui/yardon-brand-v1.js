@@ -869,6 +869,15 @@ cinematicIntroStyle.textContent=`
   transform-style:preserve-3d!important;
   perspective:1400px!important;
 }
+#yardivoWelcomeSplash .yardon-intro-logo-slice{
+  position:absolute!important;
+  inset:0!important;
+  overflow:hidden!important;
+  pointer-events:none!important;
+  transform:translateZ(0)!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+}
 #yardivoWelcomeSplash .yardon-intro-logo-segment{
   position:absolute!important;
   left:50%!important;
@@ -974,13 +983,16 @@ cinematicIntroStyle.textContent=`
 .login-logo-combo img.yardon-login-logo-base[data-yardon-hd-intro="1"]{
   position:relative!important;
   z-index:2!important;
-  filter:drop-shadow(0 0 5px rgba(0,210,255,.72)) drop-shadow(0 0 14px rgba(0,132,255,.46)) drop-shadow(0 0 28px rgba(0,92,255,.24))!important;
+  filter:drop-shadow(0 0 8px rgba(30,225,255,.90)) drop-shadow(0 0 20px rgba(0,150,255,.68)) drop-shadow(0 0 42px rgba(0,92,255,.42))!important;
   transform-origin:center center!important;
   will-change:transform,opacity!important;
+  animation:yardonLoginLogoBreathe 2.7s ease-in-out infinite!important;
 }
+.yardon-logo-glow,
 .login-logo-combo img.yardon-logo-glow{
   display:none!important;
   opacity:0!important;
+  visibility:hidden!important;
   animation:none!important;
   filter:none!important;
 }
@@ -1007,6 +1019,21 @@ cinematicIntroStyle.textContent=`
 }
 `;
 document.head.appendChild(cinematicIntroStyle);
+
+const finalLogoGlowFix=document.createElement('style');
+finalLogoGlowFix.id='yardon-final-logo-glow-fix';
+finalLogoGlowFix.textContent=`
+/* No duplicate glow-image layers: glow is rendered from the approved base logo only. */
+#yardivoWelcomeSplash .yardon-logo-glow,
+.login-logo-combo .yardon-logo-glow{display:none!important;visibility:hidden!important;opacity:0!important;}
+#yardivoWelcomeSplash.yardon-logo-reveal-complete img.yardon-welcome-logo{
+  filter:drop-shadow(0 0 7px rgba(25,220,255,.78)) drop-shadow(0 0 18px rgba(0,145,255,.52)) drop-shadow(0 0 34px rgba(0,90,255,.30))!important;
+}
+.login-logo-combo img.yardon-login-logo-base{
+  filter:drop-shadow(0 0 8px rgba(30,225,255,.90)) drop-shadow(0 0 20px rgba(0,150,255,.68)) drop-shadow(0 0 42px rgba(0,92,255,.42))!important;
+}
+`;
+document.head.appendChild(finalLogoGlowFix);
 
 const desktopYardBackgroundStyle=document.createElement('style');
 desktopYardBackgroundStyle.id='yardon-desktop-yard-background-owner';
