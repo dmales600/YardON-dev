@@ -3,10 +3,10 @@
 if(window.__YARDIVO_SELF_GATE_PASS_V1__)return;
 window.__YARDIVO_SELF_GATE_PASS_V1__=true;
 
-const BASE='https://rskticdbiovvgyocpzoc.supabase.co';
-const PUB='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
+const BASE='https://ldzwgdwzolbvjxyznlry.supabase.co';
+const PUB='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
 const EDGE=BASE+'/functions/v1/yardivo-self-gate';
-const SELF_GATE_WEB='https://dujemales1997.github.io/yardivo-dev/self-gate/';
+const SELF_GATE_WEB='https://dmales600.github.io/YardON-dev/self-gate/';
 const DP_RE=/\[\[YARDIVO_DELIVERY_PASS_V1:([A-Za-z0-9_-]+)\]\]/g;
 
 function role(){let r=String(window.currentSession?.app_role||window.currentSession?.role||'').toLowerCase();if(r==='porta'||r==='portir')r='gate';if(r==='prijam')r='reception';return r}
