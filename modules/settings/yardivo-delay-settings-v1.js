@@ -5,8 +5,8 @@ if(window.__YARDIVO_DELAY_SETTINGS_V1__)return;
 window.__YARDIVO_DELAY_SETTINGS_V1__=true;
 
 const KEY='yardivo_delay_settings_v1';
-const URL='https://rskticdbiovvgyocpzoc.supabase.co/functions/v1/yardivo-sync';
-const APIKEY='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
+const URL='https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-sync';
+const APIKEY='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
 const DEF={graceMinutes:15,orangeFrom:30,redFrom:60,criticalFrom:90,noShowAt:'14:00'};
 
 function role(){
