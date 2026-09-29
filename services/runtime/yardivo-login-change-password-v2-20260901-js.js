@@ -1,7 +1,7 @@
 (function(){
 'use strict';
-const BASE='https://rskticdbiovvgyocpzoc.supabase.co';
-const KEY='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
+const BASE='https://ldzwgdwzolbvjxyznlry.supabase.co';
+const KEY='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
 
 function show(text,ok=false){
  const e=document.getElementById('loginError');if(!e)return;
