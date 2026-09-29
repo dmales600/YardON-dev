@@ -16,6 +16,11 @@ async function setAuth(token){
 }
 
 async function connect(options={}){
+  if(window.YardivoSupabaseBudgetGuard?.blocked?.()){
+    const error=new Error('SUPABASE REALTIME PRIVREMENO U BACKOFFU NAKON PONOVLJENIH GREŠAKA.');
+    error.status=402;
+    throw error;
+  }
   const key=String(options.key||options.topic||'').trim();
   const topic=String(options.topic||'').trim();
   if(!key||!topic)throw new Error('Realtime key/topic nedostaje.');
@@ -25,7 +30,7 @@ async function connect(options={}){
 
   const c=await client();
   const channel=c.channel(topic,options.channelOptions||{});
-  const record={key,topic,channel,status:'CONNECTING',connectedAt:0};
+  const record={key,topic,channel,status:'CONNECTING',connectedAt:0,failures:0,lastFailureAt:0};
 
   if(typeof options.setup==='function')options.setup(channel);
 
@@ -33,7 +38,25 @@ async function connect(options={}){
   channel.subscribe(status=>{
     const st=String(status||'').toUpperCase();
     record.status=st;
-    if(st==='SUBSCRIBED')record.connectedAt=Date.now();
+    if(st==='SUBSCRIBED'){
+      record.connectedAt=Date.now();
+      record.failures=0;
+      record.lastFailureAt=0;
+      window.YardivoSupabaseBudgetGuard?.clear?.();
+    }else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){
+      const now=Date.now();
+      record.failures=(record.lastFailureAt&&now-record.lastFailureAt<120000)?record.failures+1:1;
+      record.lastFailureAt=now;
+      if(record.failures>=3){
+        window.YardivoSupabaseBudgetGuard?.block?.(30*60*1000);
+        record.status='BUDGET_BACKOFF';
+        channels.delete(key);
+        try{options.onStatus?.('BUDGET_BACKOFF',channel)}catch(e){console.warn('[YARDIVO REALTIME] status handler',key,e)}
+        Promise.resolve(c.removeChannel?.(channel)).catch(()=>{});
+        try{c.realtime?.disconnect?.()}catch(_){}
+        return;
+      }
+    }
     try{options.onStatus?.(st,channel)}catch(e){console.warn('[YARDIVO REALTIME] status handler',key,e)}
   });
 
