@@ -74,6 +74,7 @@ async function fetchJSON(url,options={},timeoutMs=12000){
     try{
       const res=await fetch(url,{...options,cache:'no-store',signal:controller.signal});
       const data=await res.json().catch(()=>({}));
+      if(res.status===402)window.YardivoSupabaseBudgetGuard?.block?.(30*60*1000);
       return {res,data};
     }catch(e){
       lastError=e;
@@ -123,6 +124,7 @@ async function authenticate(input={}){
   );
 
   if(!authRes.ok||!auth?.access_token){
+    if(authRes.status===402)throw new Error('SUPABASE JE PRIVREMENO ODBIO ZAHTJEV ZBOG USAGE/BILLING OGRANIČENJA. POKUŠAJ KASNIJE.');
     const raw=String(auth?.error_description||auth?.msg||auth?.message||'');
     if(/invalid login credentials/i.test(raw)||authRes.status===400||authRes.status===401){
       throw new Error('POGREŠAN USERNAME ILI PASSWORD.');
