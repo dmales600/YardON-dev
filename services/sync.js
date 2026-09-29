@@ -74,6 +74,8 @@ async function token(){
   return accessToken;
 }
 async function edge(action,payload={}){
+  const guard=window.YardivoSupabaseBudgetGuard;
+  if(guard?.blocked?.())throw new Error('SUPABASE_LIMIT_402_BACKOFF');
   const t=await token();
   const res=await fetch(EDGE,{
     method:'POST',
@@ -81,6 +83,11 @@ async function edge(action,payload={}){
     body:JSON.stringify({action,clientId,...payload})
   });
   const d=await res.json().catch(()=>({}));
+  if(res.status===402){
+    try{guard?.block?.()}catch(_){}
+    try{await stopRealtime()}catch(_){}
+    throw new Error('SUPABASE_LIMIT_402_BACKOFF');
+  }
   if(!res.ok||d?.ok===false)throw new Error(d?.error||('HTTP '+res.status));
   return d;
 }
@@ -568,13 +575,14 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.__yardivoFastSafetySyncTimer&&clearInterval(window.__yardivoFastSafetySyncTimer);
 window.__yardivoFastSafetySyncTimer=setInterval(()=>{
   if(!ready||document.hidden||navigator.onLine===false)return;
+  if(window.YardivoSupabaseBudgetGuard?.blocked?.())return;
   if(pending()){flush();return}
   /* Realtime is authoritative while connected. When it is unavailable, use a
      low-frequency safety pull; focus/online recovery above still refreshes promptly. */
   if(realtimeStatus==='SUBSCRIBED')return;
   if(lastSuccessfulPullAt&&Date.now()-lastSuccessfulPullAt<240000)return;
   pull();
-},300000);
+},900000);
 
 window.YardivoRealtimeLatencyV583={
   targetMs:3000,
@@ -587,7 +595,7 @@ window.YardivoRealtimeLatencyV583={
     realtime:realtimeStatus,
     pending:pending(),
     targetMs:3000,
-    safetyPulseMs:300000,
+    safetyPulseMs:900000,
     lastPullAt:lastRealtimePullAt||0
   })
 };
