@@ -259,17 +259,44 @@ function bindPdf(){
  $('sbnPdfBtn').onclick=()=>$('sbnPdf').click();
  $('sbnPdf').onchange=()=>{const f=$('sbnPdf').files?.[0];pdf=null;if(!f){$('sbnPdfName').textContent='Nije odabran dokument · max 1.5 MB';return}if((f.type!=='application/pdf'&&!/\.pdf$/i.test(f.name))||f.size>1572864){alert('PDF mora biti PDF datoteka do 1.5 MB.');$('sbnPdf').value='';return}const r=new FileReader();r.onload=()=>{pdf={document_name:f.name,document_mime:'application/pdf',document_base64:String(r.result||'').split(',').pop()||''};$('sbnPdfName').textContent=f.name+' · '+Math.ceil(f.size/1024)+' KB'};r.readAsDataURL(f)};
 }
+async function verifySubmittedDelivery(clientId){
+ if(!clientId)return null;
+ for(let attempt=0;attempt<4;attempt++){
+  try{
+   const rows=await edge(DELIV,{action:'list_mine'});
+   const hit=Array.isArray(rows)?rows.find(x=>String(x?.client_id||'')===String(clientId)):null;
+   if(hit)return hit;
+  }catch(_){}
+  if(attempt<3)await new Promise(r=>setTimeout(r,250*(attempt+1)));
+ }
+ return null;
+}
+function finishSubmittedAnnouncement(){
+ alert('Najava je poslana u Zalihe.');
+ resetAll();
+ window.dispatchEvent(new CustomEvent('yardivo:supplier-request-updated',{detail:{source:'supplier-booking-rebuilt'}}));
+}
 async function send(){
  if(!choice||!contextReady()||!qtyReady())return;
  const btn=$('sbnSend');btn.disabled=true;btn.textContent='ŠALJEM...';status('ŠALJEM U ZALIHE');
+ let client='';
  try{
   const fresh=await edge(AVAIL,{location_id:loc,warehouse_id:wh,delivery_date:date,pallets:Number($('sbnPallets').value),sku_count:Number($('sbnSku').value)});
   const ok=(fresh.slots||[]).find(x=>x.selectable&&Number(x.ramp_number)===choice.ramp&&String(x.start)===choice.start);if(!ok)throw new Error('Termin više nije slobodan. Osvježi mapu.');
-  const client='SUP-'+(crypto.randomUUID?.()||Date.now());
+  client='SUP-'+(crypto.randomUUID?.()||Date.now());
   await edge(DELIV,{action:'upsert',client_id:client,location:loc,warehouse:wh,delivery_date:date,requested_time:choice.start,pallets:Number($('sbnPallets').value),sku_count:Number($('sbnSku').value),dock:choice.dock,order_number:String($('sbnOrder').value||'').trim(),vehicle_plate:String($('sbnPlate').value||'').trim(),trailer_plate:String($('sbnTrailer').value||'').trim(),driver_name:String($('sbnDriver').value||'').trim(),driver_contact:String($('sbnDriverContact').value||'').trim(),delivery_note:String($('sbnReference').value||'').trim(),note:String($('sbnNote').value||'').trim(),...(pdf||{})});
-  alert('Najava je poslana u Zalihe.');resetAll();window.dispatchEvent(new CustomEvent('yardivo:supplier-request-updated',{detail:{source:'supplier-booking-rebuilt'}}));
- }catch(e){alert('Najava nije poslana: '+String(e?.message||e));status('GREŠKA PRI SLANJU')}
- finally{btn.textContent='POŠALJI NAJAVU U ZALIHE';if(choice)btn.disabled=false}
+  finishSubmittedAnnouncement();
+ }catch(e){
+  /* Edge/network can fail after the database commit. Verify the authoritative
+     supplier list before showing a false "not sent" error. */
+  const verified=client?await verifySubmittedDelivery(client):null;
+  if(verified){
+   finishSubmittedAnnouncement();
+  }else{
+   alert('Najava nije poslana: '+String(e?.message||e));
+   status('GREŠKA PRI SLANJU');
+  }
+ }finally{btn.textContent='POŠALJI NAJAVU U ZALIHE';if(choice)btn.disabled=false}
 }
 function resetAll(){
  date='';loc='';wh='';availability=null;choice=null;recommended=null;pdf=null;
