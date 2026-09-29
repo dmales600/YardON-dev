@@ -4,7 +4,7 @@
 if(window.__YARDIVO_MANAGER_SINGLE_VIEW_HARD_LOCK_V5__)return;
 window.__YARDIVO_MANAGER_SINGLE_VIEW_HARD_LOCK_V5__=true;
 
-const ALLOWED=new Set(['homeMenu','dashboard','controlTower','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']);
+const ALLOWED=new Set(['homeMenu','dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']);
 
 function role(){
   let r='';
