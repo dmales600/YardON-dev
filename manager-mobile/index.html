@@ -813,8 +813,8 @@ button{cursor:pointer}
 <script>
 (()=>{'use strict';
 window.YardOn_MANAGER_MOBILE_BUILD='20260928-v1.0-canonical-welcome';
-const BASE='https://rskticdbiovvgyocpzoc.supabase.co';
-const KEY='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
+const BASE='https://ldzwgdwzolbvjxyznlry.supabase.co';
+const KEY='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
 const SYNC=BASE+'/functions/v1/yardivo-sync';
 const sb=supabase.createClient(BASE,KEY,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}});
 const $=id=>document.getElementById(id);
@@ -1571,7 +1571,7 @@ prepareYardonMobileLogos();runLinkIntro();
 </style>
 <script id="yardivo-manager-mobile-operational-chat-v1">
 (()=>{'use strict';
-const BASE='https://rskticdbiovvgyocpzoc.supabase.co',KEY='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy',URL=BASE+'/functions/v1/yardivo-operational-chat';
+const BASE='https://ldzwgdwzolbvjxyznlry.supabase.co',KEY='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz',URL=BASE+'/functions/v1/yardivo-operational-chat';
 let threads=[],selected='',msgs=[],opened=false,lastSig='',timer=null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function api(action,payload={}){const t=String(window.__YardOn_MANAGER_MOBILE_TOKEN||'');if(!t)throw new Error('Prijava nije spremna');const r=await fetch(URL,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});const d=await r.json().catch(()=>({}));if(!r.ok||d?.ok===false)throw new Error(d?.error||('HTTP '+r.status));return d?.data??d}
