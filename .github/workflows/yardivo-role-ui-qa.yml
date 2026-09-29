@@ -47,7 +47,7 @@ jobs:
               if(req.method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'}});
               return route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({message:'QA network sandbox: live Supabase disabled'})});
             });
-            if(typeof context.routeWebSocket==='function')await context.routeWebSocket('wss://rskticdbiovvgyocpzoc.supabase.co/**',ws=>ws.close());
+            if(typeof context.routeWebSocket==='function')await context.routeWebSocket('wss://ldzwgdwzolbvjxyznlry.supabase.co/**',ws=>ws.close());
           }
           const viewports=[
             {name:'desktop',width:1440,height:1000},
