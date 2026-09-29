@@ -5,8 +5,8 @@ if(window.__YARDIVO_RECEIVING_HEADER_WAREHOUSE_QR_V583__)return;
 window.__YARDIVO_RECEIVING_HEADER_WAREHOUSE_QR_V583__=true;
 
 const CFG_KEY='yardivo_qr_scan_cfg_v583';
-const PUB='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
-const SYNC='https://rskticdbiovvgyocpzoc.supabase.co/functions/v1/yardivo-sync';
+const PUB='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
+const SYNC='https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-sync';
 
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function userRole(){return String(window.currentSession?.app_role||window.currentSession?.role||'').toLowerCase()}
