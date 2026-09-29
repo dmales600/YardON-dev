@@ -3,8 +3,8 @@
 if(window.__YARDIVO_QR_ADMIN_VISIBLE_V584__)return;
 window.__YARDIVO_QR_ADMIN_VISIBLE_V584__=true;
 const KEY='yardivo_qr_scan_cfg_v583';
-const PUB='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
-const SYNC='https://rskticdbiovvgyocpzoc.supabase.co/functions/v1/yardivo-sync';
+const PUB='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
+const SYNC='https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-sync';
 
 function role(){return String(window.currentSession?.app_role||window.currentSession?.role||'').toLowerCase()}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
