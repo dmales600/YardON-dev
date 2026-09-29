@@ -96,6 +96,8 @@ jobs:
               try{currentSession=window.currentSession}catch(_){}
               document.body.dataset.yardivoRole=role;
               document.documentElement.dataset.yardivoRole=role;
+              [...document.body.classList].filter(x=>/^yv-role-.*-v583$/.test(x)).forEach(x=>document.body.classList.remove(x));
+              document.body.classList.add('yv-role-'+role+'-v583');
               document.getElementById('loginOverlay')?.style.setProperty('display','none','important');
               document.getElementById('yardivoWelcomeSplash')?.style.setProperty('display','none','important');
               const shell=document.querySelector('.app-shell');
@@ -103,8 +105,13 @@ jobs:
               document.body.classList.remove('yardivo-role-switching','yardivo-prelogin');
               document.documentElement.classList.add('yardivo-login-ready','yardivo-welcome-complete');
               window.dispatchEvent(new CustomEvent('yardivo:login',{detail:{session:window.currentSession}}));
+              window.dispatchEvent(new CustomEvent('yardivo:data-synced'));
+              window.dispatchEvent(new CustomEvent('yardivo:online-ready'));
+              try{window.YardivoRoleVisibility?.apply?.()}catch(_){}
+              try{window.YardivoRoleStableFinal?.apply?.()}catch(_){}
+              document.body.classList.remove('yardivo-role-switching');
             },role);
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(1100);
             return errors;
           }
           (async()=>{
