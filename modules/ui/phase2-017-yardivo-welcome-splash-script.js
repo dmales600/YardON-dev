@@ -54,6 +54,12 @@ async function revealLogoLetters(splash,source){
     const endPct=LOGO_REVEAL_POINTS[i];
     stage.replaceChildren();
 
+    const slice=document.createElement('div');
+    slice.className='yardon-intro-logo-slice';
+    slice.setAttribute('aria-hidden','true');
+    slice.style.setProperty('clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
+    slice.style.setProperty('-webkit-clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
+
     const piece=document.createElement('img');
     piece.className='yardon-intro-logo-segment';
     piece.alt='';
@@ -61,9 +67,8 @@ async function revealLogoLetters(splash,source){
     piece.decoding='async';
     piece.loading='eager';
     piece.src=src;
-    piece.style.setProperty('clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
-    piece.style.setProperty('-webkit-clip-path',`inset(0 ${100-endPct}% 0 ${startPct}%)`,'important');
-    stage.appendChild(piece);
+    slice.appendChild(piece);
+    stage.appendChild(slice);
 
     try{if(typeof piece.decode==='function')await piece.decode()}catch(_){}
 
@@ -90,13 +95,11 @@ async function revealLogoLetters(splash,source){
         {
           duration:LOGO_SEGMENT_DURATION_MS,
           easing:'cubic-bezier(.16,.78,.18,1)',
-          fill:'forwards'
+          fill:'both'
         }
       );
       await animation.finished.catch(()=>{});
     }catch(_){
-      // Safari/older engines may reject complex filter interpolation. Commit the
-      // segment instead of aborting the entire intro and skipping the split.
       piece.style.opacity='1';
       piece.style.transform='translate3d(-50%,-50%,0) scale(1)';
       piece.style.filter='none';
