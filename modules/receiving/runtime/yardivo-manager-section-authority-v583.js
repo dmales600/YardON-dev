@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const PREFIX='yardivo_manager_access_';
-const DEFAULT_SECTIONS=new Set(['dashboard','controlTower','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']);
+const DEFAULT_SECTIONS=new Set(['dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']);
 function norm(r){
   r=String(r||'').toLowerCase().trim();
   if(r==='management'||r==='voditelj')return'manager';
