@@ -177,7 +177,7 @@ jobs:
             assert(welcomeState.transparentRatio===null || welcomeState.transparentRatio>0.20, `${name}: welcome logo is not materially transparent: ${JSON.stringify(welcomeState)}`);
             assert(!welcomeState.bbox || (welcomeState.bbox.widthRatio>0.65 && welcomeState.bbox.heightRatio>0.40), `${name}: welcome logo content is tiny/cropped inside its asset: ${JSON.stringify(welcomeState)}`);
             const glowCount = await page.locator('#yardivoWelcomeSplash .yardon-logo-glow').count();
-            assert(glowCount===2, `${name}: welcome targeted glow layers missing: ${glowCount}`);
+            assert(glowCount===0, `${name}: duplicate welcome glow image layers present: ${glowCount}`);
             const progressBefore = await page.locator('#yardivoWelcomeSplash .yardivo-welcome-progress-wrap').evaluate(el => ({
               opacity:Number(getComputedStyle(el).opacity),
               ready:document.getElementById('yardivoWelcomeSplash')?.classList.contains('yardon-progress-ready')||false
