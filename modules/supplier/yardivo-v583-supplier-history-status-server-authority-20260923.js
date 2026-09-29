@@ -11,9 +11,9 @@ function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function statusKey(v){return String(v||'pending').trim().toLowerCase()}
 function statusLabel(v){
   const s=statusKey(v);
-  return {pending:'ČEKA POTVRDU',confirmed:'POTVRĐENO',revision_requested:'VRAĆENO NA DORADU',rejected:'ODBIJENO',arrival:'U DVORIŠTU',dock:'NA RAMPI',receiving:'ZAPRIMANJE',completed:'ZAPRIMLJENO',cancelled:'IZBRISANA NAJAVA',canceled:'IZBRISANA NAJAVA'}[s]||String(v||'ČEKA POTVRDU').toUpperCase()
+  return {pending:'ČEKA POTVRDU',confirmed:'POTVRĐENO',revision_requested:'VRAĆENO NA DORADU',proposal_sent:'PRIJEDLOG TERMINA',reschedule_requested:'ZAHTJEV ZA PROMJENU',cancel_requested:'ZAHTJEV ZA OTKAZIVANJE',rejected:'ODBIJENO',arrival:'U DVORIŠTU',dock:'NA RAMPI',receiving:'ZAPRIMANJE',completed:'ZAPRIMLJENO',cancelled:'OTKAZANO',canceled:'OTKAZANO'}[s]||String(v||'ČEKA POTVRDU').toUpperCase()
 }
-function statusClass(v){const s=statusKey(v);return ['completed','confirmed','arrival','dock','receiving'].includes(s)?'ok':['rejected','cancelled','canceled'].includes(s)?'bad':'wait'}
+function statusClass(v){const s=statusKey(v);return ['completed','confirmed','arrival','dock','receiving'].includes(s)?'ok':['rejected','cancelled','canceled','cancel_requested'].includes(s)?'bad':'wait'}
 function whLabel(code){
   try{
     const m=window.YardivoAppStateV583?.master?.()||JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}');
@@ -92,7 +92,12 @@ function normalized(x){
     updatedAt:String(x.announcement_updated_at||x.updated_at||x.created_at||''),
     qrUrl:String(q.qrUrl||''),
     qrToken:String(q.token||''),
-    qrIssuedAt:String(q.issuedAt||'')
+    qrIssuedAt:String(q.issuedAt||''),
+    docName:String(x.document_name||''),
+    docMime:String(x.document_mime||''),
+    proposedDate:String(x.proposed_date||'').slice(0,10),
+    proposedTime:String(x.proposed_time||'').slice(0,5),
+    proposedDock:String(x.proposed_dock||'')
   }
 }
 function sortRows(a,b){
@@ -113,7 +118,7 @@ async function pull(force=false){
     }
     if(Array.isArray(raw)){
       const next=raw.map(normalized).sort(sortRows);
-      const fp=JSON.stringify(next.map(x=>[x.serverId,x.id,x.status,x.warehouse,x.date,x.time,x.dock,x.plate,x.trailer,x.driver,x.driverContact,x.pallets,x.sku,x.review,x.qrUrl,x.qrIssuedAt,x.updatedAt]));
+      const fp=JSON.stringify(next.map(x=>[x.serverId,x.id,x.status,x.warehouse,x.date,x.time,x.dock,x.plate,x.trailer,x.driver,x.driverContact,x.pallets,x.sku,x.review,x.qrUrl,x.qrIssuedAt,x.docName,x.proposedDate,x.proposedTime,x.proposedDock,x.updatedAt]));
       rows=next;lastPull=Date.now();
       if(fp!==lastFingerprint){lastFingerprint=fp;renderAll()}
     }
@@ -147,7 +152,7 @@ function renderHistory(){
   }).join('')
 }
 function progressIndex(s){
-  return {pending:0,revision_requested:0,confirmed:1,arrival:2,dock:3,receiving:4,completed:5}[statusKey(s)]??0
+  return {pending:0,revision_requested:0,proposal_sent:0,reschedule_requested:1,cancel_requested:1,confirmed:1,arrival:2,dock:3,receiving:4,completed:5}[statusKey(s)]??0
 }
 function renderStatus(){
   const host=$('yspStatusList');if(!host)return;
@@ -166,7 +171,7 @@ function renderStatus(){
         '<div class="ysps-fact"><small>PALETE / SKU</small><b>'+esc(x.pallets)+' / '+esc(x.sku)+'</b></div>'+
         '<div class="ysps-fact"><small>VOZILO</small><b>'+esc(x.plate||'—')+(x.trailer?' · '+esc(x.trailer):'')+'</b></div>'+
         '<div class="ysps-fact"><small>VOZAČ</small><b>'+esc(x.driver||'—')+(x.driverContact?' · '+esc(x.driverContact):'')+'</b></div>'+
-      '</div><div class="ysps-card-actions"><button type="button" class="btn-secondary ysps-additional-btn" data-yv-supplier-additional="'+esc(x.id)+'">UNESI DODATNO</button></div></div>'+
+      '</div><div class="ysps-card-actions"><button type="button" class="btn-secondary ysps-additional-btn" data-yv-supplier-additional="'+esc(x.id)+'">UNESI DODATNO</button>'+((['arrival','dock','receiving'].includes(statusKey(x.status)))?'':'<button type="button" class="btn-secondary" data-ysp-self-reschedule="'+esc(x.id)+'">PROMIJENI TERMIN</button><button type="button" class="btn-secondary ysp-danger-soft" data-ysp-self-cancel="'+esc(x.id)+'">OTKAŽI NAJAVU</button>')+'</div></div>'+
       '<div class="ysps-side">'+qr+'<div class="ysps-timeline">'+labels.map((l,i)=>'<div class="ysps-step '+(i<=idx?'done':'')+'"><i></i>'+l+'</div>').join('')+'</div></div>'+
     '</article>'
   }).join('');
