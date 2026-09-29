@@ -40,7 +40,7 @@ jobs:
           node <<'NODE'
           const { chromium } = require('playwright');
           const roles=['admin','manager','inventory','reception','gate','supplier'];
-          const SUPABASE_HOST='https://rskticdbiovvgyocpzoc.supabase.co';
+          const SUPABASE_HOST='https://ldzwgdwzolbvjxyznlry.supabase.co';
           async function sandboxSupabase(context){
             await context.route(SUPABASE_HOST+'/**',async route=>{
               const req=route.request();
