@@ -52,7 +52,7 @@ jobs:
           const failures = [];
           const findings = [];
           const assert = (cond, msg) => { if (!cond) failures.push(msg); };
-          const SUPABASE_HOST = 'https://rskticdbiovvgyocpzoc.supabase.co';
+          const SUPABASE_HOST = 'https://ldzwgdwzolbvjxyznlry.supabase.co';
 
           async function sandboxSupabase(context) {
             await context.route(SUPABASE_HOST + '/**', async route => {
@@ -73,7 +73,7 @@ jobs:
               return route.fulfill({ status: 401, contentType:'application/json', body: JSON.stringify({ message:'QA network sandbox: live Supabase disabled' }) });
             });
             if (typeof context.routeWebSocket === 'function') {
-              await context.routeWebSocket('wss://rskticdbiovvgyocpzoc.supabase.co/**', ws => ws.close());
+              await context.routeWebSocket('wss://ldzwgdwzolbvjxyznlry.supabase.co/**', ws => ws.close());
             }
           }
 
