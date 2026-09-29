@@ -1,7 +1,7 @@
 
 (function(){'use strict';
-const BASE='https://rskticdbiovvgyocpzoc.supabase.co';
-const ANON='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
+const BASE='https://ldzwgdwzolbvjxyznlry.supabase.co';
+const ANON='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
 const EDGE=BASE+'/functions/v1/yardivo-gate-pass';
 const MARK_RE=/\[\[YARDIVO_GATE_QR_V583:([A-Za-z0-9_-]+)\]\]/g;
 let modalRow=null,pendingIssue=null;
