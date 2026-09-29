@@ -5,7 +5,7 @@ if(window.__YARDIVO_MANAGER_SCOPE_POPUP_V2__)return;
 window.__YARDIVO_MANAGER_SCOPE_POPUP_V2__=true;
 
 const MASTER='yardivo_master_data_registry_v583';
-const ALLOWED=new Set(['homeMenu','dashboard','controlTower','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']);
+const ALLOWED=new Set(['homeMenu','dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']);
 
 function session(){try{return (typeof currentSession!=='undefined'?currentSession:window.currentSession)||null}catch(_){return window.currentSession||null}}
 function role(){let r=String(session()?.role||session()?.app_role||'').trim().toLowerCase();if(r==='management'||r==='voditelj')r='manager';return r}
