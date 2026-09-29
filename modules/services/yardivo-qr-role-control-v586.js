@@ -4,8 +4,8 @@ if(window.__YARDIVO_QR_ROLE_CONTROL_V586__)return;
 window.__YARDIVO_QR_ROLE_CONTROL_V586__=true;
 
 const KEY='yardivo_qr_scan_cfg_v583';
-const PUB='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
-const SYNC='https://rskticdbiovvgyocpzoc.supabase.co/functions/v1/yardivo-sync';
+const PUB='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
+const SYNC='https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-sync';
 const SCANNER='./scanner/';
 
 function role(){
