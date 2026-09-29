@@ -210,3 +210,32 @@
   #yardivoSupplierPortal .sbn-head{display:block!important}
   #yardivoSupplierPortal .sbn-status{display:inline-block!important;margin-top:12px!important}
 }
+
+/* Supplier self-service v2 */
+#yardivoSupplierPortal .ysp-feature-card{padding:22px!important}
+#yardivoSupplierPortal .ysp-perf-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:18px}
+#yardivoSupplierPortal .ysp-perf-kpi{padding:18px;border:1px solid #dce7f0;border-radius:16px;background:linear-gradient(180deg,#fff,#f8fbff);box-shadow:0 8px 22px rgba(15,35,65,.06)}
+#yardivoSupplierPortal .ysp-perf-kpi small{display:block;color:#64748b;font-size:10px;font-weight:850;letter-spacing:.05em}
+#yardivoSupplierPortal .ysp-perf-kpi strong{display:block;margin-top:8px;color:#0b2037;font-size:28px;font-weight:850}
+#yardivoSupplierPortal .ysp-msg-tools{display:flex;gap:10px;margin:18px 0 10px}
+#yardivoSupplierPortal .ysp-msg-tools select{min-width:280px;padding:10px 12px}
+#yardivoSupplierPortal .ysp-msg-list{height:min(460px,52vh);overflow:auto;padding:14px;border:1px solid #dce7f0;border-radius:16px;background:#f7faff;display:flex;flex-direction:column;gap:10px}
+#yardivoSupplierPortal .ysp-msg{max-width:76%;padding:11px 13px;border-radius:14px;background:#fff;border:1px solid #dce7f0;box-shadow:0 5px 14px rgba(15,35,65,.05)}
+#yardivoSupplierPortal .ysp-msg.mine{align-self:flex-end;background:#eaf5ff;border-color:#b8dcff}
+#yardivoSupplierPortal .ysp-msg.theirs{align-self:flex-start}
+#yardivoSupplierPortal .ysp-msg div{white-space:pre-wrap;color:#17324b;font-size:12px;line-height:1.5}
+#yardivoSupplierPortal .ysp-msg small{display:block;margin-top:6px;color:#718095;font-size:9px}
+#yardivoSupplierPortal .ysp-msg-compose{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;margin-top:10px;align-items:end}
+#yardivoSupplierPortal .ysp-msg-compose textarea{min-height:76px;padding:12px}
+#yardivoSupplierPortal .ysp-msg-compose button{min-width:120px}
+#yardivoSupplierPortal .ysps-card-actions{display:flex;gap:8px;flex-wrap:wrap}
+#yardivoSupplierPortal .ysp-danger-soft{color:#b42318!important;background:#fff5f5!important;border-color:#fecaca!important}
+@media(max-width:1000px){
+ #yardivoSupplierPortal .ysp-perf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ #yardivoSupplierPortal .ysp-perf-grid{grid-template-columns:1fr}
+ #yardivoSupplierPortal .ysp-msg-compose{grid-template-columns:1fr}
+ #yardivoSupplierPortal .ysp-msg{max-width:90%}
+ #yardivoSupplierPortal .ysp-msg-tools select{min-width:0;width:100%}
+}
