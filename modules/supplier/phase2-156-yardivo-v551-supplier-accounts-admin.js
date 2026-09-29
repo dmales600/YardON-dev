@@ -2,6 +2,10 @@
 (function(){
 'use strict';
 
+let lastListAt=0,listPromise=null;
+const LIST_TTL_MS=60000;
+const isAdmin=()=>String(window.currentSession?.role||'').toLowerCase()==='admin';
+
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
 async function invoke(action,payload={}){
@@ -23,12 +27,18 @@ async function invoke(action,payload={}){
   return data?.data??data;
 }
 
-async function list(){
+async function list(force=false){
+  if(!isAdmin())return;
   const body=document.getElementById('ysaSupplierAccountsBody');
   if(!body)return;
+  const now=Date.now();
+  if(!force && lastListAt && now-lastListAt<LIST_TTL_MS)return;
+  if(listPromise)return listPromise;
   body.innerHTML='<tr><td colspan="7"><div class="ysa-empty">Učitavanje...</div></td></tr>';
+  listPromise=(async()=>{
   try{
     const rows=await invoke('list');
+    lastListAt=Date.now();
     const suppliers=(Array.isArray(rows)?rows:[]).filter(x=>String(x.app_role||'').toLowerCase()==='supplier');
     if(!suppliers.length){
       body.innerHTML='<tr><td colspan="7"><div class="ysa-empty">Još nema kreiranih Supplier accounta.</div></td></tr>';
@@ -52,7 +62,11 @@ async function list(){
       </tr>`).join('');
   }catch(e){
     body.innerHTML=`<tr><td colspan="7"><div class="ysa-empty">Greška: ${esc(e.message||e)}</div></td></tr>`;
+  }finally{
+    listPromise=null;
   }
+  })();
+  return listPromise;
 }
 
 async function changePassword(id,username){
@@ -71,7 +85,7 @@ async function toggle(id,active){
   const next=!active;
   try{
     await invoke('update',{auth_user_id:id,active:next});
-    await list();
+    await list(true);
   }catch(e){
     alert('Promjena statusa accounta nije uspjela:\n'+(e.message||e));
   }
@@ -82,7 +96,7 @@ async function remove(id,username){
   if(!confirm(`Potvrdi još jednom: izbrisati "${username}"?`))return;
   try{
     await invoke('delete',{auth_user_id:id});
-    await list();
+    await list(true);
     alert('Supplier account je izbrisan.');
   }catch(e){
     alert('Brisanje Supplier accounta nije uspjelo:\n'+(e.message||e));
@@ -100,7 +114,7 @@ document.addEventListener('click',e=>{
   else if(action==='delete')remove(id,b.dataset.user||'');
 },true);
 
-window.addEventListener('yardivo:login',()=>setTimeout(list,500));
-window.addEventListener('load',()=>setTimeout(list,1200));
+window.addEventListener('yardivo:login',()=>{if(isAdmin())setTimeout(()=>list(false),900)});
+window.addEventListener('load',()=>{if(isAdmin())setTimeout(()=>list(false),1800)});
 window.YardivoSupplierAccountsAdmin={list};
 })();
