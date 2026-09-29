@@ -5,7 +5,7 @@ if(window.__YARDIVO_MANAGER_FINAL_AUTHORITY_V4__)return;
 window.__YARDIVO_MANAGER_FINAL_AUTHORITY_V4__=true;
 
 const MASTER='yardivo_master_data_registry_v583';
-const ALLOWED=new Set(['homeMenu','dashboard','controlTower','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']);
+const ALLOWED=new Set(['homeMenu','dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']);
 let applying=false;
 let popupMoved=null;
 let scheduled=false;
