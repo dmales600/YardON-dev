@@ -3,8 +3,8 @@
 'use strict';
 const KEY='yardivo_yms_announcements_v1', LEG='yardivo_yms_announcements_v1';
 const HOME={
- reception:new Set(['homeMenu','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard']),
- inventory:new Set(['dashboard','yard','docks','announcements','supplierRequests','dailyMap','weeklyMap','suppliers','overview','incidents','incidentArchive','documentArchive','notifications','settings']),
+ reception:new Set(['homeMenu','aiOperations','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard']),
+ inventory:new Set(['dashboard','aiOperations','yard','docks','announcements','supplierRequests','dailyMap','weeklyMap','suppliers','overview','incidents','incidentArchive','documentArchive','notifications','settings']),
  gate:new Set(['homeMenu','checkin','unannounced','myYard','docks'])
 };
 function role(){let r='';try{r=String(currentSession?.role||'').toLowerCase().trim()}catch(e){};if(r==='porta')r='gate';if(r==='prijam')r='reception';if(r==='zalihe'||r==='upravljanje zalihama')r='inventory';return r}
