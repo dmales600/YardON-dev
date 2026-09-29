@@ -1085,8 +1085,8 @@ function roleLabel(role){
 function allowedViewsForRole(role){
   const map={
     admin:[],
-    inventory:['homeMenu','dashboard','weeklyMap','dailyMap','myYard','announcements','supplierRequests','weeklyDeliveries','overview','suppliers','calendar','heatmap','controltower','controlTower','plannerPro','incidents','incidentArchive','documentArchive','reports','settings','unannounced','epal','orderSearch'],
-    reception:['homeMenu','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard'],
+    inventory:['homeMenu','dashboard','aiOperations','weeklyMap','dailyMap','myYard','announcements','supplierRequests','weeklyDeliveries','overview','suppliers','calendar','heatmap','controltower','controlTower','plannerPro','incidents','incidentArchive','documentArchive','reports','settings','unannounced','epal','orderSearch'],
+    reception:['homeMenu','aiOperations','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard'],
     gate:['homeMenu','checkin','unannounced','myYard','docks'],
     manager:[],
     management:[]
