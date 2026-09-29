@@ -109,12 +109,13 @@ function enforceAccountScope(){
 }
 
 function labelFor(id){
- return ({homeMenu:'POČETNI IZBORNIK',dashboard:'NADZORNA PLOČA',controlTower:'CONTROL TOWER',analytics:'ANALYTICS',myYard:'MY YARD',suppliers:'DOBAVLJAČI',overview:'OVERVIEW DOBAVLJAČA',dailyMap:'DNEVNA MAPA',weeklyMap:'TJEDNA MAPA'})[id]||id;
+ return ({homeMenu:'POČETNI IZBORNIK',dashboard:'NADZORNA PLOČA',controlTower:'CONTROL TOWER',aiOperations:'AI OPERATIONS',analytics:'ANALYTICS',myYard:'MY YARD',suppliers:'DOBAVLJAČI',overview:'OVERVIEW DOBAVLJAČA',dailyMap:'DNEVNA MAPA',weeklyMap:'TJEDNA MAPA'})[id]||id;
 }
 function renderTarget(id){
  const names={
    dashboard:['renderDashboardSimple','renderDashboard'],
    controlTower:['renderControlTower'],
+   aiOperations:[],
    analytics:['renderYardivoAnalytics'],
    myYard:['renderYard','renderRampe','renderDockOverview'],
    suppliers:['renderSupplierProfiles'],
@@ -123,6 +124,7 @@ function renderTarget(id){
    weeklyMap:['renderWeeklyMap']
  };
  (names[id]||[]).forEach(n=>{try{if(typeof window[n]==='function')window[n]()}catch(_){}});
+ if(id==='aiOperations'){try{window.YardOnAIOperations?.refresh?.()}catch(_){}}
 }
 function forceView(raw){
  if(!isManager())return;
