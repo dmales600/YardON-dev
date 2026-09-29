@@ -98,7 +98,10 @@ jobs:
               document.documentElement.dataset.yardivoRole=role;
               document.getElementById('loginOverlay')?.style.setProperty('display','none','important');
               document.getElementById('yardivoWelcomeSplash')?.style.setProperty('display','none','important');
-              document.querySelector('.app-shell')?.style.setProperty('visibility','visible','important');
+              const shell=document.querySelector('.app-shell');
+              if(shell){shell.style.setProperty('visibility','visible','important');shell.style.setProperty('display','grid','important');}
+              document.body.classList.remove('yardivo-role-switching','yardivo-prelogin');
+              document.documentElement.classList.add('yardivo-login-ready','yardivo-welcome-complete');
               window.dispatchEvent(new CustomEvent('yardivo:login',{detail:{session:window.currentSession}}));
             },role);
             await page.waitForTimeout(500);
