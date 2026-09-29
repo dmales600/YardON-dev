@@ -2,8 +2,8 @@
 (function(){
 'use strict';
 
-const BASE='https://rskticdbiovvgyocpzoc.supabase.co';
-const KEY='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
+const BASE='https://ldzwgdwzolbvjxyznlry.supabase.co';
+const KEY='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
 const EDGE=BASE+'/functions/v1/yardivo-sync';
 const ANN_KEYS=new Set(['yardivo_yms_announcements_v1']);
 const INC_KEYS=new Set(['yardivo_yms_incidents_v1']);
