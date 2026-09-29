@@ -1,0 +1,139 @@
+name: YardOn AI Operations QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/yardon-ai-operations-qa.yml"
+      - "index.html"
+      - "styles/yardon-ai-operations-v1.css"
+      - "modules/ai/yardon-ai-operations-v1.js"
+      - "modules/auth/role-visibility.js"
+      - "modules/supplier/yardivo-role-stability-final-v6-20260902-js.js"
+      - "modules/supplier/yardivo-clean-operational-core.js"
+      - "modules/master-data/script-024.js"
+      - "modules/supplier/yardivo-manager-assignment-system-v583.js"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yardon-ai-operations-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ai-operations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax check AI Operations
+        run: |
+          node --check modules/ai/yardon-ai-operations-v1.js
+          test -s styles/yardon-ai-operations-v1.css
+          grep -q 'data-view="aiOperations"' index.html
+          grep -q 'id="aiOperations"' index.html
+          grep -q 'yardon-ai-operations-v1.js' index.html
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Browser QA
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-ai-http.log 2>&1 &
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const HOST='https://ldzwgdwzolbvjxyznlry.supabase.co';
+          const mock={
+            ok:true,
+            data:{
+              date:'2026-09-30',
+              generated_at:'2026-09-29T20:00:00.000Z',
+              warehouses:[{
+                id:'W001',name:'W201',location_id:'LOC001',reception_from:'06:00',reception_to:'14:00',
+                ramps:[
+                  {number:1,name:'Rampa 1',from:'06:00',to:'14:00',pallets_per_hour:33},
+                  {number:2,name:'Rampa 2',from:'06:00',to:'14:00',pallets_per_hour:33},
+                  {number:3,name:'Rampa 3',from:'06:00',to:'14:00',pallets_per_hour:33}
+                ]
+              }],
+              plan:[
+                {id:'A1',supplier:'Supplier A',warehouse:'W001',date:'2026-09-30',time:'06:00',pallets:20,planned_dock:1,planned_start:'06:00',planned_end:'06:45',duration_minutes:45,shift_minutes:0,parking_risk:false,predicted_parking:null,status:'Najavljen'},
+                {id:'A2',supplier:'Supplier B',warehouse:'W001',date:'2026-09-30',time:'06:00',pallets:30,planned_dock:2,planned_start:'06:00',planned_end:'07:00',duration_minutes:60,shift_minutes:0,parking_risk:false,predicted_parking:null,status:'Najavljen'},
+                {id:'A3',supplier:'Supplier C',warehouse:'W001',date:'2026-09-30',time:'06:30',pallets:25,planned_dock:1,planned_start:'06:45',planned_end:'07:30',duration_minutes:45,shift_minutes:15,parking_risk:true,predicted_parking:'P1',status:'Najavljen'}
+              ],
+              passes:[
+                {id:'P1',announcement_id:'A3',warehouse:'W001',supplier_name:'Supplier C',dock:null,parking_slot:'P23',state:'PARKING',vehicle_plate:'ZG1234AA',checked_in_at:'2026-09-30T06:25:00Z',completed_at:null}
+              ],
+              decisions:[{
+                id:'D1',at:'2026-09-30T06:10:00Z',supplier:'Supplier C',problemType:'LATE',
+                old:{date:'2026-09-30',time:'06:30',dock:2},newSlot:{date:'2026-09-30',time:'06:45',dock:1},
+                reason:'R2 je zauzeta dulje od plana.',status:'PENDING_INVENTORY'
+              }],
+              parking:{capacity:42,occupied:['P23'],free:41},
+              summary:{total:3,assigned:3,waiting:1,no_capacity:0,utilization_pct:31}
+            }
+          };
+          async function prepare(page,role){
+            const errors=[];
+            page.on('pageerror',e=>errors.push(String(e.message||e)));
+            await page.route(HOST+'/**',async route=>{
+              const url=route.request().url();
+              if(url.includes('/functions/v1/yardivo-ai-operations')){
+                return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info'},body:JSON.stringify(mock)});
+              }
+              if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'}});
+              return route.fulfill({status:401,contentType:'application/json',body:'{"message":"QA sandbox"}'});
+            });
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
+            await page.waitForTimeout(1800);
+            await page.evaluate(role=>{
+              window.currentSession={user:'qa_'+role,username:'qa_'+role,role,app_role:role,location:'LOC001',warehouses:['W001'],serverAuthorized:true};
+              try{currentSession=window.currentSession}catch(_){}
+              document.body.dataset.yardivoRole=role;
+              document.documentElement.dataset.yardivoRole=role;
+              document.getElementById('loginOverlay')?.style.setProperty('display','none','important');
+              document.getElementById('yardivoWelcomeSplash')?.style.setProperty('display','none','important');
+              document.querySelector('.app-shell')?.style.setProperty('visibility','visible','important');
+              window.dispatchEvent(new CustomEvent('yardivo:login',{detail:{session:window.currentSession}}));
+            },role);
+            await page.waitForTimeout(500);
+            return errors;
+          }
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            for(const role of ['inventory','reception','manager']){
+              const context=await browser.newContext({viewport:{width:1440,height:1000}});
+              const page=await context.newPage();
+              const errors=await prepare(page,role);
+              const nav=page.locator('.nav-btn[data-view="aiOperations"]');
+              if(!await nav.isVisible())throw new Error(role+' cannot see AI Operations nav');
+              await page.evaluate(()=>window.YardivoRoleStableFinal?.open?.('aiOperations'));
+              await page.waitForTimeout(900);
+              if(!await page.locator('#aiOperations').isVisible())throw new Error(role+' AI Operations view not visible');
+              if(await page.locator('#aiOperations .yaio-job').count()<3)throw new Error(role+' plan board missing jobs');
+              if(!await page.getByText('Supplier C',{exact:true}).first().isVisible())throw new Error(role+' supplier plan row missing');
+              await page.locator('[data-yaio-tab="parking"]').click();
+              if(!await page.getByText('P23',{exact:true}).first().isVisible())throw new Error(role+' actual parking P23 missing');
+              await page.locator('[data-yaio-tab="decisions"]').click();
+              if(!await page.getByText('R2 je zauzeta dulje od plana.',{exact:true}).isVisible())throw new Error(role+' AI decision missing');
+              if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
+              await context.close();
+            }
+            for(const role of ['gate','supplier']){
+              const context=await browser.newContext({viewport:{width:1280,height:900}});
+              const page=await context.newPage();
+              const errors=await prepare(page,role);
+              const visible=await page.locator('.nav-btn[data-view="aiOperations"]').isVisible();
+              if(visible)throw new Error(role+' must not see AI Operations');
+              if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
+              await context.close();
+            }
+            await browser.close();
+            console.log('YARDON_AI_OPERATIONS_QA_PASS');
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
