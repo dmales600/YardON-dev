@@ -122,6 +122,7 @@ Designed & Developed by YardOn
 <!-- YardOn MODULAR WEBAPP PHASE 1 · 2026-09-25 -->
 <link rel="preload" as="image" href="assets/yardon-logo-exact.webp?v=20260928-exact1">
 <link rel="stylesheet" href="styles/yardon-supplier-modern-v1.css?v=20260929-1">
+<link rel="stylesheet" href="styles/yardon-ai-operations-v1.css?v=20260929-1">
 </head>
 <body>
 <button aria-label="Uključi full screen" id="yardivoFullscreenBtn" title="Full screen" type="button"><span class="fs-icon">⛶</span><span class="fs-label">FULL SCREEN</span></button>
@@ -191,6 +192,7 @@ Designed & Developed by YardOn
 <button class="nav-btn" data-view="homeMenu"><span>⌂</span> Početni izbornik</button>
 <button class="nav-btn active" data-view="dashboard"><span>▦</span> Nadzorna ploča</button>
 <button class="nav-btn" data-view="controlTower"><span>◉</span> Control Tower <b class="nav-badge" id="ctCriticalBadge" style="display:none">0</b></button>
+<button class="nav-btn" data-view="aiOperations"><span>✦</span> AI Operations</button>
 <button class="nav-btn" data-view="checkin"><span>▤</span> Prijava dolaska</button>
 <button class="nav-btn" data-view="docks"><span>▥</span> Rampe</button>
 <button class="nav-btn" data-view="suppliers"><span>◉</span> Dobavljači</button>
@@ -276,6 +278,12 @@ Designed & Developed by YardOn
 <span class="icon">＋</span>
 <h3>Unos najava</h3>
 <p>Najavi dobavljača, palete, SKU, rampu, termin i vozača.</p>
+<small>OTVORI →</small>
+</button>
+<button class="home-menu-card" data-home-target="aiOperations" type="button">
+<span class="icon">✦</span>
+<h3>AI Operations</h3>
+<p>Predplan rampi, live prebacivanja, parking queue i AI preporuke.</p>
 <small>OTVORI →</small>
 </button>
 <button class="home-menu-card" data-home-target="dailyMap" type="button">
@@ -1284,6 +1292,19 @@ AUTOMATSKA PREPORUKA</small>
 </div>
 </div>
 </section>
+<section class="view" id="aiOperations">
+<div class="yaio-head">
+<div>
+<h1>✦ AI OPERATIONS</h1>
+<p>Predplan za sutra, stvarno stanje rampi, parking queue i preporuke za promjenu rasporeda. AI plan je operativni prijedlog; stvarna dodjela rampe ostaje kontrolirana YardOn statusima.</p>
+</div>
+<span class="yaio-engine-badge"><i></i> HARD RULES + OPTIMIZER</span>
+</div>
+<div class="yaio-toolbar" id="yaioControls"></div>
+<div class="yaio-tabs" id="yaioTabs"></div>
+<div class="yaio-kpis" id="yaioKpis"></div>
+<div id="yaioBody"><div class="yaio-empty">Odaberi AI Operations za izračun plana.</div></div>
+</section>
 </main>
 </div>
 <section class="view" id="settings">
@@ -1513,6 +1534,7 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-inventory-drag-reschedule-v1" src="modules/services/yardivo-inventory-drag-reschedule-v1.js?v=20260925"></script>
 <script id="yardivo-expanded-schedule-map-v1" src="modules/services/yardivo-expanded-schedule-map-v1.js?v=20260925"></script>
 <script id="yardivo-smart-replanning-v1" src="modules/services/yardivo-smart-replanning-v1.js?v=20260925"></script>
+<script id="yardon-ai-operations-v1" src="modules/ai/yardon-ai-operations-v1.js?v=20260929-1"></script>
 <script id="yardivo-live-yard-truck-modal-v5-2" src="modules/master-data/phase2-078-yardivo-live-yard-truck-modal-v5-2.js"></script>
 <script id="yardivo-ann-map-availability-v3" src="modules/services/yardivo-ann-map-availability-v3.js?v=20260925"></script>
 <script id="yardivo-overview-methodology-note-v2" src="./modules/supplier/runtime/phase5-080-yardivo-overview-methodology-note-v2.js"></script>
