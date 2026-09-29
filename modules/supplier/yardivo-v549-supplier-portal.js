@@ -162,7 +162,11 @@ function renderWarehouses(){
   else if(rows.length===1)el.value=rows[0];
 }
 async function hydrateSupplierMaster(){
-  try{if(window.YardivoSupabase?.fastPull)await window.YardivoSupabase.fastPull()}catch(_){}
+  /* Supplier accounts do not use the generic yardivo-sync bootstrap.
+     Their scope/availability is loaded through supplier-specific Edge Functions. */
+  if(role()!=='supplier'){
+    try{if(window.YardivoSupabase?.fastPull)await window.YardivoSupabase.fastPull()}catch(_){}
+  }
   renderLocations();renderWarehouses();
 }
 
