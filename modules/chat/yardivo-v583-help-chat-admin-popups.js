@@ -14,6 +14,6 @@ function openThread(id){if(!id)return;window.YardivoHelpChatV583?.openThread?.(i
 document.addEventListener('click',e=>{const b=e.target.closest?.('[data-yhc-pop-thread]');if(!b)return;e.preventDefault();e.stopPropagation();openThread(b.dataset.yhcPopThread)},true);
 window.addEventListener('yardivo:logout',()=>{lastSig='';render([])});
 window.addEventListener('yardivo:online-ready',()=>{lastSig='';poll()});
-setTimeout(()=>{poll();clearInterval(timer);timer=setInterval(poll,300000)},2200);
+setTimeout(()=>{poll();clearInterval(timer);timer=setInterval(poll,900000)},2200);
 window.YardivoHelpChatAdminPopupsV583={refresh:poll};
 })();
