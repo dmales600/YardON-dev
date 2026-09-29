@@ -3,7 +3,7 @@
 if(window.YardivoSupabaseClient)return;
 
 const BASE='https://rskticdbiovvgyocpzoc.supabase.co';
-const KEY='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
+const KEY='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
 const BUDGET_KEY='yardivo_supabase_402_block_until_v1';
 const BUDGET_BLOCK_MS=30*60*1000;
 const REALTIME_RECONNECT_MS=[2000,15000,60000,300000,900000];
