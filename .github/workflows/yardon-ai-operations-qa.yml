@@ -121,7 +121,9 @@ jobs:
               const page=await context.newPage();
               const errors=await prepare(page,role);
               const nav=page.locator('.nav-btn[data-view="aiOperations"]');
-              if(!await nav.isVisible())throw new Error(role+' cannot see AI Operations nav');
+              const home=page.locator('[data-home-target="aiOperations"]');
+              const entryVisible=(await nav.isVisible())||(await home.isVisible());
+              if(!entryVisible)throw new Error(role+' cannot see AI Operations entry point');
               await page.evaluate(()=>window.YardivoRoleStableFinal?.open?.('aiOperations'));
               await page.waitForTimeout(900);
               if(!await page.locator('#aiOperations').isVisible())throw new Error(role+' AI Operations view not visible');
@@ -138,8 +140,9 @@ jobs:
               const context=await browser.newContext({viewport:{width:1280,height:900}});
               const page=await context.newPage();
               const errors=await prepare(page,role);
-              const visible=await page.locator('.nav-btn[data-view="aiOperations"]').isVisible();
-              if(visible)throw new Error(role+' must not see AI Operations');
+              const navVisible=await page.locator('.nav-btn[data-view="aiOperations"]').isVisible();
+              const homeVisible=await page.locator('[data-home-target="aiOperations"]').isVisible();
+              if(navVisible||homeVisible)throw new Error(role+' must not see AI Operations');
               if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
               await context.close();
             }
