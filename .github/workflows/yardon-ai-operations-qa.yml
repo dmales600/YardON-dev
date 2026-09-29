@@ -13,6 +13,10 @@ on:
       - "modules/supplier/yardivo-clean-operational-core.js"
       - "modules/master-data/script-024.js"
       - "modules/supplier/yardivo-manager-assignment-system-v583.js"
+      - "modules/supplier/yardivo-manager-final-authority-v4.js"
+      - "modules/supplier/yardivo-manager-scope-popup-v2.js"
+      - "modules/supplier/phase2-309-yardivo-manager-single-view-hard-lock-v5.js"
+      - "modules/receiving/runtime/yardivo-manager-section-authority-v583.js"
 
 permissions:
   contents: read
