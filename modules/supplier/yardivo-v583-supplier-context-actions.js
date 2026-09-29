@@ -39,6 +39,12 @@ function itemsFor(x){
    h+=actionButton(s==='proposal_sent'?'IZMIJENI PRIJEDLOG':'PREDLOŽI DRUGI TERMIN','',{'data-v580-plan':x.id},'↔');
    h+=actionButton('ODBIJ','danger',{'data-v580-reject':x.id},'✕');
    h+=actionButton('IZBRIŠI NAJAVU','danger',{'data-v583-delete-supplier-request':x.id},'🗑');
+ }else if(s==='reschedule_requested'){
+   h+=actionButton('ODOBRI PROMJENU TERMINA','primary',{'data-v583-resolve-self-request':x.id,'data-decision':'approve'},'✓');
+   h+=actionButton('ODBIJ PROMJENU','danger',{'data-v583-resolve-self-request':x.id,'data-decision':'reject'},'✕');
+ }else if(s==='cancel_requested'){
+   h+=actionButton('ODOBRI OTKAZIVANJE','danger',{'data-v583-resolve-self-request':x.id,'data-decision':'approve'},'✓');
+   h+=actionButton('ZADRŽI NAJAVU','',{'data-v583-resolve-self-request':x.id,'data-decision':'reject'},'↩');
  }else if(s==='confirmed'){
    let meta=null;try{meta=window.YardivoGateQrV583?.qrMetaFromRow?.(x)||null}catch(_){meta=null}
    const rr=(x?.reschedule_request&&typeof x.reschedule_request==='object')?x.reschedule_request:null;
@@ -82,7 +88,23 @@ document.addEventListener('click',e=>{
  const m=document.getElementById(MENU_ID);
  if(!m?.classList.contains('open'))return;
  const b=e.target.closest?.('#'+MENU_ID+' button');
- if(b){setTimeout(close,0);return}
+ if(b){
+   const resolve=b.closest?.('[data-v583-resolve-self-request]');
+   if(resolve){
+     e.preventDefault();e.stopPropagation();
+     const id=resolve.dataset.v583ResolveSelfRequest,decision=resolve.dataset.decision||'reject';
+     const row=rowById(id);
+     const actionLabel=decision==='approve'?'Potvrditi zahtjev dobavljača?':'Odbiti zahtjev dobavljača?';
+     if(!confirm(actionLabel))return;
+     b.disabled=true;
+     window.YardivoSupplierLiveSync?.call?.('internal_resolve_supplier_request',{id,decision})
+       .then(async()=>{try{await window.YardivoSupplierLiveSync?.pullInternal?.(true)}catch(_){};window.dispatchEvent(new CustomEvent('yardivo:supplier-request-updated',{detail:{id,source:'supplier-self-service-review'}}));try{window.showYmsToast?.('success','ZAHTJEV RIJEŠEN',row?.supplier_name||row?.supplier_username||'Dobavljač')}catch(_){}})
+       .catch(err=>alert('Zahtjev nije moguće riješiti:\n'+String(err?.message||err)))
+       .finally(()=>{b.disabled=false;close()});
+     return;
+   }
+   setTimeout(close,0);return
+ }
  if(!e.target.closest?.('#'+MENU_ID))close();
 },true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
