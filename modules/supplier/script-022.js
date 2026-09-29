@@ -1733,14 +1733,14 @@ async function yardivoQrToken(){
 }
 async function yardivoPersistQrScanSetting(enabled){
   const t=await yardivoQrToken();if(!t)throw new Error('ONLINE PRIJAVA NIJE AKTIVNA.');
-  const r=await fetch('https://rskticdbiovvgyocpzoc.supabase.co/functions/v1/yardivo-sync',{method:'POST',headers:{apikey:'sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy',Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify({action:'set_state',key:YARDIVO_QR_SCAN_SETTING_KEY,value:JSON.stringify({enabled:!!enabled}),clientId:'yardivo-qr-settings-v583'})});
+  const r=await fetch('https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-sync',{method:'POST',headers:{apikey:'sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz',Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify({action:'set_state',key:YARDIVO_QR_SCAN_SETTING_KEY,value:JSON.stringify({enabled:!!enabled}),clientId:'yardivo-qr-settings-v583'})});
   const d=await r.json().catch(()=>({}));if(!r.ok||d?.ok===false)throw new Error(d?.error||('HTTP '+r.status));return d;
 }
 async function yardivoLoadQrScanSetting(){
   if(String(currentSession?.role||'').toLowerCase()!=='admin')return;
   const t=await yardivoQrToken();if(!t)return;
   try{
-    const r=await fetch('https://rskticdbiovvgyocpzoc.supabase.co/functions/v1/yardivo-sync',{method:'POST',headers:{apikey:'sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy',Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify({action:'bootstrap',clientId:'yardivo-qr-settings-read-v583'})});
+    const r=await fetch('https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-sync',{method:'POST',headers:{apikey:'sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz',Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify({action:'bootstrap',clientId:'yardivo-qr-settings-read-v583'})});
     const d=await r.json();if(!r.ok||d?.ok===false)return;
     const row=(Array.isArray(d?.state)?d.state:[]).find(x=>String(x?.key||'')===YARDIVO_QR_SCAN_SETTING_KEY&&!x?.deleted);
     if(row){
