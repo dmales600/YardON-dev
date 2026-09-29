@@ -1,0 +1,212 @@
+/* YardOn Supplier Portal · modern visual layer */
+#yardivoSupplierPortal{
+  --ysp-bg:#f4f7fb;
+  --ysp-panel:#ffffff;
+  --ysp-panel-soft:#f8fbff;
+  --ysp-ink:#0b2037;
+  --ysp-muted:#64748b;
+  --ysp-line:#d8e2ec;
+  --ysp-blue:#1677ff;
+  --ysp-cyan:#14b8ff;
+  --ysp-deep:#0b2038;
+  --ysp-deeper:#071829;
+  --ysp-good:#10b981;
+  --ysp-shadow:0 18px 50px rgba(15,35,65,.10);
+  --ysp-shadow-soft:0 8px 24px rgba(15,35,65,.08);
+  background:
+    radial-gradient(circle at 80% 0%,rgba(34,160,255,.10),transparent 28%),
+    linear-gradient(180deg,#f7faff 0%,#f2f6fb 100%)!important;
+  color:var(--ysp-ink)!important;
+}
+#yardivoSupplierPortal .ysp-layout{min-height:100vh;display:grid;grid-template-columns:292px minmax(0,1fr);background:transparent!important}
+#yardivoSupplierPortal .ysp-side{
+  position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:space-between;
+  padding:22px 18px 18px;
+  background:
+    radial-gradient(circle at 20% 0%,rgba(29,183,255,.18),transparent 30%),
+    linear-gradient(180deg,var(--ysp-deep) 0%,var(--ysp-deeper) 100%)!important;
+  border-right:1px solid rgba(255,255,255,.07);
+  box-shadow:12px 0 30px rgba(3,17,30,.08);
+  z-index:20;
+}
+#yardivoSupplierPortal .ysp-brand-wrap{display:flex;flex-direction:column;gap:4px;margin-bottom:18px}
+#yardivoSupplierPortal .yardon-supplier-brand{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  width:100%!important;min-height:58px!important;margin:0!important;padding:0!important;
+}
+#yardivoSupplierPortal .yardon-supplier-brand img{
+  display:block!important;width:220px!important;max-width:100%!important;height:auto!important;
+  object-fit:contain!important;object-position:left center!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important;
+}
+#yardivoSupplierPortal .ysp-subbrand{
+  margin-left:4px;color:#8fdcff!important;font-size:11px!important;font-weight:800!important;
+  letter-spacing:.17em!important;text-transform:uppercase!important;
+}
+#yardivoSupplierPortal .ysp-userbox{
+  margin:8px 0 20px!important;padding:14px 15px!important;border-radius:16px!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.045))!important;
+  border:1px solid rgba(143,220,255,.16)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+#yardivoSupplierPortal .ysp-userbox strong{display:block;color:#fff!important;font-size:14px!important;line-height:1.2}
+#yardivoSupplierPortal .ysp-userbox small{display:block;margin-top:7px;color:#a8bdd2!important;font-size:10px!important;line-height:1.55!important}
+#yardivoSupplierPortal .ysp-nav{display:flex!important;flex-direction:column!important;gap:8px!important}
+#yardivoSupplierPortal .ysp-nav button{
+  position:relative!important;width:100%!important;min-height:44px!important;padding:0 14px 0 16px!important;
+  border:1px solid transparent!important;border-radius:12px!important;background:transparent!important;
+  color:#d8e8f7!important;text-align:left!important;font-size:12px!important;font-weight:800!important;
+  letter-spacing:.015em!important;transition:.18s ease!important;
+}
+#yardivoSupplierPortal .ysp-nav button:hover{
+  transform:translateX(2px);background:rgba(255,255,255,.065)!important;color:#fff!important;
+  border-color:rgba(255,255,255,.08)!important;
+}
+#yardivoSupplierPortal .ysp-nav button.active{
+  color:#fff!important;
+  background:linear-gradient(135deg,#1477ff 0%,#139fe8 100%)!important;
+  border-color:rgba(113,207,255,.42)!important;
+  box-shadow:0 10px 24px rgba(19,119,255,.28),inset 0 1px 0 rgba(255,255,255,.20)!important;
+}
+#yardivoSupplierPortal .ysp-nav button.active::before{
+  content:"";position:absolute;left:8px;top:50%;width:3px;height:20px;border-radius:999px;
+  transform:translateY(-50%);background:#bff2ff;box-shadow:0 0 12px rgba(191,242,255,.8);
+}
+#yardivoSupplierPortal .ysp-side-bottom{padding-top:16px}
+#yardivoSupplierPortal .ysp-logout{
+  width:100%!important;min-height:42px!important;border-radius:12px!important;
+  border:1px solid rgba(248,113,113,.45)!important;background:rgba(127,29,29,.08)!important;
+  color:#ff8282!important;font-weight:800!important;transition:.18s ease!important;
+}
+#yardivoSupplierPortal .ysp-logout:hover{background:rgba(127,29,29,.16)!important;color:#ffd0d0!important}
+#yardivoSupplierPortal .ysp-main{padding:30px 34px 42px!important;min-width:0!important}
+#yardivoSupplierPortal .ysp-top{
+  display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:24px!important;
+  margin-bottom:20px!important;
+}
+#yardivoSupplierPortal .ysp-top h1{
+  margin:0!important;color:#0b2037!important;font-size:clamp(28px,2.2vw,40px)!important;
+  line-height:1.05!important;font-weight:850!important;letter-spacing:-.035em!important;
+}
+#yardivoSupplierPortal .ysp-top p{margin:8px 0 0!important;color:#6b7d91!important;font-size:13px!important}
+#yardivoSupplierPortal .ysp-badge{
+  flex:none;padding:9px 12px!important;border-radius:999px!important;background:#e9f5ff!important;
+  border:1px solid #c8e6ff!important;color:#0f68c8!important;font-size:10px!important;font-weight:800!important;
+  letter-spacing:.08em!important;box-shadow:0 4px 14px rgba(22,119,255,.08);
+}
+#yardivoSupplierPortal .ysp-kpis{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;margin-bottom:24px!important;
+}
+#yardivoSupplierPortal .ysp-kpi{
+  position:relative;overflow:hidden;padding:18px 18px 16px!important;border-radius:18px!important;
+  background:linear-gradient(180deg,#fff 0%,#fbfdff 100%)!important;border:1px solid #dce7f1!important;
+  box-shadow:var(--ysp-shadow-soft)!important;transition:.18s ease!important;
+}
+#yardivoSupplierPortal .ysp-kpi::after{
+  content:"";position:absolute;right:-26px;top:-32px;width:100px;height:100px;border-radius:50%;
+  background:radial-gradient(circle,rgba(20,184,255,.14),rgba(20,184,255,0) 68%);
+}
+#yardivoSupplierPortal .ysp-kpi:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(15,35,65,.11)!important}
+#yardivoSupplierPortal .ysp-kpi small{display:block;color:#6c7e91!important;font-size:10px!important;font-weight:800!important;letter-spacing:.06em!important}
+#yardivoSupplierPortal .ysp-kpi strong{display:block;margin-top:8px;color:#0a1e34!important;font-size:27px!important;line-height:1!important;font-weight:850!important}
+#yardivoSupplierPortal .ysp-card,
+#yardivoSupplierPortal .sbn-shell{
+  border:1px solid #d8e4ee!important;border-radius:22px!important;background:rgba(255,255,255,.96)!important;
+  box-shadow:var(--ysp-shadow)!important;overflow:hidden!important;
+}
+#yardivoSupplierPortal .sbn-shell{max-width:1260px!important;margin:0 auto!important}
+#yardivoSupplierPortal .sbn-head{
+  display:flex!important;justify-content:space-between!important;align-items:flex-start!important;gap:24px!important;
+  padding:22px 24px!important;border-bottom:1px solid #e3ebf3!important;
+  background:linear-gradient(180deg,#ffffff 0%,#fbfdff 100%)!important;
+}
+#yardivoSupplierPortal .sbn-kicker{
+  color:#1477ff!important;font-size:10px!important;font-weight:900!important;letter-spacing:.16em!important;text-transform:uppercase!important;
+}
+#yardivoSupplierPortal .sbn-head h2{margin:7px 0 5px!important;color:#0d2239!important;font-size:24px!important;letter-spacing:-.02em!important}
+#yardivoSupplierPortal .sbn-head p{margin:0!important;color:#718095!important;font-size:12px!important}
+#yardivoSupplierPortal .sbn-status{
+  padding:9px 13px!important;border-radius:999px!important;background:#ecfdf3!important;border:1px solid #bee9cc!important;
+  color:#087941!important;font-size:10px!important;font-weight:850!important;white-space:nowrap!important;
+}
+#yardivoSupplierPortal .sbn-step{margin:18px 20px!important;border:1px solid #dce7f0!important;border-radius:17px!important;background:#fbfdff!important;overflow:hidden!important}
+#yardivoSupplierPortal .sbn-step-title{
+  display:flex!important;align-items:center!important;gap:11px!important;padding:13px 15px!important;
+  background:linear-gradient(180deg,#f3f8fd 0%,#edf4fb 100%)!important;border-bottom:1px solid #dce6f0!important;
+}
+#yardivoSupplierPortal .sbn-step-title>b{
+  display:grid!important;place-items:center!important;width:28px!important;height:28px!important;border-radius:9px!important;
+  background:linear-gradient(135deg,#177cff,#0f9eea)!important;color:#fff!important;box-shadow:0 6px 14px rgba(23,124,255,.25)!important;
+}
+#yardivoSupplierPortal .sbn-step-title strong{color:#19324b!important;font-size:11px!important}
+#yardivoSupplierPortal .sbn-step-title small{display:block;margin-top:3px;color:#728297!important;font-size:10px!important}
+#yardivoSupplierPortal .sbn-cal-nav{padding:14px 16px 6px!important}
+#yardivoSupplierPortal .sbn-cal-nav button{
+  width:36px!important;height:36px!important;border-radius:10px!important;border:1px solid #d4e0eb!important;
+  background:#fff!important;color:#23445f!important;box-shadow:0 4px 12px rgba(15,35,65,.05)!important;
+}
+#yardivoSupplierPortal .sbn-calendar{padding:8px 14px 16px!important;gap:7px!important}
+#yardivoSupplierPortal .sbn-calendar button{
+  min-height:46px!important;border-radius:11px!important;border:1px solid #dfe8f0!important;background:#fff!important;
+  color:#2c435a!important;transition:.15s ease!important;
+}
+#yardivoSupplierPortal .sbn-calendar button:hover:not(:disabled){transform:translateY(-1px);border-color:#7bc8ff!important;box-shadow:0 6px 14px rgba(20,119,255,.10)!important}
+#yardivoSupplierPortal .sbn-calendar button.sel,
+#yardivoSupplierPortal .sbn-calendar button[aria-selected="true"]{
+  border-color:#1477ff!important;box-shadow:0 0 0 2px rgba(20,119,255,.10),0 8px 18px rgba(20,119,255,.15)!important;
+  color:#0a4c9a!important;background:#f5faff!important;
+}
+#yardivoSupplierPortal .sbn-calendar button:disabled{background:#fff8f8!important;color:#c98d8d!important;border-style:dashed!important;opacity:.72!important}
+#yardivoSupplierPortal select,
+#yardivoSupplierPortal input,
+#yardivoSupplierPortal textarea{
+  border-radius:11px!important;border:1px solid #d6e1eb!important;background:#fff!important;color:#153047!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6)!important;transition:.15s ease!important;
+}
+#yardivoSupplierPortal select:focus,
+#yardivoSupplierPortal input:focus,
+#yardivoSupplierPortal textarea:focus{
+  border-color:#4da8ff!important;box-shadow:0 0 0 3px rgba(77,168,255,.13)!important;outline:none!important;
+}
+#yardivoSupplierPortal .sbn-footer{
+  display:flex!important;justify-content:flex-end!important;gap:10px!important;padding:16px 20px 20px!important;
+  border-top:1px solid #edf2f7!important;background:#fff!important;
+}
+#yardivoSupplierPortal .sbn-muted,
+#yardivoSupplierPortal .sbn-send,
+#yardivoSupplierPortal .btn-primary,
+#yardivoSupplierPortal .btn-secondary{
+  border-radius:11px!important;min-height:42px!important;font-weight:850!important;letter-spacing:.01em!important;
+}
+#yardivoSupplierPortal .sbn-send,
+#yardivoSupplierPortal .btn-primary{
+  background:linear-gradient(135deg,#1477ff 0%,#0ea5e9 100%)!important;color:#fff!important;border:1px solid rgba(20,119,255,.20)!important;
+  box-shadow:0 10px 20px rgba(20,119,255,.18)!important;
+}
+#yardivoSupplierPortal .sbn-muted,
+#yardivoSupplierPortal .btn-secondary{background:#eef3f8!important;color:#29445d!important;border:1px solid #dbe5ee!important}
+#yardivoSupplierPortal .ysp-table{border-collapse:separate!important;border-spacing:0!important}
+#yardivoSupplierPortal .ysp-table thead th{background:#f3f7fb!important;color:#526579!important;border-bottom:1px solid #dde7ef!important}
+#yardivoSupplierPortal .ysp-table tbody tr{background:#fff!important;transition:.15s ease}
+#yardivoSupplierPortal .ysp-table tbody tr:hover{background:#f9fcff!important}
+#yardivoSupplierPortal .ysps-card{
+  border:1px solid #dce6ef!important;border-radius:18px!important;background:#fff!important;box-shadow:var(--ysp-shadow-soft)!important;
+}
+@media(max-width:1100px){
+  #yardivoSupplierPortal .ysp-layout{grid-template-columns:240px minmax(0,1fr)}
+  #yardivoSupplierPortal .ysp-main{padding:24px 20px 36px!important}
+  #yardivoSupplierPortal .ysp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #yardivoSupplierPortal .yardon-supplier-brand img{width:190px!important}
+}
+@media(max-width:760px){
+  #yardivoSupplierPortal .ysp-layout{display:block!important}
+  #yardivoSupplierPortal .ysp-side{position:relative!important;height:auto!important;padding:14px!important}
+  #yardivoSupplierPortal .yardon-supplier-brand img{width:170px!important}
+  #yardivoSupplierPortal .ysp-nav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #yardivoSupplierPortal .ysp-main{padding:18px 12px 28px!important}
+  #yardivoSupplierPortal .ysp-top{display:block!important}
+  #yardivoSupplierPortal .ysp-badge{display:inline-block!important;margin-top:12px!important}
+  #yardivoSupplierPortal .ysp-kpis{grid-template-columns:1fr 1fr!important;gap:10px!important}
+  #yardivoSupplierPortal .sbn-head{display:block!important}
+  #yardivoSupplierPortal .sbn-status{display:inline-block!important;margin-top:12px!important}
+}
