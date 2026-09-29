@@ -1,0 +1,83 @@
+/* YardOn AI Operations v1 */
+#aiOperations{padding-bottom:38px}
+#aiOperations .yaio-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}
+#aiOperations .yaio-head h1{margin:0;font-size:28px;letter-spacing:-.02em}
+#aiOperations .yaio-head p{margin:6px 0 0;color:var(--muted,#728196);max-width:900px}
+#aiOperations .yaio-engine-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;border:1px solid rgba(59,130,246,.25);border-radius:999px;background:rgba(59,130,246,.08);font-size:10px;font-weight:900;letter-spacing:.06em;white-space:nowrap}
+#aiOperations .yaio-engine-badge i{width:8px;height:8px;border-radius:50%;background:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.12)}
+#aiOperations .yaio-toolbar{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;padding:14px;border:1px solid var(--border,#dbe5ef);border-radius:16px;background:var(--panel,#fff);margin-bottom:12px}
+#aiOperations .yaio-toolbar label{display:grid;gap:5px;font-size:9px;font-weight:900;letter-spacing:.06em;color:var(--muted,#6b7b8f)}
+#aiOperations .yaio-toolbar input,#aiOperations .yaio-toolbar select{min-width:180px;height:38px}
+#aiOperations .yaio-updated{margin-left:auto;align-self:center;font-size:10px;color:var(--muted,#718096)}
+#aiOperations .yaio-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px}
+#aiOperations .yaio-tab{border:1px solid var(--border,#dbe5ef);background:var(--panel,#fff);border-radius:999px;padding:9px 13px;font-weight:850;font-size:10px;cursor:pointer}
+#aiOperations .yaio-tab.active{background:#0f5fa8;color:#fff;border-color:#0f5fa8}
+#aiOperations .yaio-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px}
+#aiOperations .yaio-kpi{padding:15px;border:1px solid var(--border,#dbe5ef);border-radius:15px;background:var(--panel,#fff)}
+#aiOperations .yaio-kpi small{display:block;font-size:9px;font-weight:900;letter-spacing:.055em;color:var(--muted,#728196)}
+#aiOperations .yaio-kpi strong{display:block;font-size:25px;margin-top:6px}
+#aiOperations .yaio-panel{display:none}
+#aiOperations .yaio-panel.active{display:block}
+#aiOperations .yaio-card{border:1px solid var(--border,#dbe5ef);border-radius:16px;background:var(--panel,#fff);overflow:hidden;margin-bottom:12px}
+#aiOperations .yaio-card-head{padding:13px 15px;border-bottom:1px solid var(--border,#e4eaf0);display:flex;justify-content:space-between;gap:12px;align-items:center}
+#aiOperations .yaio-card-head h3{margin:0;font-size:13px}
+#aiOperations .yaio-card-head small{color:var(--muted,#718096)}
+#aiOperations .yaio-map-scroll{overflow:auto;padding:14px}
+#aiOperations .yaio-ramp-board{min-width:760px;display:grid;gap:7px}
+#aiOperations .yaio-ramp-row{display:grid;grid-template-columns:74px minmax(650px,1fr);gap:8px;align-items:stretch}
+#aiOperations .yaio-ramp-name{display:grid;place-items:center;border-radius:10px;border:1px solid var(--border,#dbe5ef);font-weight:900;background:rgba(100,116,139,.06);min-height:48px}
+#aiOperations .yaio-track{position:relative;min-height:48px;border-radius:10px;border:1px solid var(--border,#dbe5ef);background:repeating-linear-gradient(90deg,transparent 0,transparent calc(6.25% - 1px),rgba(120,135,150,.12) calc(6.25% - 1px),rgba(120,135,150,.12) 6.25%)}
+#aiOperations .yaio-job{position:absolute;top:5px;bottom:5px;min-width:62px;border-radius:8px;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.3);padding:5px 7px;overflow:hidden;font-size:9px}
+#aiOperations .yaio-job.wait{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.4)}
+#aiOperations .yaio-job.problem{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.36)}
+#aiOperations .yaio-job strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#aiOperations .yaio-job span{opacity:.75;white-space:nowrap}
+#aiOperations .yaio-time-axis{display:grid;grid-template-columns:74px minmax(650px,1fr);gap:8px;margin-bottom:7px}
+#aiOperations .yaio-hours{display:flex;justify-content:space-between;font-size:9px;color:var(--muted,#718096);padding:0 2px}
+#aiOperations .yaio-table-wrap{overflow:auto}
+#aiOperations .yaio-table{width:100%;border-collapse:collapse;font-size:11px}
+#aiOperations .yaio-table th{padding:9px 10px;text-align:left;font-size:8px;letter-spacing:.055em;color:var(--muted,#718096);border-bottom:1px solid var(--border,#e4eaf0);white-space:nowrap}
+#aiOperations .yaio-table td{padding:10px;border-bottom:1px solid var(--border,#eef2f6);vertical-align:top}
+#aiOperations .yaio-pill{display:inline-flex;align-items:center;border-radius:999px;padding:4px 7px;font-size:8px;font-weight:900;background:rgba(100,116,139,.12)}
+#aiOperations .yaio-pill.ok{background:rgba(34,197,94,.12);color:#16803b}
+#aiOperations .yaio-pill.warn{background:rgba(245,158,11,.15);color:#a15c00}
+#aiOperations .yaio-pill.bad{background:rgba(239,68,68,.12);color:#bd2525}
+#aiOperations .yaio-live-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
+#aiOperations .yaio-docks{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:9px;padding:14px}
+#aiOperations .yaio-dock{border:1px solid var(--border,#dbe5ef);border-radius:13px;padding:13px;min-height:105px}
+#aiOperations .yaio-dock.free{background:rgba(34,197,94,.06)}
+#aiOperations .yaio-dock.busy{background:rgba(245,158,11,.08)}
+#aiOperations .yaio-dock strong{display:block;font-size:16px;margin-bottom:7px}
+#aiOperations .yaio-dock small{display:block;color:var(--muted,#718096);line-height:1.45}
+#aiOperations .yaio-recs{display:grid;gap:9px;padding:14px}
+#aiOperations .yaio-rec{border:1px solid var(--border,#dbe5ef);border-radius:12px;padding:11px 12px}
+#aiOperations .yaio-rec.warn{border-color:rgba(245,158,11,.34);background:rgba(245,158,11,.06)}
+#aiOperations .yaio-rec.bad{border-color:rgba(239,68,68,.30);background:rgba(239,68,68,.05)}
+#aiOperations .yaio-rec strong{display:block;font-size:11px}
+#aiOperations .yaio-rec span{display:block;margin-top:4px;font-size:10px;color:var(--muted,#64748b);line-height:1.45}
+#aiOperations .yaio-parking-summary{display:flex;gap:9px;flex-wrap:wrap;padding:14px}
+#aiOperations .yaio-parking-summary span{padding:8px 10px;border-radius:10px;background:rgba(100,116,139,.08);font-size:10px;font-weight:800}
+#aiOperations .yaio-parking-grid{display:grid;grid-template-columns:repeat(7,minmax(60px,1fr));gap:7px;padding:0 14px 14px}
+#aiOperations .yaio-park{min-height:54px;border:1px dashed var(--border,#cbd5e1);border-radius:9px;display:grid;place-items:center;text-align:center;font-size:9px;font-weight:900;background:rgba(100,116,139,.035)}
+#aiOperations .yaio-park.occupied{border-style:solid;border-color:rgba(245,158,11,.42);background:rgba(245,158,11,.10)}
+#aiOperations .yaio-park.predicted{border-style:solid;border-color:rgba(59,130,246,.36);background:rgba(59,130,246,.08)}
+#aiOperations .yaio-decisions{display:grid;gap:9px;padding:14px}
+#aiOperations .yaio-decision{border:1px solid var(--border,#dbe5ef);border-radius:12px;padding:12px;display:grid;grid-template-columns:minmax(170px,.7fr) 1.3fr auto;gap:12px;align-items:center}
+#aiOperations .yaio-empty{padding:24px;text-align:center;color:var(--muted,#718096);font-size:11px}
+#aiOperations .yaio-error{padding:14px;border:1px solid rgba(239,68,68,.30);border-radius:12px;background:rgba(239,68,68,.06);color:#b42318;margin-bottom:12px}
+#aiOperations .yaio-loader{padding:30px;text-align:center;color:var(--muted,#718096)}
+@media(max-width:1000px){
+ #aiOperations .yaio-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #aiOperations .yaio-live-grid{grid-template-columns:1fr}
+ #aiOperations .yaio-parking-grid{grid-template-columns:repeat(4,minmax(55px,1fr))}
+}
+@media(max-width:650px){
+ #aiOperations .yaio-head{display:block}
+ #aiOperations .yaio-engine-badge{margin-top:10px}
+ #aiOperations .yaio-toolbar{align-items:stretch}
+ #aiOperations .yaio-toolbar label,#aiOperations .yaio-toolbar input,#aiOperations .yaio-toolbar select{width:100%;min-width:0}
+ #aiOperations .yaio-updated{margin-left:0}
+ #aiOperations .yaio-kpis{grid-template-columns:1fr 1fr}
+ #aiOperations .yaio-parking-grid{grid-template-columns:repeat(3,minmax(52px,1fr))}
+ #aiOperations .yaio-decision{grid-template-columns:1fr}
+}
