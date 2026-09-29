@@ -1,7 +1,8 @@
 (()=>{'use strict';
 if(window.__YARDIVO_CHAT_REALTIME_SIGNAL_FINAL__)return;
 window.__YARDIVO_CHAT_REALTIME_SIGNAL_FINAL__=true;
-let ch=null,reconnectTimer=0,refreshTimer=0;
+let ch=null,reconnectTimer=0,refreshTimer=0,lastConnectAttempt=0;
+const RECONNECT_BACKOFF_MS=300000;
 
 function scheduleRefresh(kind){
   clearTimeout(refreshTimer);
@@ -18,6 +19,11 @@ function scheduleRefresh(kind){
 
 async function connect(){
   if(ch)return ch;
+  if(!window.currentSession)return null;
+  if(document.hidden)return null;
+  const now=Date.now();
+  if(lastConnectAttempt && now-lastConnectAttempt<RECONNECT_BACKOFF_MS)return null;
+  lastConnectAttempt=now;
   if(!window.YardivoRealtime?.connect)return null;
   try{
     const c=await window.YardivoAuth?.client?.();
@@ -39,7 +45,7 @@ async function connect(){
         if(ch===next)ch=null;
         clearTimeout(reconnectTimer);
         void window.YardivoRealtime.remove('chat').finally(()=>{
-          reconnectTimer=setTimeout(connect,5000);
+          reconnectTimer=setTimeout(connect,RECONNECT_BACKOFF_MS);
         });
       }
     }
@@ -55,11 +61,19 @@ async function disconnect(){
 }
 
 ['yardivo:login','yardivo:online-ready'].forEach(ev=>{
-  window.addEventListener(ev,()=>setTimeout(connect,120));
+  window.addEventListener(ev,()=>{
+    lastConnectAttempt=0;
+    setTimeout(connect,500);
+  });
 });
-window.addEventListener('focus',()=>setTimeout(connect,120));
-window.addEventListener('yardivo:logout',()=>{void disconnect()});
-setTimeout(connect,1200);
+window.addEventListener('focus',()=>{
+  if(!window.currentSession)return;
+  setTimeout(connect,500);
+});
+window.addEventListener('yardivo:logout',()=>{
+  lastConnectAttempt=0;
+  void disconnect();
+});
 
 window.YardivoChatRealtimeV583={
   connect,
