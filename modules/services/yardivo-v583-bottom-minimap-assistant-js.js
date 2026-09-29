@@ -179,8 +179,8 @@ function addMsg(kind,text){
   const d=document.createElement('div');d.className='yv-ai-msg '+kind;d.textContent=text;m.appendChild(d);m.scrollTop=m.scrollHeight;
 }
 const aiConversation=[];
-const YARDIVO_AI_EDGE='https://rskticdbiovvgyocpzoc.supabase.co/functions/v1/yardivo-ai';
-const YARDIVO_AI_ANON='sb_publishable_NWRcS2n-8GxF8qL7wXbZ-Q_-jIyfGoy';
+const YARDIVO_AI_EDGE='https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-ai';
+const YARDIVO_AI_ANON='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
 
 function aiContext(){
   const rows=warehouseRows(),todayRows=scopedToday();
