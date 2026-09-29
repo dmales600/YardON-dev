@@ -3,9 +3,9 @@
 'use strict';
 const MATRIX={
  admin:'ALL',
- manager:new Set(['homeMenu','dashboard','controlTower','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']),
- inventory:new Set(['homeMenu','dashboard','controlTower','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','incidents','documentArchive','unannounced','epal','myYard','reports','settings']),
- reception:new Set(['homeMenu','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard']),
+ manager:new Set(['homeMenu','dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']),
+ inventory:new Set(['homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','incidents','documentArchive','unannounced','epal','myYard','reports','settings']),
+ reception:new Set(['homeMenu','aiOperations','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard']),
  gate:new Set(['homeMenu','checkin','unannounced','myYard','docks'])
 };
 function norm(r){
@@ -223,7 +223,7 @@ function stabilizeGateSidebar(){
 
 function stabilizeInventorySidebar(){
  if(role()!=='inventory')return;
- const order=['homeMenu','dashboard','controlTower','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','incidents','documentArchive','unannounced','epal','myYard','reports','settings'];
+ const order=['homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','incidents','documentArchive','unannounced','epal','myYard','reports','settings'];
  const nav=document.querySelector('.sidebar nav,.sidebar .nav,.sidebar-nav,#sidebarNav,.nav-menu');
  const buttons=[...document.querySelectorAll('.nav-btn[data-view]')];
  const parent=nav || buttons[0]?.parentElement;
