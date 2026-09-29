@@ -2,7 +2,7 @@
 'use strict';
 if(window.YardivoSupabaseClient)return;
 
-const BASE='https://ldzwgdwzolbvjxyznlry.supabase.co';';
+const BASE='https://ldzwgdwzolbvjxyznlry.supabase.co';
 const KEY='sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz';
 const BUDGET_KEY='yardivo_supabase_402_block_until_v1';
 const BUDGET_BLOCK_MS=30*60*1000;
