@@ -305,7 +305,9 @@ function enforceManagerAssignment(){
   const r=String(window.currentSession?.role||'').toLowerCase();
   if(r!=='manager')return;
   const a=managerAccess();
-  const allowed=new Set(['homeMenu',...(Array.isArray(a?.sections)?a.sections:[])]);
+  const defaults=['dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap'];
+  const sections=(Array.isArray(a?.sections)&&a.sections.length)?a.sections:defaults;
+  const allowed=new Set(['homeMenu',...sections]);
   document.body.dataset.yardivoManagerSections='ready';
   document.documentElement.dataset.yardivoManagerSections='ready';
   document.querySelectorAll('[data-view]').forEach(el=>{
