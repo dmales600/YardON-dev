@@ -97,10 +97,14 @@ function supplierScores(){
  });
  rows.sort((a,b)=>a.score-b.score||b.total-a.total);
  try{
-   const payload={updatedAt:new Date().toISOString(),location:activeLoc(),scores:rows};
-   const prev=localStorage.getItem(SCORE_KEY);
-   const next=JSON.stringify(payload);
-   if(prev!==next)localStorage.setItem(SCORE_KEY,next);
+   const location=activeLoc();
+   let prevObj=null;
+   try{prevObj=JSON.parse(localStorage.getItem(SCORE_KEY)||'null')}catch(_){}
+   const prevComparable=prevObj?JSON.stringify({location:prevObj.location||'',scores:Array.isArray(prevObj.scores)?prevObj.scores:[]}):'';
+   const nextComparable=JSON.stringify({location,scores:rows});
+   if(prevComparable!==nextComparable){
+     localStorage.setItem(SCORE_KEY,JSON.stringify({updatedAt:new Date().toISOString(),location,scores:rows}));
+   }
  }catch(e){}
  return rows;
 }
