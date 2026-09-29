@@ -261,8 +261,11 @@ async function startRealtime(){
       if(realtimeStatus==='SUBSCRIBED'){
         console.info('[YARDIVO REALTIME] LIVE');
         if(realtimePendingSignal)setTimeout(()=>broadcastChange('pending-sync'),0);
+      }else if(realtimeStatus==='BUDGET_BACKOFF'){
+        realtimeChannel=null;
+        console.warn('[YARDIVO REALTIME] privremeno zaustavljen nakon ponovljenih gateway grešaka; safety sync ostaje aktivan.');
       }else if(realtimeStatus==='CHANNEL_ERROR'||realtimeStatus==='TIMED_OUT'){
-        console.warn('[YARDIVO REALTIME]',realtimeStatus,'— 60 s safety sync ostaje aktivan.');
+        console.warn('[YARDIVO REALTIME]',realtimeStatus,'— safety sync ostaje aktivan.');
       }
     }
   });
