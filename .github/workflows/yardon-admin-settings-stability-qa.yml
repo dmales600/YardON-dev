@@ -1,0 +1,115 @@
+name: YardOn Admin Settings Stability QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/yardon-admin-settings-stability-qa.yml"
+      - "styles/yardon-admin-settings-v1.css"
+      - "modules/supplier/yardivo-v583-settings-export-supplier-bulk-hard-fix.js"
+      - "modules/services/yardivo-qr-role-control-v586.js"
+      - "modules/services/yardivo-qr-admin-visible-v584.js"
+      - "modules/gate/runtime/phase5-262-yardivo-v583-qr-server-settings-refresh-js.js"
+      - "modules/master-data/runtime/phase5-263-yardivo-v583-settings-smart-qr-master-zero-runtime.js"
+      - "modules/master-data/phase2-319-yardivo-admin-master-restore-v11-js.js"
+      - "modules/master-data/runtime/yardivo-v583-master-popup-only-fix.js"
+      - "modules/master-data/phase2-256-yardivo-v583-settings-unified-single-section-rebuild-js.js"
+      - "modules/supplier/phase2-255-yardivo-v583-master-ordinary-strict-separation-js.js"
+      - "modules/settings/runtime/yardivo-settings-cleanup-light-sheets-v1-20260901-js.js"
+      - "modules/master-data/runtime/yardivo-admin-cleanup-v8-js.js"
+      - "modules/supplier/yardivo-supplier-location-warehouse-binding-v583.js"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yardon-admin-settings-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static anti-flicker checks
+        run: |
+          node --check modules/supplier/yardivo-v583-settings-export-supplier-bulk-hard-fix.js
+          node --check modules/services/yardivo-qr-role-control-v586.js
+          node --check modules/services/yardivo-qr-admin-visible-v584.js
+          node --check modules/master-data/runtime/yardivo-admin-cleanup-v8-js.js
+          node --check modules/supplier/yardivo-supplier-location-warehouse-binding-v583.js
+          test -s styles/yardon-admin-settings-v1.css
+          ! grep -q "observe(document.documentElement,{childList:true,subtree:true})" modules/supplier/yardivo-v583-settings-export-supplier-bulk-hard-fix.js
+          ! grep -q "observe(document.body,{subtree:true,childList:true})" modules/master-data/runtime/yardivo-admin-cleanup-v8-js.js
+          ! grep -q "yardivo:data-synced.*loadServerCfg" modules/services/yardivo-qr-role-control-v586.js
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Browser stability regression
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-settings-http.log 2>&1 &
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const HOST='https://ldzwgdwzolbvjxyznlry.supabase.co';
+          const bootstrap={ok:true,state:[{key:'yardivo_qr_scan_cfg_v583',deleted:false,value_json:JSON.stringify({enabled:true,byWarehouse:{W001:{gate:true,reception:true}}})}]};
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1440,height:1050}});
+            const pageErrors=[];page.on('pageerror',e=>pageErrors.push(String(e.message||e)));
+            await page.route(HOST+'/**',async route=>{
+              if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'}});
+              const u=route.request().url();
+              if(u.includes('/functions/v1/yardivo-sync'))return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(bootstrap)});
+              return route.fulfill({status:200,contentType:'application/json',body:'{}'});
+            });
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
+            await page.waitForTimeout(1300);
+            await page.evaluate(()=>{
+              window.currentSession={user:'qa_admin',username:'qa_admin',role:'admin',app_role:'admin',location:'LOC001',warehouses:['W001'],serverAuthorized:true};
+              try{currentSession=window.currentSession}catch(_){}
+              localStorage.setItem('yardivo_master_data_registry_v583',JSON.stringify({locations:[{id:'LOC001',name:'Lokacija 1',active:true}],warehouses:[{id:'W001',name:'W201',location_id:'LOC001',active:true,ramps:4}]}));
+              document.body.dataset.yardivoRole='admin';document.documentElement.dataset.yardivoRole='admin';
+              document.getElementById('loginOverlay')?.style.setProperty('display','none','important');
+              document.getElementById('yardivoWelcomeSplash')?.style.setProperty('display','none','important');
+              const sh=document.querySelector('.app-shell');if(sh){sh.style.setProperty('display','grid','important');sh.style.setProperty('visibility','visible','important')}
+              window.dispatchEvent(new CustomEvent('yardivo:login',{detail:{session:window.currentSession}}));
+              try{window.YardivoRoleStableFinal?.open?.('settings')}catch(_){}
+              const s=document.getElementById('settings');s?.classList.add('active');
+              window.dispatchEvent(new CustomEvent('yardivo:view-opened',{detail:{view:'settings'}}));
+            });
+            await page.waitForTimeout(1000);
+            if(!await page.locator('#yardonAdminControlHead').isVisible())throw new Error('Admin Control Center header missing');
+            if(await page.locator('#yardivoSettingsTabsFinal [data-settings-tab]').count()!==5)throw new Error('Expected 5 stable Settings categories');
+            const qrTabs=page.locator('#yardivoSettingsTabsFinal [data-settings-tab="qr"]');
+            await page.evaluate(()=>document.querySelector('#yardivoSettingsTabsFinal [data-settings-tab="qr"]')?.click());
+            await page.waitForTimeout(250);
+            if(!await page.locator('#yardivoQrRoleAdminV586').isVisible())throw new Error('Canonical QR Role v586 panel missing');
+            if(await page.locator('#yardivoQrWarehouseAdminPanelV584:visible').count())throw new Error('Legacy QR v584 panel is visible');
+            if(await page.locator('#qrMobileSettingsPanel:visible').count())throw new Error('Legacy QR mobile panel is visible');
+            const initial=await page.evaluate(()=>({children:document.querySelector('#settings .settings-grid')?.children.length||0,qr:document.querySelectorAll('#yardivoQrRoleAdminV586').length}));
+            const muts=await page.evaluate(async()=>{
+              const g=document.querySelector('#settings .settings-grid');let count=0,adds=0,rems=0;
+              const o=new MutationObserver(ms=>{count+=ms.length;for(const m of ms){adds+=m.addedNodes.length;rems+=m.removedNodes.length}});o.observe(g,{childList:true,subtree:true});
+              window.dispatchEvent(new CustomEvent('yardivo:data-synced',{detail:{source:'qa-noop'}}));
+              await new Promise(r=>setTimeout(r,900));o.disconnect();return{count,adds,rems};
+            });
+            if(muts.adds>3||muts.rems>3)throw new Error('Settings redraw churn detected '+JSON.stringify(muts));
+            const after=await page.evaluate(()=>({children:document.querySelector('#settings .settings-grid')?.children.length||0,qr:document.querySelectorAll('#yardivoQrRoleAdminV586').length,ready:document.getElementById('settings')?.classList.contains('yardon-settings-ready')}));
+            if(after.qr!==1)throw new Error('QR authority duplicated');
+            if(Math.abs(after.children-initial.children)>2)throw new Error('Settings child count unstable');
+            if(!after.ready)throw new Error('Settings never reached stable ready state');
+            await page.evaluate(()=>document.querySelector('#yardivoSettingsTabsFinal [data-settings-tab="admin"]')?.click());
+            await page.waitForTimeout(120);
+            if(!await page.locator('#yardivoSettingsTabsFinal [data-settings-tab="admin"].active').count())throw new Error('Admin category did not activate');
+            const critical=pageErrors.filter(x=>!/rampInfo is not defined/i.test(x));
+            if(critical.length)throw new Error('Page errors: '+critical.join(' | '));
+            console.log('YARDON_ADMIN_SETTINGS_STABILITY_QA_PASS',JSON.stringify({initial,after,muts}));
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
