@@ -1,5 +1,8 @@
 
 (function(){
+  let applying=false;
+  let queued=false;
+
   function role(){
     let r='';
     try{r=String(currentSession?.role||window.currentSession?.role||'').toLowerCase().trim()}catch(e){}
@@ -16,7 +19,7 @@
     if(selected&&selected!=='ALL')return selected;
     try{
       const canonical=String(window.YardivoAppStateV583?.warehouse?.()||'').trim();
-      if(canonical)return canonical;
+      if(canonical&&canonical!=='ALL')return canonical;
     }catch(_){}
     const active=String(window.activeWarehouse||'').trim();
     return active&&active!=='ALL'?active:'';
@@ -30,90 +33,104 @@
     }catch(_){return[]}
   }
 
-  function setSelectValue(id,value){
+  function setSelectValue(id,value,{notify=false}={}){
     const sel=document.getElementById(id);
-    if(!sel)return;
-    if([...sel.options].some(o=>o.value===value)){
-      sel.value=value;
-      sel.dispatchEvent(new Event('change',{bubbles:false}));
-    }
+    if(!sel)return false;
+    if(![...sel.options].some(o=>o.value===value))return false;
+    if(String(sel.value)===String(value))return false;
+    sel.value=value;
+    if(notify)sel.dispatchEvent(new Event('change',{bubbles:false}));
+    return true;
   }
 
   function syncDependentSelectors(wh){
-    // All operational views follow the top warehouse selector.
+    // Header is authoritative. Dependent selectors follow silently so they do
+    // not create change-event feedback loops and repeated full renders.
     setSelectValue('savedWarehouseFilter',wh);
     setSelectValue('dailyMapWarehouseSelect',wh);
     setSelectValue('weeklyMapWarehouse',wh);
-
-    // Receiving may use one of several legacy IDs.
     ['receivingWarehouse','receivingWarehouseSelect','receivingWarehouseFilter'].forEach(id=>setSelectValue(id,wh));
-
-    // Incident form follows current warehouse for new records.
     setSelectValue('incWarehouse',wh);
 
-    // Announcement creation defaults to the current warehouse, but user may still deliberately change it.
     const ann=document.getElementById('annWarehouse');
-    if(ann && [...ann.options].some(o=>o.value===wh) && !ann.dataset.userChanged){
-      ann.value=wh;
-    }
+    if(ann && [...ann.options].some(o=>o.value===wh) && !ann.dataset.userChanged && String(ann.value)!==String(wh))ann.value=wh;
   }
 
   function renderWarehouseAware(){
-    try{render?.()}catch(e){}
-    try{renderAnnouncements?.()}catch(e){}
-    try{renderReceiving?.()}catch(e){}
-    try{renderDailyMap?.()}catch(e){}
-    try{renderWeeklyMap?.()}catch(e){}
-    try{renderRampe?.()}catch(e){}
-    try{renderYard?.()}catch(e){}
-    try{renderOverview?.()}catch(e){}
-    try{renderIncidents?.()}catch(e){}
+    // Do not call the global render() here. It redraws several unrelated views
+    // and was a major source of visible flicker when changing/opening sections.
+    const active=document.querySelector('.view.active')?.id||'';
+    try{if(active==='announcements')renderAnnouncements?.()}catch(e){}
+    try{if(active==='receiving')renderReceiving?.()}catch(e){}
+    try{if(active==='dailyMap')renderDailyMap?.()}catch(e){}
+    try{if(active==='weeklyMap')renderWeeklyMap?.()}catch(e){}
+    try{if(active==='docks'||active==='ramps')renderRampe?.()}catch(e){}
+    try{if(active==='myYard'||active==='yard')renderYard?.()}catch(e){}
+    try{if(active==='overview')renderOverview?.()}catch(e){}
+    try{if(active==='incidents')renderIncidents?.()}catch(e){}
+    try{if(active==='controlTower')window.YardivoControlTower?.render?.()}catch(e){}
   }
 
   function setCanonicalWarehouse(wh){
     wh=String(wh||'').trim();
     if(!wh)return false;
+    const previous=String(window.activeWarehouse||'').trim();
     try{window.activeWarehouse=wh;activeWarehouse=wh}catch(_){window.activeWarehouse=wh}
-    try{safeStorage?.setItem?.('studenac_active_warehouse',wh)}catch(_){}
+    try{if(safeStorage?.getItem?.('studenac_active_warehouse')!==wh)safeStorage?.setItem?.('studenac_active_warehouse',wh)}catch(_){}
     if(wh!=='ALL'){
       try{
-        if(String(window.YardivoAppStateV583?.warehouse?.()||'')!==wh){
-          window.YardivoAppStateV583?.setWarehouse?.(wh);
-        }
+        if(String(window.YardivoAppStateV583?.warehouse?.()||'')!==wh)window.YardivoAppStateV583?.setWarehouse?.(wh);
       }catch(_){}
     }
-    return true;
+    return previous!==wh;
   }
 
-  function applyGlobalWarehouse(){
+  function applyGlobalWarehouse({render=true}={}){
+    if(applying)return;
     const sel=document.getElementById('globalWarehouse');
     if(!sel)return;
+    applying=true;
+    try{
+      if(role()==='gate'){
+        setCanonicalWarehouse('ALL');
+        const info=document.getElementById('globalWarehouseInfo');
+        if(info){
+          const n=window.YardivoAppStateV583?.locationName?.(window.YardivoAppStateV583?.location?.())||'LOKACIJA';
+          const text='SVA SKLADIŠTA · '+String(n).toUpperCase();
+          if(info.textContent!==text)info.textContent=text;
+        }
+        try{window.renderPortaSharedAnnouncements?.()}catch(e){}
+        try{window.renderPortaVerifiedList?.()}catch(e){}
+        try{renderCheckinPro?.()}catch(e){}
+        return;
+      }
 
-    // PORTA is the deliberate exception: one combined Lokacija 2 feed.
-    if(role()==='gate'){
-      setCanonicalWarehouse('ALL');
+      const wh=sel.value==='ALL'?selectedWarehouse():String(sel.value||'').trim();
+      if(!wh)return;
+      const changed=setCanonicalWarehouse(wh);
+
       const info=document.getElementById('globalWarehouseInfo');
-      if(info){const n=window.YardivoAppStateV583?.locationName?.(window.YardivoAppStateV583?.location?.())||'LOKACIJA';info.textContent='SVA SKLADIŠTA · '+String(n).toUpperCase();}
-      // Do not push W201/W203/W204 into Gate check-in filters.
-      try{window.renderPortaSharedAnnouncements?.()}catch(e){}
-      try{window.renderPortaVerifiedList?.()}catch(e){}
-      try{renderCheckinPro?.()}catch(e){}
-      return;
+      if(info){
+        const label=(typeof whLabel==='function'?whLabel(wh):window.YardivoGlobalContextV583?.warehouseName?.(wh)||wh).toUpperCase();
+        if(info.textContent!==label)info.textContent=label;
+      }
+
+      syncDependentSelectors(wh);
+      if(render||changed)renderWarehouseAware();
+    }finally{
+      applying=false;
     }
-
-    const wh=sel.value==='ALL'?selectedWarehouse():sel.value;
-    if(!wh)return;
-
-    setCanonicalWarehouse(wh);
-
-    const info=document.getElementById('globalWarehouseInfo');
-    if(info)info.textContent=(typeof whLabel==='function'?whLabel(wh):wh).toUpperCase();
-
-    syncDependentSelectors(wh);
-    renderWarehouseAware();
   }
 
-  // --- INCIDENTS: list and analytics must follow top selected warehouse ---
+  function scheduleApply(opts){
+    if(queued)return;
+    queued=true;
+    requestAnimationFrame(()=>{
+      queued=false;
+      applyGlobalWarehouse(opts);
+    });
+  }
+
   const oldRenderIncidents=window.renderIncidents || (typeof renderIncidents==='function'?renderIncidents:null);
   window.renderIncidents=function(){
     const table=document.getElementById('incidentTable');
@@ -150,14 +167,11 @@
   };
   try{renderIncidents=window.renderIncidents}catch(e){}
 
-  // --- OVERVIEW: make top-level data warehouse-aware ---
   const originalOverview=window.renderOverview || (typeof renderOverview==='function'?renderOverview:null);
   if(originalOverview){
     window.renderOverview=function(){
       if(role()==='gate')return originalOverview.apply(this,arguments);
       const wh=selectedWarehouse();
-
-      // Temporarily present only the selected warehouse to the legacy analytics renderer.
       const allAnnouncements=announcements;
       const allIncidents=incidents;
       const filteredA=allAnnouncements.filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh);
@@ -174,31 +188,22 @@
     try{renderOverview=window.renderOverview}catch(e){}
   }
 
-  // Announcement form: if user manually chooses another warehouse, remember that choice until global changes.
-  document.getElementById('annWarehouse')?.addEventListener('change',e=>{
-    e.target.dataset.userChanged='1';
-  });
+  document.getElementById('annWarehouse')?.addEventListener('change',e=>{e.target.dataset.userChanged='1'});
 
-  // TOP dropdown is the authoritative selector.
   document.getElementById('globalWarehouse')?.addEventListener('change',()=>{
     const ann=document.getElementById('annWarehouse');
     if(ann)delete ann.dataset.userChanged;
-    applyGlobalWarehouse();
+    scheduleApply({render:true});
   },true);
 
-  // On every section open, re-assert the selected warehouse.
   document.addEventListener('click',e=>{
-    if(e.target.closest('[data-view],[data-home-target]'))setTimeout(()=>{
-      if(role()!=='gate')syncDependentSelectors(selectedWarehouse());
-      applyGlobalWarehouse();
-    },25);
+    if(e.target.closest('[data-view],[data-home-target]'))setTimeout(()=>scheduleApply({render:false}),25);
   },true);
 
-  // Role/session/context changes are event-driven; no permanent 500 ms polling.
-  window.addEventListener('yardivo:login',()=>setTimeout(applyGlobalWarehouse,50));
-  window.addEventListener('yardivo:context-changed',()=>setTimeout(applyGlobalWarehouse,0));
-  window.addEventListener('yardivo:master-data-changed',()=>setTimeout(applyGlobalWarehouse,30));
-  window.addEventListener('load',()=>setTimeout(applyGlobalWarehouse,150));
+  window.addEventListener('yardivo:login',()=>setTimeout(()=>scheduleApply({render:true}),50));
+  window.addEventListener('yardivo:context-changed',()=>scheduleApply({render:true}));
+  window.addEventListener('yardivo:master-data-changed',()=>setTimeout(()=>scheduleApply({render:true}),30));
+  window.addEventListener('load',()=>setTimeout(()=>scheduleApply({render:true}),150));
 
   window.YardivoWarehouseSync={
     apply:applyGlobalWarehouse,
