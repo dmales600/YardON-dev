@@ -197,11 +197,80 @@ function decorateTimeOnlyForm(){
  const msg=document.getElementById('annMessage');if(msg&&!msg.dataset.yardonTimeOnly){msg.dataset.yardonTimeOnly='1';msg.className='notice-result info';msg.innerHTML='<h3>Najava bez rampe</h3><p>Odaberi vrijeme termina. Fizičku rampu nitko ne bira kod najave; YardOn je planira i dodjeljuje kasnije.</p>'}
 }
 function installTimeOnlyAuthority(){try{window.applyAnnouncementSlot=timeOnlyApplyAnnouncement}catch(_){}decorateTimeOnlyForm()}
-function maintain(){purgeGhostSupplier();installTimeOnlyAuthority()}
+
+/* Supplier submit hardening. The rebuilt booking module still reads optional DOM
+   fields directly. Keep those reads safe even if a field was removed by a later UI
+   revision, and require an explicit user confirmation before any server call. */
+function ensureSupplierSubmitFields(){
+ const root=document.getElementById('sbnExtra')||document.body;
+ const inputs=['sbnOrder','sbnReference','sbnPlate','sbnTrailer','sbnDriver','sbnDriverContact'];
+ inputs.forEach(id=>{if(document.getElementById(id))return;const el=document.createElement('input');el.type='hidden';el.id=id;el.value='';root.appendChild(el)});
+ if(!document.getElementById('sbnNote')){const el=document.createElement('textarea');el.id='sbnNote';el.hidden=true;el.value='';root.appendChild(el)}
+}
+function supplierSendSummary(){
+ const selected=document.querySelector('#sbnMap .sbn-slot.selected');
+ const map=String(document.getElementById('sbnMapSub')?.textContent||'').trim();
+ const start=String(selected?.dataset?.start||'').trim(),end=String(selected?.dataset?.end||'').trim();
+ const pallets=String(document.getElementById('sbnPallets')?.value||'').trim(),sku=String(document.getElementById('sbnSku')?.value||'').trim();
+ const parts=[];if(map)parts.push(map);if(start)parts.push(end?`${start}–${end}`:start);if(pallets)parts.push(`${pallets} paleta`);if(sku)parts.push(`${sku} SKU`);
+ return parts.join(' · ');
+}
+function supplierConfirmModal(){
+ return new Promise(resolve=>{
+   document.getElementById('yardonSupplierSendConfirm')?.remove();
+   if(!document.getElementById('yardonSupplierSendConfirmStyle')){
+     const style=document.createElement('style');style.id='yardonSupplierSendConfirmStyle';style.textContent=`
+#yardonSupplierSendConfirm{position:fixed;inset:0;z-index:2147483000;background:rgba(8,14,22,.66);display:flex;align-items:center;justify-content:center;padding:20px}
+#yardonSupplierSendConfirm .ysc-card{width:min(520px,100%);background:#101922;color:#eef6ff;border:1px solid rgba(122,169,214,.35);border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.48);padding:24px;font-family:inherit}
+#yardonSupplierSendConfirm h3{margin:0 0 9px;font-size:18px;letter-spacing:.02em}
+#yardonSupplierSendConfirm p{margin:0;color:#b8c8d8;line-height:1.55;font-size:13px}
+#yardonSupplierSendConfirm .ysc-summary{margin-top:14px;padding:12px 14px;border-radius:11px;background:rgba(70,131,191,.12);border:1px solid rgba(100,162,222,.2);color:#e7f3ff;font-size:12px;font-weight:700}
+#yardonSupplierSendConfirm .ysc-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;flex-wrap:wrap}
+#yardonSupplierSendConfirm button{border:0;border-radius:10px;padding:11px 16px;font:700 12px/1 inherit;cursor:pointer}
+#yardonSupplierSendConfirm .ysc-cancel{background:#263442;color:#dbe8f5}
+#yardonSupplierSendConfirm .ysc-confirm{background:#2f80ed;color:white}
+#yardonSupplierSendConfirm button:focus-visible{outline:3px solid rgba(91,164,255,.5);outline-offset:2px}`;document.head.appendChild(style);
+   }
+   const overlay=document.createElement('div');overlay.id='yardonSupplierSendConfirm';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','yardonSupplierSendConfirmTitle');
+   const card=document.createElement('div');card.className='ysc-card';
+   const title=document.createElement('h3');title.id='yardonSupplierSendConfirmTitle';title.textContent='Potvrda slanja najave';
+   const text=document.createElement('p');text.textContent='Želiš li poslati ovu najavu u Zalihe? Nakon potvrde najava će biti poslana.';
+   const summary=supplierSendSummary();
+   const summaryEl=document.createElement('div');summaryEl.className='ysc-summary';summaryEl.textContent=summary||'Provjeri unesene podatke prije potvrde.';
+   const actions=document.createElement('div');actions.className='ysc-actions';
+   const cancel=document.createElement('button');cancel.type='button';cancel.className='ysc-cancel';cancel.textContent='ODUSTANI';
+   const confirm=document.createElement('button');confirm.type='button';confirm.className='ysc-confirm';confirm.textContent='POTVRDI NAJAVU';
+   actions.append(cancel,confirm);card.append(title,text,summaryEl,actions);overlay.appendChild(card);document.body.appendChild(overlay);
+   let done=false;
+   const finish=value=>{if(done)return;done=true;document.removeEventListener('keydown',onKey,true);overlay.remove();resolve(value)};
+   const onKey=e=>{if(e.key==='Escape'){e.preventDefault();finish(false)}};
+   cancel.onclick=()=>finish(false);confirm.onclick=()=>finish(true);overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false)});document.addEventListener('keydown',onKey,true);
+   setTimeout(()=>confirm.focus(),0);
+ });
+}
+function installSupplierSendGuard(){
+ const btn=document.getElementById('sbnSend');if(!btn||btn.dataset.yardonConfirmGuard==='1')return;
+ const original=btn.onclick;if(typeof original!=='function')return;
+ btn.dataset.yardonConfirmGuard='1';
+ btn.onclick=async function(e){
+   ensureSupplierSubmitFields();
+   const ok=await supplierConfirmModal();
+   if(!ok){const s=document.getElementById('sbnStatus');if(s)s.textContent='SLANJE OTKAZANO';return false}
+   ensureSupplierSubmitFields();
+   try{return await original.call(this,e)}catch(err){
+     const msg=String(err?.message||err||'Nepoznata greška');
+     alert('Najava nije poslana: '+msg);
+     const s=document.getElementById('sbnStatus');if(s)s.textContent='GREŠKA PRI SLANJU';
+     return false;
+   }
+ };
+}
+function maintain(){purgeGhostSupplier();installTimeOnlyAuthority();installSupplierSendGuard()}
 
 installStorageGhostGuard();
 purgeGhostSupplier();
 installTimeOnlyAuthority();
+installSupplierSendGuard();
 document.addEventListener('DOMContentLoaded',()=>setTimeout(maintain,80));
 window.addEventListener('load',()=>setTimeout(maintain,180),{once:true});
 ['yardivo:login','yardivo:data-synced','yardivo:master-data-changed','yardivo:view-opened'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(maintain,30)));
