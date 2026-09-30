@@ -1,40 +1,57 @@
-/* YardOn Admin Control Center v1 · stable settings/master UI */
-#settings{--yac-border:rgba(126,151,170,.24);--yac-soft:rgba(112,139,160,.08);--yac-accent:#2f8edb;--yac-good:#2fbf71;--yac-warn:#e6a23c;--yac-danger:#df5b63;padding-bottom:42px}
+/* YardOn Admin Control Center v2 · stable, no-flicker settings/master UI */
+#settings{--yac-border:rgba(126,151,170,.22);--yac-soft:rgba(112,139,160,.07);--yac-accent:#2f8edb;--yac-good:#2fbf71;--yac-warn:#e6a23c;--yac-danger:#df5b63;--yac-card:rgba(255,255,255,.025);padding-bottom:48px;contain:layout style}
 #settings .section-title{margin-bottom:12px}
-#settings .section-title h1{letter-spacing:-.02em}
-#yardonAdminControlHead{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:18px 20px;margin:0 0 12px;border:1px solid var(--yac-border);border-radius:18px;background:linear-gradient(135deg,rgba(47,142,219,.10),rgba(47,142,219,.025) 58%,transparent);box-shadow:0 10px 34px rgba(5,19,29,.08)}
+#settings .section-title h1{letter-spacing:-.025em}
+#settings .section-title p{color:#7890a1}
+#yardonAdminControlHead{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:20px 22px;margin:0 0 12px;border:1px solid var(--yac-border);border-radius:18px;background:linear-gradient(135deg,rgba(47,142,219,.11),rgba(47,142,219,.025) 58%,transparent);box-shadow:0 12px 34px rgba(5,19,29,.07)}
 #yardonAdminControlHead .yac-kicker{font-size:9px;font-weight:950;letter-spacing:.14em;color:var(--yac-accent)}
-#yardonAdminControlHead h2{margin:4px 0 5px;font-size:20px;letter-spacing:-.02em}
-#yardonAdminControlHead p{margin:0;color:#7890a1;font-size:10px;line-height:1.55;max-width:720px}
+#yardonAdminControlHead h2{margin:4px 0 5px;font-size:21px;letter-spacing:-.025em}
+#yardonAdminControlHead p{margin:0;color:#7890a1;font-size:10px;line-height:1.6;max-width:760px}
 #yardonAdminControlHead .yac-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-#yardonAdminControlHead .yac-master-btn{height:38px;padding:0 15px;border-radius:10px;border:1px solid rgba(47,142,219,.35);background:rgba(47,142,219,.12);font-weight:950;font-size:10px;cursor:pointer}
-#yardonAdminControlHead .yac-state{height:30px;display:inline-flex;align-items:center;gap:7px;padding:0 10px;border:1px solid var(--yac-border);border-radius:999px;font-size:8px;font-weight:900;color:#7890a1;background:rgba(255,255,255,.025)}
+#yardonAdminControlHead .yac-master-btn{height:40px;padding:0 15px;border-radius:10px;border:1px solid rgba(47,142,219,.34);background:rgba(47,142,219,.12);font-weight:950;font-size:10px;cursor:pointer;color:inherit}
+#yardonAdminControlHead .yac-master-btn span{margin-right:6px}
+#yardonAdminControlHead .yac-state{height:31px;display:inline-flex;align-items:center;gap:7px;padding:0 10px;border:1px solid var(--yac-border);border-radius:999px;font-size:8px;font-weight:900;color:#7890a1;background:rgba(255,255,255,.025)}
 #yardonAdminControlHead .yac-state i{width:7px;height:7px;border-radius:50%;background:var(--yac-good);box-shadow:0 0 0 4px rgba(47,191,113,.10)}
-#yardivoSettingsTabsFinal{display:flex!important;gap:7px;align-items:center;overflow-x:auto;padding:8px;margin:0 0 14px;border:1px solid var(--yac-border);border-radius:14px;background:rgba(9,27,39,.035);scrollbar-width:thin}
-#yardivoSettingsTabsFinal button{flex:0 0 auto;min-height:36px;padding:0 13px;border-radius:9px;border:1px solid transparent;background:transparent;color:inherit;font-size:9px;font-weight:900;letter-spacing:.035em;cursor:pointer;white-space:nowrap;transition:background .12s ease,border-color .12s ease,color .12s ease}
+#yardivoSettingsTabsFinal{position:sticky;top:0;z-index:5;display:flex!important;gap:7px;align-items:center;overflow-x:auto;padding:8px;margin:0 0 10px;border:1px solid var(--yac-border);border-radius:14px;background:rgba(10,28,40,.94);backdrop-filter:blur(10px);scrollbar-width:thin}
+#yardivoSettingsTabsFinal button{flex:0 0 auto;min-height:38px;padding:0 14px;border-radius:9px;border:1px solid transparent;background:transparent;color:inherit;font-size:9px;font-weight:900;letter-spacing:.035em;cursor:pointer;white-space:nowrap}
 #yardivoSettingsTabsFinal button:hover{background:var(--yac-soft);border-color:var(--yac-border)}
-#yardivoSettingsTabsFinal button.active{background:rgba(47,142,219,.14);border-color:rgba(47,142,219,.36);color:#2f8edb}
+#yardivoSettingsTabsFinal button.active{background:rgba(47,142,219,.15);border-color:rgba(47,142,219,.38);color:#4da4e9}
+#yardonSettingsCategoryHead{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 14px;margin:0 0 12px;border-left:3px solid var(--yac-accent);border-radius:0 11px 11px 0;background:rgba(47,142,219,.055)}
+#yardonSettingsCategoryHead h3{margin:0 0 2px;font-size:12px;letter-spacing:-.01em}
+#yardonSettingsCategoryHead p{margin:0;font-size:9px;line-height:1.5;color:#7890a1}
+#yardonSettingsCategoryHead .yac-count{flex:0 0 auto;font-size:8px;font-weight:950;letter-spacing:.06em;color:#7890a1;padding:5px 8px;border:1px solid var(--yac-border);border-radius:999px}
+#yardonSettingsCategoryHead.danger{border-left-color:var(--yac-danger);background:rgba(223,91,99,.055)}
 #settings .settings-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start;min-height:180px}
-#settings .settings-grid>.panel,#settings .settings-grid>.settings-card,#settings .settings-grid>.card,#settings .settings-grid>.danger-zone,#settings .settings-grid>#yardivoUnifiedSettingsV583{min-width:0;margin:0!important;border-radius:16px!important;border:1px solid var(--yac-border)!important;box-shadow:0 7px 24px rgba(5,19,29,.055);overflow:hidden;background-clip:padding-box}
-#settings .settings-grid>.panel .panel-head,#settings .settings-grid>.settings-card .panel-head,#settings .settings-grid>.card .panel-head{padding:14px 16px!important;border-bottom:1px solid var(--yac-border)}
-#settings .settings-grid>.panel .panel-head h2,#settings .settings-grid>.panel .panel-head h3{font-size:13px!important;letter-spacing:-.01em;margin:0 0 3px}
-#settings .settings-grid>.panel .panel-head small{color:#7890a1;line-height:1.45}
+#settings .settings-grid>.panel,#settings .settings-grid>.settings-card,#settings .settings-grid>.card,#settings .settings-grid>.danger-zone,#settings .settings-grid>#yardivoUnifiedSettingsV583{min-width:0;margin:0!important;border-radius:16px!important;border:1px solid var(--yac-border)!important;box-shadow:0 7px 24px rgba(5,19,29,.05);overflow:hidden;background:var(--yac-card);background-clip:padding-box;transform:none!important;animation:none!important;transition:none!important}
+#settings .settings-grid>.panel .panel-head,#settings .settings-grid>.settings-card .panel-head,#settings .settings-grid>.card .panel-head{padding:14px 16px!important;border-bottom:1px solid var(--yac-border);min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+#settings .settings-grid>.panel .panel-head h2,#settings .settings-grid>.panel .panel-head h3,#settings .settings-grid>.settings-card .panel-head h2,#settings .settings-grid>.card .panel-head h2{font-size:13px!important;letter-spacing:-.01em;margin:0 0 3px}
+#settings .settings-grid>.panel .panel-head small,#settings .settings-grid>.settings-card .panel-head small,#settings .settings-grid>.card .panel-head small{color:#7890a1;line-height:1.45}
+#settings .settings-grid input,#settings .settings-grid select,#settings .settings-grid textarea{border-radius:9px;min-height:38px}
+#settings .settings-grid button{border-radius:9px}
 #settings .yardivo-settings-tab-visible{display:block!important;visibility:visible!important;opacity:1!important}
 #settings .yardivo-settings-tab-hidden{display:none!important;visibility:hidden!important;opacity:0!important}
-#settings.yardon-settings-stabilizing .settings-grid{visibility:hidden!important;opacity:0!important;pointer-events:none!important}
-#settings.yardon-settings-stabilizing .settings-grid *{transition:none!important;animation:none!important}
-#settings.yardon-settings-ready .settings-grid{visibility:visible;opacity:1;transition:opacity .12s ease}
+/* Never blank the whole settings surface while late modules settle. */
+#settings.yardon-settings-stabilizing .settings-grid,#settings.yardon-settings-ready .settings-grid{visibility:visible!important;opacity:1!important;pointer-events:auto!important;transition:none!important}
+#settings .settings-grid *,#settings #yardivoSettingsTabsFinal *,#settings #yardonSettingsCategoryHead *{animation:none!important}
 #settings [data-yardon-legacy-duplicate="1"]{display:none!important}
 #settings #yardivoQrRoleAdminV586{grid-column:1/-1}
 #settings #masterUserAdmin{grid-column:1/-1}
 #settings #yardivoDelaySettingsV1,#settings #yardivoNonWorkingDaysSettings{grid-column:auto}
-#settings .yqr6-grid,#settings .yqr6-role-grid{gap:10px!important}
-#settings .yqr6-role-card{border-radius:12px!important;border-color:var(--yac-border)!important;min-height:128px}
-#settings .yqr6-toggle{min-width:118px}
-#settings .yardivo-bulk-admin-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px;padding:10px;border:1px solid rgba(223,91,99,.20);border-radius:11px;background:rgba(223,91,99,.045)}
-#settings .danger-zone{grid-column:1/-1;border-color:rgba(223,91,99,.28)!important}
+#settings .yqr6-body{padding:16px!important}
+#settings .yqr6-grid{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important;margin-bottom:12px}
+#settings .yqr6-role-grid{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important}
+#settings .yqr6-role-card{border-radius:12px!important;border:1px solid var(--yac-border)!important;min-height:136px;padding:14px!important;background:rgba(255,255,255,.02)}
+#settings .yqr6-role-card.off{opacity:.72}
+#settings .yqr6-role-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+#settings .yqr6-role-copy{min-height:36px;color:#7890a1;font-size:9px;line-height:1.5;margin-bottom:10px}
+#settings .yqr6-toggle{min-width:118px;height:36px}
+#settings .yardivo-bulk-admin-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px;padding:11px;border:1px solid rgba(223,91,99,.20);border-radius:11px;background:rgba(223,91,99,.045)}
+#settings .yac-bulk-note{font-size:8px;color:#8299aa}
+#settings .danger-zone{grid-column:1/-1;border-color:rgba(223,91,99,.28)!important;background:rgba(223,91,99,.025)}
 #settings .danger-zone .panel-head,#settings .danger-zone h2{color:#d75c65}
 #yardivoAdminMasterQuickAnchorV11{display:none!important}
 #yardivoSettingsMasterPaneV583:empty,#yardivoSettingsAdminPaneV583:empty{display:none!important}
-@media(max-width:980px){#settings .settings-grid{grid-template-columns:1fr}#settings #yardivoQrRoleAdminV586,#settings #masterUserAdmin,#settings .danger-zone{grid-column:1}#yardonAdminControlHead{grid-template-columns:1fr}#yardonAdminControlHead .yac-actions{justify-content:flex-start}}
-@media(max-width:640px){#yardonAdminControlHead{padding:14px;border-radius:14px}#yardivoSettingsTabsFinal{margin-left:-2px;margin-right:-2px}#settings .settings-grid{gap:9px}}
+/* Legacy QR cards are superseded by the role-aware v586 card. */
+#settings #qrMobileSettingsPanel,#settings #yardivoQrWarehouseAdminPanelV584,#settings #yardivoQrWarehouseAdminV583{display:none!important}
+@media(max-width:980px){#settings .settings-grid{grid-template-columns:1fr}#settings #yardivoQrRoleAdminV586,#settings #masterUserAdmin,#settings .danger-zone{grid-column:1}#yardonAdminControlHead{grid-template-columns:1fr}#yardonAdminControlHead .yac-actions{justify-content:flex-start}#settings .yqr6-role-grid{grid-template-columns:1fr}}
+@media(max-width:640px){#yardonAdminControlHead{padding:14px;border-radius:14px}#yardivoSettingsTabsFinal{margin-left:-2px;margin-right:-2px;top:0}#settings .settings-grid{gap:9px}#settings .yqr6-grid{grid-template-columns:1fr}#yardonSettingsCategoryHead{align-items:flex-start;flex-direction:column}}
