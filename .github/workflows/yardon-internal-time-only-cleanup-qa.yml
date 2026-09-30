@@ -28,7 +28,7 @@ jobs:
           node --check modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
           grep -q "dock:null" modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
           grep -q "bookingMode:'TIME_ONLY'" modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
-          grep -q "GHOST_SUPPLIER='dobavljac69'" modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
+          grep -q "GHOST='dobavljac69'" modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
           grep -q "Fizičku rampu nitko ne bira" modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
       - name: Install Playwright
         run: |
