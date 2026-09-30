@@ -45,8 +45,19 @@ async function call(functionName,body={}){
   return data?.data??data;
 }
 
+function useTimeOnlyOps(action,payload={}){
+  const a=String(action||'').toLowerCase(),st=String(payload?.status||'').toLowerCase();
+  if(['upsert','smart_propose','supplier_accept'].includes(a))return true;
+  if(a==='internal_resolve_supplier_request')return String(payload?.request_type||'').toLowerCase()==='reschedule_requested';
+  if(a==='internal_update'){
+    if(['pending','revision_requested','proposal_sent','confirmed','reschedule_requested'].includes(st))return true;
+    if(Object.prototype.hasOwnProperty.call(payload,'delivery_date')||Object.prototype.hasOwnProperty.call(payload,'requested_time'))return true;
+  }
+  return false;
+}
 function deliveries(action,payload={}){
-  return call('yardivo-supplier-deliveries',{action,...payload});
+  const body={action,...payload};
+  return call(useTimeOnlyOps(action,payload)?'yardivo-supplier-time-ops':'yardivo-supplier-deliveries',body);
 }
 function availability(payload={}){
   return call('yardivo-supplier-availability',payload);
@@ -61,6 +72,7 @@ window.YardivoSupplierService={
   call,
   deliveries,
   availability,
-  scope
+  scope,
+  bookingMode:'TIME_ONLY'
 };
 })();
