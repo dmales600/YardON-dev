@@ -1,0 +1,128 @@
+name: YardOn AI Map + Self Gate QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/yardon-ai-map-selfgate-qa.yml"
+      - "modules/operations/yardon-ai-plan-map-authority-v1.js"
+      - "services/runtime/phase5-310-yardivo-map-live-delay-refresh-v1.js"
+      - "self-gate/index.html"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yardon-ai-map-selfgate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static checks
+        run: |
+          node --check modules/operations/yardon-ai-plan-map-authority-v1.js
+          grep -q "yardivo-self-gate-public" self-gate/index.html
+          grep -q "plannedDock" modules/operations/yardon-ai-plan-map-authority-v1.js
+          grep -q "dobavljac69" modules/operations/yardon-ai-plan-map-authority-v1.js
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Browser regression
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-qa-http.log 2>&1 &
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const assert=(v,m)=>{if(!v)throw new Error(m)};
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+
+            // 1) AI planned dock must render in Daily Map without becoming actual dock.
+            {
+              const page=await browser.newPage();
+              await page.setContent(`<!doctype html><html><head></head><body>
+                <input id="dailyMapDate" value="2026-09-30">
+                <select id="dailyMapWarehouseSelect"><option value="W001" selected>W001</option></select>
+                <section id="dailyMap" class="active"><div id="dailyMapBoard"></div></section>
+                <section id="overview"><div id="overviewHost"></div></section>
+              </body></html>`);
+              await page.evaluate(()=>{
+                window.currentSession={role:'inventory',app_role:'inventory'};
+                window.announcements=[{id:885280267,supplier:'DOBAVLJAC1',supplierDeliveryId:'ccd87b76-8977-4b78-8449-eb35ebb719bc',date:'2026-09-30',time:'10:30',warehouse:'W001',dock:null,status:'Najavljen'}];
+                window.suppliers=['DOBAVLJAC1','dobavljac69'];
+                localStorage.setItem('yardivo_ghost_test',JSON.stringify({suppliers:['DOBAVLJAC1','dobavljac69']}));
+                window.renderDailyMap=function(){
+                  const a=window.announcements[0];
+                  document.getElementById('dailyMapBoard').innerHTML=a.dock?`<div class="dmv-booked" data-announcement-id="${a.id}">${a.supplier} R${a.dock}</div>`:'';
+                };
+                window.renderDailyRampCapacity=function(){};
+                window.renderOverview=function(){document.getElementById('overviewHost').textContent=window.suppliers.join('|')};
+                window.YardivoAppStateV583={warehouse:()=> 'W001',master:()=>({suppliers:[{name:'DOBAVLJAC1'},{name:'dobavljac69'}]})};
+                window.yardivoLocalDateV583=()=> '2026-09-30';
+                window.YardivoSupplierLiveSync={pullInternal:async()=>{}};
+                window.YardivoAuth={client:async()=>({functions:{invoke:async(name,opt)=>({data:{ok:true,data:{plan:[{id:'885280267',supplier_delivery_id:'ccd87b76-8977-4b78-8449-eb35ebb719bc',supplier:'DOBAVLJAC1',warehouse:'W001',date:'2026-09-30',time:'10:30',planned_dock:1,planned_start:'10:30',planned_end:'11:30'}]}}})}})};
+              });
+              await page.addScriptTag({path:'modules/operations/yardon-ai-plan-map-authority-v1.js'});
+              await page.evaluate(()=>window.YardOnAiPlanMapAuthorityV1.planDay('2026-09-30','W001',true));
+              await page.evaluate(()=>window.renderDailyMap());
+              const state=await page.evaluate(()=>({
+                actualDock:window.announcements[0].dock,
+                plannedDock:window.announcements[0].plannedDock,
+                board:document.getElementById('dailyMapBoard').textContent,
+                badge:document.querySelector('.yardon-ai-plan-badge')?.textContent||'',
+                suppliers:window.suppliers.slice(),
+                storage:localStorage.getItem('yardivo_ghost_test')||''
+              }));
+              assert(state.actualDock===null,'AI plan polluted actual dock');
+              assert(state.plannedDock==='R1','planned dock not applied');
+              assert(/DOBAVLJAC1 R1/.test(state.board),'Daily Map did not render DOBAVLJAC1 on planned R1');
+              assert(/AI PLAN · R1/.test(state.badge),'AI PLAN badge missing');
+              assert(!state.suppliers.some(x=>String(x).toLowerCase().includes('dobavljac69')),'ghost supplier remained in supplier array');
+              assert(!state.storage.toLowerCase().includes('dobavljac69'),'ghost supplier remained in localStorage');
+              await page.close();
+            }
+
+            // 2) Public Self Gate page must use robust public endpoint and submit the latest-booking identifiers.
+            {
+              const context=await browser.newContext();
+              let submitPayload=null;
+              await context.route('https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-self-gate-public',async route=>{
+                const req=route.request();
+                const b=JSON.parse(req.postData()||'{}');
+                if(b.action==='wall_status')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:true,location:'LOC001',locationName:'DUGOPOLJE',warehouses:['W001']})});
+                if(b.action==='wall_submit'){
+                  submitPayload=b;
+                  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,sessionToken:'qa-pass-token',warehouse:'W001',announcementId:'885280267',plannedDock:'R1'})});
+                }
+                if(b.action==='status')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,pass:{state:'WAITING_GATE',supplier_name:'DOBAVLJAC1',warehouse_name:'W201',vehicle_plate:'ST123',driver_name:'DUJE',last_instruction:'Čeka se odobrenje Porte.'},events:[]})});
+                return route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({ok:false,error:'QA_UNKNOWN'})});
+              });
+              const page=await context.newPage();
+              await page.goto('http://127.0.0.1:4173/self-gate/?wall=qa-wall',{waitUntil:'domcontentloaded'});
+              await page.waitForSelector('#ref');
+              await page.fill('#ref','NAJ000001');
+              await page.fill('#plate','ST-123');
+              await page.fill('#driver','DUJE');
+              await page.click('#submit');
+              await page.waitForURL(/pass=qa-pass-token/);
+              await page.waitForTimeout(250);
+              assert(submitPayload?.reference==='NAJ000001','Self Gate did not send announcement reference');
+              assert(submitPayload?.plate==='ST-123','Self Gate did not send plate');
+              assert(submitPayload?.driver==='DUJE','Self Gate did not send driver');
+              const txt=await page.textContent('body');
+              assert(/ČEKA ODOBRENJE PORTE/.test(txt),'Self Gate pass state not rendered');
+              await context.close();
+            }
+
+            await browser.close();
+            console.log('YARDON_AI_MAP_SELF_GATE_QA_PASS');
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
