@@ -22,6 +22,7 @@
 #settings .yardivo-settings-tab-visible{display:block!important;visibility:visible!important;opacity:1!important}
 #settings .yardivo-settings-tab-hidden{display:none!important;visibility:hidden!important;opacity:0!important}
 #settings.yardon-settings-stabilizing .settings-grid{visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+#settings.yardon-settings-stabilizing .settings-grid *{transition:none!important;animation:none!important}
 #settings.yardon-settings-ready .settings-grid{visibility:visible;opacity:1;transition:opacity .12s ease}
 #settings [data-yardon-legacy-duplicate="1"]{display:none!important}
 #settings #yardivoQrRoleAdminV586{grid-column:1/-1}
