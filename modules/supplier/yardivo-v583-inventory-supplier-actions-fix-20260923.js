@@ -53,17 +53,17 @@ async function approve(id,confirmFirst){
   if(!x)return alert('Supplier najava nije pronađena.');
   const st=String(x.status||'').toLowerCase();
   if(!['pending','revision_requested','proposal_sent'].includes(st))return alert('Najava više ne čeka potvrdu.');
-  const date=String(x.delivery_date||''),time=String(x.requested_time||'').slice(0,5),dock=String(x.dock||'').trim();
-  if(!date||!time||!dock)return alert('Najava nema potpun datum, termin ili rampu.');
-  if(confirmFirst&&!confirm('Odobriti termin '+date+' · '+time+' · '+dock+'?'))return;
+  const date=String(x.delivery_date||''),time=String(x.requested_time||'').slice(0,5);
+  if(!date||!time)return alert('Najava nema potpun datum ili termin.');
+  if(confirmFirst&&!confirm('Odobriti termin '+date+' · '+time+'?\n\nRampa će se dodijeliti interno u YardOnu.'))return;
   try{
     await window.YardivoSupplierLiveSync.call('internal_update',{
       id:x.id,status:'confirmed',
-      review_note:'Najavu i termin potvrdio: '+actor()+'. Najava je aktivna u Dnevnoj mapi, Tjednoj mapi i Prijamu robe.'
+      review_note:'Najavu i termin potvrdio: '+actor()+'. Rampa se dodjeljuje interno u YardOnu prema operativnom planu.'
     });
     closePlanner();closeContext();
     await refresh(x.id,'confirmed');
-    try{if(typeof showYmsToast==='function')showYmsToast('success','NAJAVA POTVRĐENA','Termin je potvrđen. Desno je dostupno POŠALJI QR ZA DOCK.',4200)}catch(_){}
+    try{if(typeof showYmsToast==='function')showYmsToast('success','TERMIN POTVRĐEN','Najava je aktivna. YardOn će planirati rampu interno.',4200)}catch(_){}
   }catch(e){alert('Najavu nije moguće potvrditi:\n'+err(e))}
 }
 async function reject(id){
@@ -94,23 +94,23 @@ function plannerValues(x){
   const selected=document.querySelector('#ysrPlannerOverlay .ysrp-day.sel');
   const date=String(selected?.dataset?.ysrpDay||x?.delivery_date||'');
   const time=String(document.getElementById('ysrpTime')?.value||'').slice(0,5);
-  const dock=String(document.getElementById('ysrpDock')?.value||'').replace(/^R/i,'');
-  return {date,time,dock};
+  return {date,time};
 }
 async function sendProposal(){
   if(!allowed())return;
   const x=await rowById(activePlannerId);
   if(!x)return alert('Supplier najava nije pronađena.');
   const v=plannerValues(x);
-  if(!v.date||!v.time||!v.dock)return alert('Odaberi datum, termin i rampu.');
+  if(!v.date||!v.time)return alert('Odaberi datum i termin.');
   try{
     await window.YardivoSupplierLiveSync.call('internal_update',{
-      id:x.id,delivery_date:v.date,requested_time:v.time,dock:'R'+v.dock,status:'proposal_sent',
-      review_note:'Promjenu termina inicirao: '+actor()+'. Dobavljač treba prihvatiti ili zatražiti drugi termin.'
+      id:x.id,delivery_date:v.date,requested_time:v.time,status:'proposal_sent',
+      proposed_date:v.date,proposed_time:v.time,proposed_dock:null,
+      review_note:'Promjenu termina inicirao: '+actor()+'. Dobavljač treba prihvatiti ili zatražiti drugi termin. Rampa se ne rezervira Supplieru.'
     });
     closePlanner();closeContext();
     await refresh(x.id,'proposal_sent');
-    try{if(typeof showYmsToast==='function')showYmsToast('success','PRIJEDLOG POSLAN','Novi termin je poslan dobavljaču.',3600)}catch(_){}
+    try{if(typeof showYmsToast==='function')showYmsToast('success','PRIJEDLOG POSLAN','Novi termin je poslan dobavljaču. Rampa se planira interno.',3600)}catch(_){}
   }catch(e){alert('Prijedlog nije poslan:\n'+err(e))}
 }
 
@@ -147,5 +147,5 @@ window.addEventListener('click',function(e){
   }
 },true);
 
-window.YARDIVO_DEV_BUILD='20260923-dev-v5.8.3-inventory-supplier-actions-fix';
+window.YARDIVO_DEV_BUILD='20260930-dev-v5.8.3-time-only-supplier-actions';
 })();
