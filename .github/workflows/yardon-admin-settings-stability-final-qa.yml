@@ -1,0 +1,126 @@
+name: YardOn Admin Settings Final QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/yardon-admin-settings-stability-final-qa.yml"
+      - "styles/yardon-admin-settings-v1.css"
+      - "modules/supplier/yardivo-v583-settings-export-supplier-bulk-hard-fix.js"
+      - "modules/services/yardivo-qr-role-control-v586.js"
+      - "modules/services/yardivo-master-admin-settings-v583.js"
+      - "modules/master-data/runtime/yardivo-v583-settings-single-page-master-light-blue-authority.js"
+      - "modules/master-data/phase2-258-yardivo-v583-add-user-smart-system-toggle-js.js"
+      - "modules/supplier/phase2-257-yardivo-v583-smart-suppliers-accounts-fix-js.js"
+      - "modules/supplier/yardivo-v583-master-data-cleanup-final-js.js"
+      - "modules/master-data/runtime/yardivo-admin-cleanup-v8-js.js"
+      - "modules/supplier/yardivo-supplier-location-warehouse-binding-v583.js"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yardon-admin-settings-final-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  no-flicker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static checks
+        run: |
+          node --check modules/supplier/yardivo-v583-settings-export-supplier-bulk-hard-fix.js
+          node --check modules/services/yardivo-qr-role-control-v586.js
+          node --check modules/services/yardivo-master-admin-settings-v583.js
+          node --check modules/master-data/runtime/yardivo-v583-settings-single-page-master-light-blue-authority.js
+          node --check modules/master-data/phase2-258-yardivo-v583-add-user-smart-system-toggle-js.js
+          node --check modules/supplier/phase2-257-yardivo-v583-smart-suppliers-accounts-fix-js.js
+          node --check modules/supplier/yardivo-v583-master-data-cleanup-final-js.js
+          node --check modules/master-data/runtime/yardivo-admin-cleanup-v8-js.js
+          test -s styles/yardon-admin-settings-v1.css
+          ! grep -R "MutationObserver" modules/master-data/runtime/yardivo-admin-cleanup-v8-js.js modules/supplier/yardivo-supplier-location-warehouse-binding-v583.js
+          ! grep -q "yardivo:data-synced.*loadServerCfg" modules/services/yardivo-qr-role-control-v586.js
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Admin Settings browser stability
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-settings-final-http.log 2>&1 &
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const HOST='https://ldzwgdwzolbvjxyznlry.supabase.co';
+          const bootstrap={ok:true,state:[{key:'yardivo_qr_scan_cfg_v583',deleted:false,value_json:JSON.stringify({enabled:true,byWarehouse:{W001:{gate:true,reception:true}}})}]};
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1440,height:1050}});
+            const errors=[]; page.on('pageerror',e=>errors.push(String(e.message||e)));
+            await page.route(HOST+'/**',async route=>{
+              if(route.request().method()==='OPTIONS') return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'}});
+              if(route.request().url().includes('/functions/v1/yardivo-sync')) return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(bootstrap)});
+              return route.fulfill({status:200,contentType:'application/json',body:'{}'});
+            });
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
+            await page.waitForTimeout(1400);
+            const setup=await page.evaluate(()=>{
+              window.currentSession={user:'qa_admin',username:'qa_admin',role:'admin',app_role:'admin',location:'LOC001',warehouses:['W001'],serverAuthorized:true};
+              try{currentSession=window.currentSession}catch(_){}
+              localStorage.setItem('yardivo_master_data_registry_v583',JSON.stringify({locations:[{id:'LOC001',name:'Lokacija 1',active:true}],warehouses:[{id:'W001',name:'W201',location_id:'LOC001',active:true,ramps:4}]}));
+              document.body.dataset.yardivoRole='admin';document.documentElement.dataset.yardivoRole='admin';
+              [...document.body.classList].filter(x=>/^yv-role-.*-v583$/.test(x)).forEach(x=>document.body.classList.remove(x));
+              document.body.classList.add('yv-role-admin-v583');
+              document.body.classList.remove('yardivo-role-switching','yardivo-prelogin');
+              document.documentElement.classList.add('yardivo-login-ready','yardivo-welcome-complete');
+              document.getElementById('loginOverlay')?.style.setProperty('display','none','important');
+              document.getElementById('yardivoWelcomeSplash')?.style.setProperty('display','none','important');
+              const shell=document.querySelector('.app-shell');if(shell){shell.style.setProperty('display','grid','important');shell.style.setProperty('visibility','visible','important')}
+              document.querySelectorAll('.view').forEach(v=>{v.classList.remove('active');v.style.removeProperty('display')});
+              const s=document.getElementById('settings');if(s){s.classList.add('active');s.classList.remove('role-hidden');s.style.setProperty('display','block','important');s.style.setProperty('visibility','visible','important')}
+              window.dispatchEvent(new CustomEvent('yardivo:login',{detail:{session:window.currentSession}}));
+              window.dispatchEvent(new CustomEvent('yardivo:view-opened',{detail:{view:'settings'}}));
+              window.YardivoSettingsHardFixV583?.refresh?.();
+              window.YardivoSettingsHardFixV583?.stabilize?.();
+              return {api:!!window.YardivoSettingsHardFixV583,settings:!!s};
+            });
+            if(!setup.api) throw new Error('Settings authority API missing');
+            await page.waitForTimeout(1100);
+            const mounted=await page.evaluate(()=>({
+              head:!!document.getElementById('yardonAdminControlHead'),
+              headParent:document.getElementById('yardonAdminControlHead')?.parentElement?.id||document.getElementById('yardonAdminControlHead')?.parentElement?.className||'',
+              tabs:document.querySelectorAll('#yardivoSettingsTabsFinal [data-settings-tab]').length,
+              settingsDisplay:getComputedStyle(document.getElementById('settings')).display,
+              headDisplay:document.getElementById('yardonAdminControlHead')?getComputedStyle(document.getElementById('yardonAdminControlHead')).display:'missing'
+            }));
+            if(!mounted.head||mounted.tabs!==5) throw new Error('Control Center mount invalid '+JSON.stringify(mounted));
+            if(mounted.headDisplay==='none') throw new Error('Control Center hidden '+JSON.stringify(mounted));
+            await page.evaluate(()=>document.querySelector('#yardivoSettingsTabsFinal [data-settings-tab="qr"]')?.click());
+            await page.waitForTimeout(250);
+            if(await page.locator('#yardivoQrRoleAdminV586').count()!==1) throw new Error('Canonical QR panel count != 1');
+            if(!await page.locator('#yardivoQrRoleAdminV586').isVisible()) throw new Error('Canonical QR panel not visible');
+            if(await page.locator('#yardivoQrWarehouseAdminPanelV584:visible').count()) throw new Error('Legacy QR v584 visible');
+            if(await page.locator('#qrMobileSettingsPanel:visible').count()) throw new Error('Legacy QR mobile card visible');
+            await page.waitForTimeout(450);
+            const baseline=await page.evaluate(()=>({children:document.querySelector('#settings .settings-grid')?.children.length||0,qr:document.querySelectorAll('#yardivoQrRoleAdminV586').length}));
+            const churn=await page.evaluate(async()=>{
+              const g=document.querySelector('#settings .settings-grid');let adds=0,rems=0,records=0;
+              const o=new MutationObserver(ms=>{records+=ms.length;for(const m of ms){adds+=m.addedNodes.length;rems+=m.removedNodes.length}});
+              o.observe(g,{childList:true,subtree:true});
+              for(let i=0;i<3;i++){window.dispatchEvent(new CustomEvent('yardivo:data-synced',{detail:{source:'qa-noop-'+i}}));await new Promise(r=>setTimeout(r,200));}
+              await new Promise(r=>setTimeout(r,500));o.disconnect();return {adds,rems,records};
+            });
+            const after=await page.evaluate(()=>({children:document.querySelector('#settings .settings-grid')?.children.length||0,qr:document.querySelectorAll('#yardivoQrRoleAdminV586').length,ready:document.getElementById('settings')?.classList.contains('yardon-settings-ready')}));
+            if(churn.adds>2||churn.rems>2) throw new Error('DOM flicker/churn '+JSON.stringify({baseline,churn,after}));
+            if(after.qr!==1||Math.abs(after.children-baseline.children)>1||!after.ready) throw new Error('Settings unstable '+JSON.stringify({baseline,churn,after}));
+            await page.evaluate(()=>document.querySelector('#yardivoSettingsTabsFinal [data-settings-tab="admin"]')?.click());await page.waitForTimeout(100);
+            if(!await page.locator('#yardivoSettingsTabsFinal [data-settings-tab="admin"].active').count()) throw new Error('Admin tab inactive');
+            const critical=errors.filter(x=>!/rampInfo is not defined/i.test(x));if(critical.length)throw new Error('Page errors: '+critical.join(' | '));
+            console.log('YARDON_ADMIN_SETTINGS_FINAL_QA_PASS',JSON.stringify({mounted,baseline,churn,after}));
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
