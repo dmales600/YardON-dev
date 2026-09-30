@@ -1,0 +1,121 @@
+name: YardOn Time-only + My Yard QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/yardon-time-only-myyard-qa.yml"
+      - "modules/supplier/service.js"
+      - "modules/supplier/yardon-supplier-time-only-v1.js"
+      - "modules/services/yardon-myyard-operations-v1.js"
+      - "services/runtime/phase5-241-yardivo-v583-myyard-parking42-final-authority.js"
+      - "modules/supplier/yardivo-v583-inventory-supplier-actions-fix-20260923.js"
+      - "modules/master-data/yardivo-v35-my-yard.js"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yardon-time-only-myyard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  time-only-myyard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static contract checks
+        run: |
+          node --check modules/supplier/service.js
+          node --check modules/supplier/yardon-supplier-time-only-v1.js
+          node --check modules/services/yardon-myyard-operations-v1.js
+          node --check services/runtime/phase5-241-yardivo-v583-myyard-parking42-final-authority.js
+          node --check modules/supplier/yardivo-v583-inventory-supplier-actions-fix-20260923.js
+          grep -q "bookingMode:'TIME_ONLY'" modules/supplier/service.js
+          grep -q "yardivo-supplier-time-ops" modules/supplier/service.js
+          ! grep -q "Najava nema potpun datum, termin ili rampu" modules/supplier/yardivo-v583-inventory-supplier-actions-fix-20260923.js
+          ! grep -q "dock:'R'+v.dock" modules/supplier/yardivo-v583-inventory-supplier-actions-fix-20260923.js
+          grep -q "PARKING & QUEUE" modules/services/yardon-myyard-operations-v1.js
+          grep -q "CHAT / UPUTE" modules/services/yardon-myyard-operations-v1.js
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Browser QA
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-time-http.log 2>&1 &
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const HOST='https://ldzwgdwzolbvjxyznlry.supabase.co';
+          const mock={ok:true,data:{
+            date:'2026-09-30',generated_at:'2026-09-30T06:00:00.000Z',
+            warehouses:[{id:'W001',name:'W201',location_id:'LOC001',ramps:[{number:1,name:'Rampa 1',from:'06:00',to:'14:00',pallets_per_hour:33},{number:2,name:'Rampa 2',from:'06:00',to:'14:00',pallets_per_hour:33},{number:3,name:'Rampa 3',from:'06:00',to:'14:00',pallets_per_hour:33}]}],
+            plan:[
+              {id:'SUPDEL-1',supplier_delivery_id:'1',supplier:'Supplier A',warehouse:'W001',date:'2026-09-30',time:'06:00',pallets:20,planned_dock:1,planned_start:'06:00',planned_end:'06:45',shift_minutes:0,parking_risk:false},
+              {id:'SUPDEL-2',supplier_delivery_id:'2',supplier:'Supplier B',warehouse:'W001',date:'2026-09-30',time:'06:30',pallets:25,planned_dock:2,planned_start:'06:45',planned_end:'07:30',shift_minutes:15,parking_risk:true,predicted_parking:'P1'}
+            ],
+            passes:[{id:'PASS-1',announcement_id:'SUPDEL-2',supplier_delivery_id:'2',warehouse:'W001',supplier_name:'Supplier B',dock:'R2',parking_slot:'P23',state:'PARKING',vehicle_plate:'ZG1234AA',last_instruction:'Ostanite na parkingu P23. Prijam će vas pozvati.',checked_in_at:'2026-09-30T06:25:00Z'}],
+            decisions:[{id:'D1',at:'2026-09-30T06:32:00Z',supplier:'Supplier B',status:'PENDING_INVENTORY',reason:'R2 je zauzeta dulje od plana.',old:{time:'06:30',dock:2},newSlot:{time:'06:45',dock:1}}],
+            parking:{capacity:42,occupied:['P23'],free:41},summary:{total:2,assigned:2,waiting:1,no_capacity:0,utilization_pct:44}
+          }};
+          async function prepare(page,role){
+            const errors=[];page.on('pageerror',e=>errors.push(String(e.message||e)));
+            await page.route(HOST+'/**',async route=>{
+              const url=route.request().url();
+              if(url.includes('/functions/v1/yardivo-ai-operations'))return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info'},body:JSON.stringify(mock)});
+              if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'}});
+              return route.fulfill({status:401,contentType:'application/json',body:'{"message":"QA sandbox"}'});
+            });
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
+            await page.waitForTimeout(1900);
+            await page.evaluate(role=>{
+              window.__yardivoSupplierAccessToken='qa-token';
+              window.currentSession={user:'qa_'+role,username:'qa_'+role,role,app_role:role,location:'LOC001',warehouses:['W001'],serverAuthorized:true};
+              try{currentSession=window.currentSession}catch(_){}
+              document.body.dataset.yardivoRole=role;document.documentElement.dataset.yardivoRole=role;
+              [...document.body.classList].filter(x=>/^yv-role-.*-v583$/.test(x)).forEach(x=>document.body.classList.remove(x));document.body.classList.add('yv-role-'+role+'-v583');
+              document.getElementById('loginOverlay')?.style.setProperty('display','none','important');document.getElementById('yardivoWelcomeSplash')?.style.setProperty('display','none','important');
+              const shell=document.querySelector('.app-shell');if(shell){shell.style.setProperty('visibility','visible','important');shell.style.setProperty('display','grid','important')}
+              document.body.classList.remove('yardivo-role-switching','yardivo-prelogin');document.documentElement.classList.add('yardivo-login-ready','yardivo-welcome-complete');
+              window.dispatchEvent(new CustomEvent('yardivo:login',{detail:{session:window.currentSession}}));try{window.YardivoRoleVisibility?.apply?.()}catch(_){}try{window.YardivoRoleStableFinal?.apply?.()}catch(_){}
+            },role);
+            await page.waitForTimeout(900);return errors;
+          }
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            for(const role of ['inventory','reception']){
+              const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();
+              const errors=await prepare(page,role);
+              await page.evaluate(()=>{window.YardivoRoleStableFinal?.open?.('myYard');window.YardivoMyYard?.render?.();});
+              await page.waitForTimeout(1200);
+              if(!await page.locator('#yardonMyYardOps').isVisible())throw new Error(role+' My Yard Operations panel missing');
+              if(!await page.getByText('Supplier B',{exact:true}).first().isVisible())throw new Error(role+' planned supplier missing');
+              await page.evaluate(()=>document.querySelector('[data-ymyo="parking"]')?.click());await page.waitForTimeout(80);
+              const p23=page.locator('#ymyoBody .ymyo-park.actual').filter({hasText:'P23'});if(!await p23.count())throw new Error(role+' P23 actual occupancy missing');
+              await page.evaluate(()=>document.querySelector('[data-ymyo="ai"]')?.click());await page.waitForTimeout(80);
+              if(!await page.getByText('R2 je zauzeta dulje od plana.',{exact:false}).isVisible())throw new Error(role+' AI replan reason missing');
+              await page.evaluate(()=>document.querySelector('[data-ymyo="chat"]')?.click());await page.waitForTimeout(80);
+              if(!await page.getByText('Ostanite na parkingu P23. Prijam će vas pozvati.',{exact:false}).isVisible())throw new Error(role+' chat/instruction state missing');
+              if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
+              await context.close();
+            }
+            {
+              const context=await browser.newContext({viewport:{width:1280,height:900}}),page=await context.newPage();await prepare(page,'supplier');
+              const route=await page.evaluate(()=>window.YardivoSupplierService?.routedFunction?.('yardivo-supplier-deliveries',{action:'upsert',dock:'R0'}));
+              if(route!=='yardivo-supplier-time-ops')throw new Error('supplier upsert does not route to time-only backend: '+route);
+              if(!await page.evaluate(()=>!!window.YardOnSupplierTimeOnlyV1))throw new Error('supplier time-only UI layer not loaded');
+              await context.close();
+            }
+            {
+              const context=await browser.newContext({viewport:{width:1280,height:900}}),page=await context.newPage();await prepare(page,'gate');
+              if(await page.locator('#yardonMyYardOps').count())throw new Error('gate must not receive internal My Yard Operations panel');
+              await context.close();
+            }
+            await browser.close();console.log('YARDON_TIME_ONLY_MYYARD_QA_PASS');
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
