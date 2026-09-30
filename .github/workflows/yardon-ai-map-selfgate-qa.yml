@@ -38,6 +38,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Browser regression
         run: |
+          printf '<!doctype html><html><body>QA</body></html>' > qa-ai-map-harness.html
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-qa-http.log 2>&1 &
           node <<'NODE'
           const { chromium } = require('playwright');
@@ -48,6 +49,7 @@ jobs:
             // 1) AI planned dock must render in Daily Map without becoming actual dock.
             {
               const page=await browser.newPage();
+              await page.goto('http://127.0.0.1:4173/qa-ai-map-harness.html');
               await page.setContent(`<!doctype html><html><head></head><body>
                 <input id="dailyMapDate" value="2026-09-30">
                 <select id="dailyMapWarehouseSelect"><option value="W001" selected>W001</option></select>
@@ -68,7 +70,7 @@ jobs:
                 window.YardivoAppStateV583={warehouse:()=> 'W001',master:()=>({suppliers:[{name:'DOBAVLJAC1'},{name:'dobavljac69'}]})};
                 window.yardivoLocalDateV583=()=> '2026-09-30';
                 window.YardivoSupplierLiveSync={pullInternal:async()=>{}};
-                window.YardivoAuth={client:async()=>({functions:{invoke:async(name,opt)=>({data:{ok:true,data:{plan:[{id:'885280267',supplier_delivery_id:'ccd87b76-8977-4b78-8449-eb35ebb719bc',supplier:'DOBAVLJAC1',warehouse:'W001',date:'2026-09-30',time:'10:30',planned_dock:1,planned_start:'10:30',planned_end:'11:30'}]}}})}})};
+                window.YardivoAuth={client:async()=>({functions:{invoke:async()=>({data:{ok:true,data:{plan:[{id:'885280267',supplier_delivery_id:'ccd87b76-8977-4b78-8449-eb35ebb719bc',supplier:'DOBAVLJAC1',warehouse:'W001',date:'2026-09-30',time:'10:30',planned_dock:1,planned_start:'10:30',planned_end:'11:30'}]}}})}})};
               });
               await page.addScriptTag({path:'modules/operations/yardon-ai-plan-map-authority-v1.js'});
               await page.evaluate(()=>window.YardOnAiPlanMapAuthorityV1.planDay('2026-09-30','W001',true));
