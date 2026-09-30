@@ -1,0 +1,109 @@
+name: YardOn Internal Time-only + Supplier Cleanup QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/yardon-internal-time-only-cleanup-qa.yml"
+      - "modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yardon-internal-time-only-cleanup-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  internal-time-only-cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static authority checks
+        run: |
+          node --check modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
+          grep -q "dock:null" modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
+          grep -q "bookingMode:'TIME_ONLY'" modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
+          grep -q "GHOST_SUPPLIER='dobavljac69'" modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
+          grep -q "Fizičku rampu nitko ne bira" modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Browser regression
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-internal-time-only-http.log 2>&1 &
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const HOST='https://ldzwgdwzolbvjxyznlry.supabase.co';
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width:1440,height:1000}});
+            await context.addInitScript(()=>{
+              localStorage.setItem('yardivo_master_data_registry_v583',JSON.stringify({
+                suppliers:[{id:'SUP001',name:'dobavljac69',active:true},{id:'SUP002',name:'Keep Supplier',active:true}],
+                locations:[{id:'LOC001',name:'QA Location',active:true}],
+                warehouses:[{id:'W001',name:'QA Warehouse',location_id:'LOC001',ramps:3,active:true}],
+                __emptySupplierSeedMigrationV583:true,__emptyWarehouseMigrationV583:true
+              }));
+              localStorage.setItem('qa_nested_ghost',JSON.stringify({items:[{supplier:'dobavljac69',x:1},{supplier:'Keep Supplier',x:2}]}));
+            });
+            const page=await context.newPage();
+            const pageErrors=[];page.on('pageerror',e=>pageErrors.push(String(e.message||e)));
+            await page.route(HOST+'/**',async route=>{
+              if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'}});
+              return route.fulfill({status:401,contentType:'application/json',body:'{"message":"QA sandbox"}'});
+            });
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
+            await page.waitForTimeout(2200);
+            await page.evaluate(()=>{
+              window.currentSession={user:'qa_inventory',username:'qa_inventory',role:'inventory',app_role:'inventory',location:'LOC001',warehouses:['W001'],serverAuthorized:true};
+              try{currentSession=window.currentSession}catch(_){}
+              document.body.dataset.yardivoRole='inventory';document.documentElement.dataset.yardivoRole='inventory';
+              document.getElementById('loginOverlay')?.style.setProperty('display','none','important');
+              document.getElementById('yardivoWelcomeSplash')?.style.setProperty('display','none','important');
+              const shell=document.querySelector('.app-shell');if(shell){shell.style.setProperty('visibility','visible','important');shell.style.setProperty('display','grid','important')}
+              window.dispatchEvent(new CustomEvent('yardivo:login',{detail:{session:window.currentSession}}));
+            });
+            await page.waitForTimeout(1300);
+
+            const ghost=await page.evaluate(()=>({
+              master:localStorage.getItem('yardivo_master_data_registry_v583')||'',
+              nested:localStorage.getItem('qa_nested_ghost')||'',
+              visible:[...document.querySelectorAll('option,tr,li,[data-supplier-name],.supplier-card')].some(el=>String(el.textContent||'').toLowerCase().includes('dobavljac69'))
+            }));
+            if(ghost.master.toLowerCase().includes('dobavljac69'))throw new Error('ghost supplier remains in master localStorage');
+            if(ghost.nested.toLowerCase().includes('dobavljac69'))throw new Error('ghost supplier remains in nested localStorage JSON');
+            if(ghost.visible)throw new Error('ghost supplier remains visible in UI');
+
+            const ui=await page.evaluate(()=>{
+              const dock=document.getElementById('annDock'),rec=document.getElementById('annRecommendation'),btn=document.getElementById('saveRecommendedAnnouncement');
+              return {mode:document.getElementById('announcementForm')?.dataset.yardonBookingMode||'',dockHidden:dock?.closest('label')?.style.display==='none',recHidden:rec?.style.display==='none',button:btn?.textContent||''};
+            });
+            if(ui.mode!=='TIME_ONLY')throw new Error('internal announcement form is not TIME_ONLY');
+            if(!ui.dockHidden)throw new Error('manual dock field is still visible');
+            if(!ui.recHidden)throw new Error('dock recommendation card is still visible');
+            if(!ui.button.includes('SPREMI NAJAVU'))throw new Error('primary action still describes a recommendation');
+
+            const saved=await page.evaluate(()=>{
+              const set=(id,val)=>{const e=document.getElementById(id);if(!e)return; if(e.tagName==='SELECT'&&![...e.options].some(o=>o.value===val)){const o=document.createElement('option');o.value=val;o.textContent=val;e.appendChild(o)} e.value=val;};
+              set('annDate','2026-10-01');set('annWarehouse','W001');set('annSupplier','Keep Supplier');set('annResponsible','QA User');set('annTime','06:00');set('annPallets','10');set('annSku','1');
+              const ok=window.applyAnnouncementSlot?.('manual');
+              const row=(typeof announcements!=='undefined'&&announcements.length)?announcements[announcements.length-1]:null;
+              return {ok:!!ok,row:row?{supplier:row.supplier,time:row.time,dock:row.dock,plannedDock:row.plannedDock,bookingMode:row.bookingMode,dockAssignmentState:row.dockAssignmentState}:null};
+            });
+            if(!saved.ok||!saved.row)throw new Error('time-only internal announcement did not save');
+            if(saved.row.dock!==null)throw new Error('internal announcement persisted a physical dock');
+            if(saved.row.plannedDock!==null)throw new Error('internal announcement persisted a planned dock from entry form');
+            if(saved.row.bookingMode!=='TIME_ONLY'||saved.row.dockAssignmentState!=='UNASSIGNED')throw new Error('time-only authority markers missing');
+            if(pageErrors.length)throw new Error('page errors: '+pageErrors.join(' | '));
+
+            await browser.close();
+            console.log('YARDON_INTERNAL_TIME_ONLY_CLEANUP_QA_PASS');
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
