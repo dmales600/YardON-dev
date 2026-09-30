@@ -39,6 +39,9 @@ function allowed(r,v){
   return !!MATRIX[r]?.has(String(v||''));
 }
 function show(el,kind){
+  const desired=kind==='nav'?'flex':'block';
+  const alreadyVisible=!el.classList.contains('role-hidden')&&el.getAttribute('aria-hidden')!=='true'&&el.style.getPropertyValue('display')===desired;
+  if(alreadyVisible)return;
   el.classList.remove('role-hidden');
   el.removeAttribute('hidden');
   el.removeAttribute('aria-hidden');
@@ -46,9 +49,10 @@ function show(el,kind){
   el.style.removeProperty('visibility');
   el.style.removeProperty('opacity');
   el.style.removeProperty('pointer-events');
-  el.style.setProperty('display',kind==='nav'?'flex':'block','important');
+  el.style.setProperty('display',desired,'important');
 }
 function hide(el){
+  if(el.classList.contains('role-hidden')&&el.style.getPropertyValue('display')==='none')return;
   el.classList.add('role-hidden');
   el.setAttribute('aria-hidden','true');
   el.style.setProperty('display','none','important');
@@ -74,8 +78,13 @@ function ensureRoleCards(r){
     ['epal'].forEach(ensureCard);
   }
 }
+let lastRole='';
+let applyQueued=false;
 function apply(){
+  applyQueued=false;
   const r=role();if(!r||!Object.prototype.hasOwnProperty.call(MATRIX,r))return;
+  const roleChanged=lastRole!==r;
+  lastRole=r;
   document.body.dataset.yardivoRole=r;
   document.documentElement.dataset.yardivoRole=r;
   document.body.classList.remove('yardivo-role-switching');
@@ -89,34 +98,37 @@ function apply(){
   });
 
   if(r==='supplier'){
-    document.querySelectorAll('.sidebar,.topbar,#homeMenu').forEach(el=>el.style.setProperty('display','none','important'));
+    document.querySelectorAll('.sidebar,.topbar,#homeMenu').forEach(el=>{
+      if(el.style.getPropertyValue('display')!=='none')el.style.setProperty('display','none','important');
+    });
   }else{
     document.querySelector('.topbar')?.style.removeProperty('display');
   }
 
-  try{window.dispatchEvent(new CustomEvent('yardivo:role-ui-applied',{detail:{role:r}}))}catch(_){}
+  if(roleChanged){
+    try{window.dispatchEvent(new CustomEvent('yardivo:role-ui-applied',{detail:{role:r}}))}catch(_){}
+  }
 }
 function schedule(){
-  apply();
-  setTimeout(apply,80);
-  setTimeout(apply,350);
-  setTimeout(apply,1200);
+  if(applyQueued)return;
+  applyQueued=true;
+  requestAnimationFrame(apply);
 }
 window.addEventListener('yardivo:login',schedule);
-window.addEventListener('yardivo:data-synced',()=>setTimeout(apply,40));
-window.addEventListener('yardivo:master-data-ready',()=>setTimeout(apply,40));
-document.addEventListener('DOMContentLoaded',()=>setTimeout(apply,250),{once:true});
-window.addEventListener('load',()=>setTimeout(apply,900),{once:true});
+window.addEventListener('yardivo:data-synced',schedule);
+window.addEventListener('yardivo:master-data-ready',schedule);
+document.addEventListener('DOMContentLoaded',schedule,{once:true});
+window.addEventListener('load',schedule,{once:true});
 document.addEventListener('click',e=>{
-  if(e.target.closest?.('[data-view],[data-home-target]'))setTimeout(apply,0);
+  if(e.target.closest?.('[data-view],[data-home-target]'))schedule();
 },true);
 
 /* Legacy modules may append role cards after login. Re-apply only on structural
-   changes; no polling and no attribute-observer feedback loop. */
+   changes; requestAnimationFrame coalesces bursts into one paint. */
 function observeLateRoleUi(){
   const roots=[document.querySelector('.nav'),document.getElementById('homeMenuGrid')].filter(Boolean);
   roots.forEach(root=>{
-    const observer=new MutationObserver(()=>setTimeout(apply,0));
+    const observer=new MutationObserver(schedule);
     observer.observe(root,{childList:true,subtree:true});
   });
 }
