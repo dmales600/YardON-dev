@@ -18,13 +18,32 @@ function anns(){try{return Array.isArray(announcements)?announcements:[]}catch(e
 function incs(){try{return Array.isArray(incidents)?incidents:[]}catch(e){return []}}
 function whLoc(w){try{const m=JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}');return String((m.warehouses||[]).find(x=>x&&x.active!==false&&String(x.id)===String(w))?.location_id||'')}catch(_){return ''}}
 function activeLoc(){try{return String(currentSession?.location||'')}catch(e){return ''}}
-function scopeA(){const loc=activeLoc();const rows=anns();if(!loc||loc==='ALL'||String(currentSession?.role||'').toLowerCase()==='admin')return rows;return rows.filter(a=>!a.warehouse||whLoc(a.warehouse)===loc)}
+function selectedWh(){
+ const header=String(document.getElementById('globalWarehouse')?.value||'').trim();
+ if(header&&header!=='ALL')return header;
+ try{const canonical=String(window.YardivoWarehouseSync?.selected?.()||window.YardivoAppStateV583?.warehouse?.()||window.activeWarehouse||'').trim();if(canonical&&canonical!=='ALL')return canonical}catch(_){}
+ return '';
+}
+function matchesWarehouse(row,wh=selectedWh()){
+ if(!wh)return true;
+ const rw=String(row?.warehouse||'').trim();
+ return !rw||rw===wh;
+}
+function scopeA(){
+ const wh=selectedWh(),loc=activeLoc(),rows=anns();
+ if(wh)return rows.filter(a=>matchesWarehouse(a,wh));
+ if(!loc||loc==='ALL')return rows;
+ return rows.filter(a=>!a.warehouse||whLoc(a.warehouse)===loc);
+}
 function parseTs(v){if(!v)return null;const d=new Date(v);return isNaN(d)?null:d}
 function scheduledTs(a){if(!a?.date)return null;const d=new Date(`${a.date}T${a.time||'00:00'}:00`);return isNaN(d)?null:d}
 function mins(a,b){if(!a||!b)return null;return Math.max(0,Math.round((b-a)/60000))}
 function fmt(m){return m==null?'—':`${m}m`}
 function plate(a){return a.plannedPlate||a.vehiclePlate||a.plate||a.registration||'—'}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function whName(id){try{return String(window.YardivoGlobalContextV583?.warehouseName?.(id)||WAREHOUSES?.[id]?.name||id||'—')}catch(_){return String(id||'—')}}
+function setText(id,value){const el=document.getElementById(id);if(el&&el.textContent!==String(value))el.textContent=String(value)}
+function setHtml(id,value){const el=document.getElementById(id);if(el&&el.innerHTML!==value)el.innerHTML=value}
 function settings(){
  let x={waitingWarn:30,waitingCritical:45,dockWarn:60,dockCritical:90,totalCritical:150,lateTolerance:15};
  try{x={...x,...JSON.parse(localStorage.getItem(SLA_KEY)||'{}')}}catch(e){}
@@ -58,20 +77,14 @@ function isDock(a){const s=statusKey(a);return s.includes('ramp')}
 function isDone(a){const s=statusKey(a);return s.includes('zaprim')||s.includes('odbij')||s.includes('zavr')}
 
 function timelineHtml(a){
- const t=timestamps(a),s=statusKey(a);
- const steps=[
-  ['Najava',!!t.scheduled],
-  ['Porta',!!t.yard],
-  ['Dvorište',!!t.yard],
-  ['Rampa',!!t.dock],
-  ['Završeno',!!t.end]
- ];
+ const t=timestamps(a);
+ const steps=[['Najava',!!t.scheduled],['Porta',!!t.yard],['Dvorište',!!t.yard],['Rampa',!!t.dock],['Završeno',!!t.end]];
  let current=steps.findIndex(x=>!x[1]);if(current<0)current=steps.length-1;
  return `<div class="ct-timeline">${steps.map((x,i)=>`<span class="ct-step ${x[1]?'done':i===current?'current':''}">${x[0]}</span>`).join('')}</div>`;
 }
 
 function supplierScores(){
- const as=scopeA(),ins=incs().filter(i=>!i.warehouse||whLoc(i.warehouse)===activeLoc());
+ const wh=selectedWh(),as=scopeA(),ins=incs().filter(i=>matchesWarehouse(i,wh)&&(!activeLoc()||activeLoc()==='ALL'||!i.warehouse||whLoc(i.warehouse)===activeLoc()));
  const suppliers=new Set(as.map(a=>a.supplier).filter(Boolean));
  const rows=[];
  suppliers.forEach(name=>{
@@ -84,94 +97,81 @@ function supplierScores(){
    const avgDwell=dwellVals.length?Math.round(dwellVals.reduce((x,y)=>x+y,0)/dwellVals.length):0;
    const detention=data.filter(a=>metrics(a).level==='bad').length;
    let score=100;
-   if(data.length){
-     score-=Math.min(25,lateCount/data.length*25);
-     score-=Math.min(20,noShow/data.length*40);
-     score-=Math.min(15,unann/data.length*30);
-     score-=Math.min(20,incidentCount/Math.max(1,data.length)*35);
-     score-=Math.min(20,detention/data.length*30);
-   }
+   if(data.length){score-=Math.min(25,lateCount/data.length*25);score-=Math.min(20,noShow/data.length*40);score-=Math.min(15,unann/data.length*30);score-=Math.min(20,incidentCount/Math.max(1,data.length)*35);score-=Math.min(20,detention/data.length*30)}
    if(avgDwell>settings().totalCritical)score-=5;
    score=Math.max(0,Math.round(score));
    rows.push({supplier:name,score,total:data.length,late:lateCount,noShow,unannounced:unann,incidents:incidentCount,detention,avgDwell});
  });
  rows.sort((a,b)=>a.score-b.score||b.total-a.total);
  try{
-   const location=activeLoc();
-   let prevObj=null;
-   try{prevObj=JSON.parse(localStorage.getItem(SCORE_KEY)||'null')}catch(_){}
-   const prevComparable=prevObj?JSON.stringify({location:prevObj.location||'',scores:Array.isArray(prevObj.scores)?prevObj.scores:[]}):'';
-   const nextComparable=JSON.stringify({location,scores:rows});
-   if(prevComparable!==nextComparable){
-     localStorage.setItem(SCORE_KEY,JSON.stringify({updatedAt:new Date().toISOString(),location,scores:rows}));
-   }
+   const location=activeLoc(),warehouse=selectedWh();
+   let prevObj=null;try{prevObj=JSON.parse(localStorage.getItem(SCORE_KEY)||'null')}catch(_){}
+   const prevComparable=prevObj?JSON.stringify({location:prevObj.location||'',warehouse:prevObj.warehouse||'',scores:Array.isArray(prevObj.scores)?prevObj.scores:[]}):'';
+   const nextComparable=JSON.stringify({location,warehouse,scores:rows});
+   if(prevComparable!==nextComparable)localStorage.setItem(SCORE_KEY,JSON.stringify({updatedAt:new Date().toISOString(),location,warehouse,scores:rows}));
  }catch(e){}
  return rows;
 }
 
 function renderControlTower(){
  const view=document.getElementById('controlTower'),nav=document.querySelector('[data-view="controlTower"]');
- if(nav)nav.style.setProperty('display',allowed()?'flex':'none','important');
+ if(nav&&nav.style.getPropertyValue('display')!==(allowed()?'flex':'none'))nav.style.setProperty('display',allowed()?'flex':'none','important');
  if(!view||!allowed())return;
- const day=scopeA().filter(a=>a.date===today()),now=new Date();
+ const wh=selectedWh(),day=scopeA().filter(a=>a.date===today()),now=new Date();
  const ms=day.map(a=>({a,m:metrics(a,now)}));
  const yard=day.filter(isYard).length,dock=day.filter(isDock).length;
  const late=ms.filter(x=>x.m.late>settings().lateTolerance&&!isDone(x.a)).length;
  const detention=ms.filter(x=>x.m.level==='bad'&&!isDone(x.a)).length;
  const ua=day.filter(a=>a.arrivalType==='UNANNOUNCED').length;
- const incToday=incs().filter(i=>i.date===today()&&(!i.warehouse||whLoc(i.warehouse)===activeLoc())).length;
+ const incToday=incs().filter(i=>i.date===today()&&matchesWarehouse(i,wh)).length;
  const dwell=ms.map(x=>x.m.dwell).filter(v=>v!=null&&v>0);
  const avg=dwell.length?Math.round(dwell.reduce((a,b)=>a+b,0)/dwell.length):0;
- document.getElementById('ctTodayTotal').textContent=day.length;document.getElementById('ctYard').textContent=yard;document.getElementById('ctDock').textContent=dock;
- document.getElementById('ctLate').textContent=late;document.getElementById('ctDetention').textContent=detention;document.getElementById('ctUnannounced').textContent=ua;
- document.getElementById('ctIncidents').textContent=incToday;document.getElementById('ctAvgDwell').textContent=`${avg}m`;
- const badge=document.getElementById('ctCriticalBadge');const critical=detention+incToday;
- if(badge){badge.textContent=critical;badge.style.display=critical?'inline-flex':'none'}
+ setText('ctTodayTotal',day.length);setText('ctYard',yard);setText('ctDock',dock);setText('ctLate',late);setText('ctDetention',detention);setText('ctUnannounced',ua);setText('ctIncidents',incToday);setText('ctAvgDwell',`${avg}m`);
+ const badge=document.getElementById('ctCriticalBadge'),critical=detention+incToday;
+ if(badge){setText('ctCriticalBadge',critical);const d=critical?'inline-flex':'none';if(badge.style.display!==d)badge.style.display=d}
 
- const live=document.getElementById('ctLiveBody');
- live.innerHTML=ms.sort((x,y)=>String(x.a.time||'').localeCompare(String(y.a.time||''))).map(({a,m})=>`<tr>
-  <td>${esc(a.time||'—')}</td><td><strong>${esc(a.supplier||'—')}</strong>${a.orderNumber?`<br><span class="order-chip">${esc(a.orderNumber)}</span>`:''}</td>
-  <td>${esc(plate(a))}</td><td>${esc(a.warehouse||'—')}</td><td>${esc(a.status||'—')}</td>
-  <td>${fmt(m.waiting)}</td><td>${fmt(m.dock)}</td><td>${fmt(m.dwell)}</td>
-  <td><span class="ct-sla ${m.level}">${m.reason||'OK'}</span></td><td>${timelineHtml(a)}</td></tr>`).join('')||'<tr><td colspan="10"><div class="overview-empty">Nema današnjih najava.</div></td></tr>';
+ const liveHtml=ms.sort((x,y)=>String(x.a.time||'').localeCompare(String(y.a.time||''))).map(({a,m})=>`<tr><td>${esc(a.time||'—')}</td><td><strong>${esc(a.supplier||'—')}</strong>${a.orderNumber?`<br><span class="order-chip">${esc(a.orderNumber)}</span>`:''}</td><td>${esc(plate(a))}</td><td>${esc(whName(a.warehouse||wh))}</td><td>${esc(a.status||'—')}</td><td>${fmt(m.waiting)}</td><td>${fmt(m.dock)}</td><td>${fmt(m.dwell)}</td><td><span class="ct-sla ${m.level}">${m.reason||'OK'}</span></td><td>${timelineHtml(a)}</td></tr>`).join('')||'<tr><td colspan="10"><div class="overview-empty">Nema današnjih najava za odabrano skladište.</div></td></tr>';
+ setHtml('ctLiveBody',liveHtml);
 
  const crit=[];
  ms.forEach(({a,m})=>{
-  if(m.level==='bad')crit.push({bad:true,title:`DETENTION · ${a.supplier}`,body:`${plate(a)} · ${a.warehouse||'—'} · čekanje ${fmt(m.waiting)} · rampa ${fmt(m.dock)} · dwell ${fmt(m.dwell)}`});
+  if(m.level==='bad')crit.push({bad:true,title:`DETENTION · ${a.supplier}`,body:`${plate(a)} · ${whName(a.warehouse||wh)} · čekanje ${fmt(m.waiting)} · rampa ${fmt(m.dock)} · dwell ${fmt(m.dwell)}`});
   else if(m.late>settings().lateTolerance&&!isDone(a))crit.push({bad:false,title:`KAŠNJENJE · ${a.supplier}`,body:`${plate(a)} · +${m.late} min od termina ${a.time||'—'}`});
   if(a.arrivalType==='UNANNOUNCED'&&a.approvalStatus==='PENDING')crit.push({bad:false,title:`NENAJAVLJENI · ${a.supplier}`,body:`${plate(a)} · čeka odobrenje`});
  });
- incs().filter(i=>i.date===today()&&(!i.warehouse||whLoc(i.warehouse)===activeLoc())).forEach(i=>crit.push({bad:true,title:`INCIDENT · ${i.supplier||'—'}`,body:`${i.warehouse||'—'} · ${i.reason||i.type||'Incident'} · ${i.severity||'—'}`}));
- const cl=document.getElementById('ctCriticalList');cl.innerHTML=crit.slice(0,20).map(x=>`<div class="ct-critical-item ${x.bad?'bad':''}"><strong>${esc(x.title)}</strong><span>${esc(x.body)}</span></div>`).join('')||'<div class="overview-empty">Nema kritičnih situacija.</div>';
+ incs().filter(i=>i.date===today()&&matchesWarehouse(i,wh)).forEach(i=>crit.push({bad:true,title:`INCIDENT · ${i.supplier||'—'}`,body:`${whName(i.warehouse||wh)} · ${i.reason||i.type||'Incident'} · ${i.severity||'—'}`}));
+ setHtml('ctCriticalList',crit.slice(0,20).map(x=>`<div class="ct-critical-item ${x.bad?'bad':''}"><strong>${esc(x.title)}</strong><span>${esc(x.body)}</span></div>`).join('')||'<div class="overview-empty">Nema kritičnih situacija.</div>');
 
- const codes=window.YardivoGlobalContextV583?.warehouseIds?.()||[];
- document.getElementById('ctWarehouseGrid').innerHTML=codes.map(w=>{
-   const d=day.filter(a=>a.warehouse===w),onDock=d.filter(isDock).length,inYard=d.filter(isYard).length,det=d.filter(a=>metrics(a).level==='bad').length;
-   return `<div class="ct-wh"><h3>${w} · ${esc(WAREHOUSES?.[w]?.name||'')}</h3><small>${activeLoc()==='DU'?'Lokacija 2':'Lokacija 1'}</small><div class="ct-wh-kpis"><div><small>DVORIŠTE</small><strong>${inYard}</strong></div><div><small>RAMPA</small><strong>${onDock}</strong></div><div><small>DETENTION</small><strong>${det}</strong></div></div></div>`;
- }).join('');
+ const codes=wh?[wh]:(window.YardivoGlobalContextV583?.warehouseIds?.()||[]);
+ setHtml('ctWarehouseGrid',codes.map(w=>{
+   const d=day.filter(a=>String(a.warehouse||'')===String(w)),onDock=d.filter(isDock).length,inYard=d.filter(isYard).length,det=d.filter(a=>metrics(a).level==='bad').length;
+   return `<div class="ct-wh"><h3>${esc(whName(w))}</h3><small>Odabrano skladište</small><div class="ct-wh-kpis"><div><small>DVORIŠTE</small><strong>${inYard}</strong></div><div><small>RAMPA</small><strong>${onDock}</strong></div><div><small>DETENTION</small><strong>${det}</strong></div></div></div>`;
+ }).join(''));
 
  const scores=supplierScores().slice(0,8);
- document.getElementById('ctSupplierRisk').innerHTML=scores.map(x=>`<div class="ct-supplier-row"><div><strong>${esc(x.supplier)}</strong><br><small>${x.total} isporuka · ${x.late} kasni · ${x.incidents} inc. · ${x.unannounced} nenaj.</small></div><div class="ct-score ${x.score>=85?'good':x.score>=70?'mid':'bad'}">${x.score}</div><div class="ct-score-bar"><i style="width:${x.score}%"></i></div></div>`).join('')||'<div class="overview-empty">Nema podataka za score.</div>';
+ setHtml('ctSupplierRisk',scores.map(x=>`<div class="ct-supplier-row"><div><strong>${esc(x.supplier)}</strong><br><small>${x.total} isporuka · ${x.late} kasni · ${x.incidents} inc. · ${x.unannounced} nenaj.</small></div><div class="ct-score ${x.score>=85?'good':x.score>=70?'mid':'bad'}">${x.score}</div><div class="ct-score-bar"><i style="width:${x.score}%"></i></div></div>`).join('')||'<div class="overview-empty">Nema podataka za score.</div>');
 }
 
 function ensureSettings(){
- /* Dwell / Detention thresholds are no longer user-configurable.
-    Control Tower may still measure dwell operationally, but Admin Settings
-    now owns only the global delay/no-show rules. */
- const old=document.getElementById('detentionSettings');
- if(old)old.remove();
- const old2=document.getElementById('yardivoMasterDwellV583');
- if(old2)old2.remove();
+ const old=document.getElementById('detentionSettings');if(old)old.remove();
+ const old2=document.getElementById('yardivoMasterDwellV583');if(old2)old2.remove();
+}
+
+function ensureReadability(){
+ if(document.getElementById('yardivo-admin-readability-v1'))return;
+ const s=document.createElement('style');s.id='yardivo-admin-readability-v1';
+ s.textContent='.topbar select,#globalWarehouse{font-size:14px!important}.home-menu-card small,.home-menu-open{font-size:13px!important}.ct-wh small,.ct-supplier-row small,.ct-step{font-size:12px!important}.ct-wh h3{font-size:16px!important}';
+ document.head.appendChild(s);
 }
 
 function decorateSupplierProfile(){
- const title=document.querySelector('#supplierProfile .supplier-profile-title h2')?.textContent?.trim();
- if(!title)return;
+ const title=document.querySelector('#supplierProfile .supplier-profile-title h2')?.textContent?.trim();if(!title)return;
  const x=supplierScores().find(s=>s.supplier===title);if(!x)return;
  const host=document.querySelector('#supplierProfile .supplier-profile-grid')||document.querySelector('#supplierProfile .panel-body');if(!host)return;
  let box=document.getElementById('supplierYardivoScore');
  if(!box){box=document.createElement('div');box.id='supplierYardivoScore';box.className='supplier-scorecard-extra';host.insertAdjacentElement('afterend',box)}
- box.innerHTML=`<div><small>YARDIVO SCORE</small><strong class="${x.score>=85?'reliability-good':x.score>=70?'reliability-mid':'reliability-bad'}">${x.score}/100</strong></div><div><small>KAŠNJENJA</small><strong>${x.late}</strong></div><div><small>NO-SHOW</small><strong>${x.noShow}</strong></div><div><small>INCIDENTI</small><strong>${x.incidents}</strong></div><div><small>NENAJAVLJENI</small><strong>${x.unannounced}</strong></div><div><small>AVG DWELL</small><strong>${x.avgDwell}m</strong></div>`;
+ const html=`<div><small>YARDIVO SCORE</small><strong class="${x.score>=85?'reliability-good':x.score>=70?'reliability-mid':'reliability-bad'}">${x.score}/100</strong></div><div><small>KAŠNJENJA</small><strong>${x.late}</strong></div><div><small>NO-SHOW</small><strong>${x.noShow}</strong></div><div><small>INCIDENTI</small><strong>${x.incidents}</strong></div><div><small>NENAJAVLJENI</small><strong>${x.unannounced}</strong></div><div><small>AVG DWELL</small><strong>${x.avgDwell}m</strong></div>`;
+ if(box.innerHTML!==html)box.innerHTML=html;
 }
 
 document.getElementById('ctOpenSuppliers')?.addEventListener('click',()=>window.openAppView?.('suppliers'));
@@ -180,16 +180,19 @@ document.addEventListener('click',e=>{
  if(e.target.closest('[data-view="settings"],[data-home-target="settings"]'))setTimeout(ensureSettings,30);
  if(e.target.closest('[data-view="suppliers"],[data-home-target="suppliers"]'))setTimeout(decorateSupplierProfile,120);
 },true);
+document.addEventListener('change',e=>{if(e.target?.id==='globalWarehouse')setTimeout(renderControlTower,0)},true);
+window.addEventListener('yardivo:context-changed',()=>setTimeout(renderControlTower,0));
 
 function homeCard(){
  const grid=document.getElementById('homeMenuGrid');if(!grid)return;
  let card=grid.querySelector('[data-home-target="controlTower"]');
- if(!allowed()){if(card)card.style.setProperty('display','none','important');return}
+ if(!allowed()){if(card&&card.style.getPropertyValue('display')!=='none')card.style.setProperty('display','none','important');return}
  if(!card){card=document.createElement('div');card.className='home-menu-card';card.dataset.homeTarget='controlTower';card.setAttribute('role','button');card.setAttribute('tabindex','0');card.innerHTML='<div class="home-menu-icon">◉</div><h3>Control Tower</h3><p>Real-time SLA, dwell time i operativni rizici.</p><div class="home-menu-open">OTVORI →</div>';grid.appendChild(card)}
- card.style.setProperty('display','flex','important');card.onclick=()=>window.openAppView?.('controlTower');
+ if(card.style.getPropertyValue('display')!=='flex')card.style.setProperty('display','flex','important');
+ card.onclick=()=>window.openAppView?.('controlTower');
 }
 
-window.addEventListener('load',()=>setTimeout(()=>{homeCard();ensureSettings();renderControlTower();decorateSupplierProfile()},500));
-setInterval(()=>{if(allowed())renderControlTower();if(admin())ensureSettings()},5000);
+window.addEventListener('load',()=>setTimeout(()=>{ensureReadability();homeCard();ensureSettings();renderControlTower();decorateSupplierProfile()},500));
+setInterval(()=>{if(allowed()&&document.getElementById('controlTower')?.classList.contains('active'))renderControlTower();if(admin())ensureSettings()},5000);
 window.YardivoControlTower={render:renderControlTower,metrics,supplierScores,settings};
 })();
