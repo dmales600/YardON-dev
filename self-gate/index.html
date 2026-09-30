@@ -58,7 +58,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <script>
 'use strict';
 
-const EDGE = 'https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-self-gate';
+const EDGE = 'https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-self-gate-public';
 const params = new URLSearchParams(location.search);
 const WALL = params.get('wall') || '';
 const PASS = params.get('pass') || '';
@@ -107,8 +107,8 @@ async function loadWall() {
   app.className='card green';
   app.innerHTML = `
     <div class="state">YardOn SELF GATE CHECK-IN</div>
-    <div class="small">${esc(d.warehouseName || d.warehouse)} · skenirano na ulazu</div>
-    ${field('ref','BROJ NAJAVE / BROJ NARUDŽBE','npr. broj najave')}
+    <div class="small">${esc(d.locationName || d.warehouseName || d.location)} · skenirano na ulazu</div>
+    ${field('ref','BROJ NAJAVE / NARUDŽBE / REGISTRACIJA','npr. NAJ000001 ili ST123')}
     ${field('plate','REGISTRACIJA VOZILA','npr. ST-123-AB')}
     ${field('driver','IME I PREZIME VOZAČA','ime i prezime')}
     <div id="err" class="err"></div>
@@ -126,7 +126,6 @@ async function submitWall() {
       plate:document.getElementById('plate').value.trim(),
       driver:document.getElementById('driver').value.trim()
     });
-    // Move the browser to pass/session mode on the same static page.
     location.replace(location.pathname + '?pass=' + encodeURIComponent(d.sessionToken));
   } catch(e) {
     document.body.classList.remove('status-ok');
