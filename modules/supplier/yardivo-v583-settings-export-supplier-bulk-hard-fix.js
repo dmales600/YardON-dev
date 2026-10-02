@@ -24,14 +24,28 @@ function normText(v){return String(v||'').replace(/\s+/g,' ').trim().toUpperCase
 function ensureStyle(){
  let l=document.getElementById('yardonAdminSettingsCss');
  if(!l){l=document.createElement('link');l.id='yardonAdminSettingsCss';l.rel='stylesheet';document.head.appendChild(l)}
- const href='styles/yardon-admin-settings-v1.css?v=20260930-admin3';
+ const href='styles/yardon-admin-settings-v1.css?v=20261002-admin4';
  if(l.getAttribute('href')!==href)l.setAttribute('href',href);
 }
 
 function ensureQr(){try{window.YardivoQrRoleControlV586?.render?.()}catch(_){} }
 function ensureMaster(){
- try{window.YardivoStableMasterV583?.render?.(true)}catch(_){}
  try{window.YardivoMasterPopupOnlyV583?.refresh?.()}catch(_){}
+ try{window.YardivoStableMasterV583?.render?.(true)}catch(_){}
+ try{window.YardivoMasterDataV583?.refresh?.()}catch(_){}
+ try{window.YardivoResponsiblePersonInventoryAuthorityV583?.refresh?.()}catch(_){}
+}
+function ensureAccount(){
+ try{window.YardivoV545UserAdmin?.refresh?.()}catch(_){}
+ try{window.YardivoAdminUsersServerV583?.render?.()}catch(_){}
+ try{window.YardivoSeparatedUserListsV583?.refresh?.()}catch(_){}
+ try{window.YardivoSupplierAccountAdminV52?.refresh?.()}catch(_){}
+}
+
+function mountSettingsGrid(shell){
+ const s=settings(),mount=shell?.querySelector?.('#yardonAdminSettingsMount');if(!s||!mount)return;
+ const g=s.querySelector('.settings-grid');
+ if(g&&g.parentElement!==mount)mount.appendChild(g);
 }
 
 function ensureShell(){
@@ -43,6 +57,7 @@ function ensureShell(){
   const title=s.querySelector('.section-title');
   if(title)title.insertAdjacentElement('afterend',shell);else s.prepend(shell);
  }
+ mountSettingsGrid(shell);
  return shell;
 }
 
@@ -65,7 +80,7 @@ function sectionOf(panel){
  if(id==='masteruseradmin'||id==='masteruserlist'||id.includes('useradmin')||id.includes('accountadmin')||id.includes('supplieraccounts')||/KORISNICI|KORISNIČKI|USER ACCOUNTS|PROFILI NA SERVERU|AUTENTIK|AUTH|LOZINK|PASSWORD|ROLE I PRISTUP|KORISNIČKI RAČUN|KORISNICKI RACUN/.test(t))return'account';
 
  // MASTER owns business/master data and operational warehouse rules.
- if(id.includes('stablemaster')||id.includes('settingsmaster')||id.includes('masterdata')||id.includes('delaysettings')||id.includes('dwell')||/MASTER PODACI|LOKACIJE|SKLADIŠT|RAMPE|BROJ RAMPI|KAPACITET|DOBAVLJAČI|DOBAVLJACI|ODGOVORNE OSOBE|RADNO VRIJEME|PRIJAM.*VRIJEME|KAŠNJENJ|KASNJENJ|NO-SHOW|TOLERANCIJA/.test(t))return'master';
+ if(id.includes('stablemaster')||id.includes('settingsmaster')||id.includes('masterdata')||id.includes('masterfoundation')||id.includes('delaysettings')||id.includes('dwell')||id.includes('responsible')||/MASTER PODACI|LOKACIJE|SKLADIŠT|RAMPE|BROJ RAMPI|KAPACITET|DOBAVLJAČI|DOBAVLJACI|ODGOVORNE OSOBE|RADNO VRIJEME|PRIJAM.*VRIJEME|KAŠNJENJ|KASNJENJ|NO-SHOW|TOLERANCIJA/.test(t))return'master';
 
  // Everything else belongs to YardOn system settings.
  return'yardon';
@@ -80,9 +95,11 @@ function updateHead(key,count){
 function show(key){
  if(!SECTIONS.includes(key))key='master';selected=key;
  if(!isAdmin())return;
- ensureStyle();ensureShell();retireLegacyDuplicates();
+ ensureStyle();const shell=ensureShell();retireLegacyDuplicates();
  if(key==='master')ensureMaster();
+ if(key==='account')ensureAccount();
  if(key==='yardon')ensureQr();
+ mountSettingsGrid(shell);
 
  const ps=directPanels();let count=0;
  ps.forEach(p=>{
@@ -95,7 +112,6 @@ function show(key){
   if(yes){p.removeAttribute('aria-hidden');p.style.removeProperty('display')}else p.setAttribute('aria-hidden','true');
  });
 
- const shell=ensureShell();
  shell?.querySelectorAll('[data-yas-section]').forEach(b=>{const on=b.dataset.yasSection===key;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false')});
  updateHead(key,count);
  if(key==='account')queueMicrotask(installBulkActions);
@@ -104,9 +120,10 @@ function show(key){
 
 function organize(){
  if(!settings()||!isAdmin())return;
- ensureStyle();ensureShell();
+ ensureStyle();const shell=ensureShell();
  try{window.YardivoAdminCleanupV8?.apply?.()}catch(_){}
- ensureQr();ensureMaster();retireLegacyDuplicates();show(selected);
+ mountSettingsGrid(shell);
+ ensureQr();ensureMaster();ensureAccount();retireLegacyDuplicates();show(selected);
 }
 function schedule(ms=50){clearTimeout(reconcileTimer);reconcileTimer=setTimeout(()=>{if(settingsActive())organize()},ms)}
 
