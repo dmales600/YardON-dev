@@ -24,7 +24,7 @@ function normText(v){return String(v||'').replace(/\s+/g,' ').trim().toUpperCase
 function ensureStyle(){
  let l=document.getElementById('yardonAdminSettingsCss');
  if(!l){l=document.createElement('link');l.id='yardonAdminSettingsCss';l.rel='stylesheet';document.head.appendChild(l)}
- const href='styles/yardon-admin-settings-v1.css?v=20261002-admin4';
+ const href='styles/yardon-admin-settings-v1.css?v=20261002-admin5';
  if(l.getAttribute('href')!==href)l.setAttribute('href',href);
 }
 
@@ -77,7 +77,7 @@ function sectionOf(panel){
  if(panel?.dataset?.yardonLegacyDuplicate==='1')return'hidden';
 
  // ACCOUNT owns only identities, users, roles, access and credentials.
- if(id==='masteruseradmin'||id==='masteruserlist'||id.includes('useradmin')||id.includes('accountadmin')||id.includes('supplieraccounts')||/KORISNICI|KORISNIČKI|USER ACCOUNTS|PROFILI NA SERVERU|AUTENTIK|AUTH|LOZINK|PASSWORD|ROLE I PRISTUP|KORISNIČKI RAČUN|KORISNICKI RACUN/.test(t))return'account';
+ if(id==='masteruseradmin'||id==='masteruserlist'||id.includes('useradmin')||id.includes('accountadmin')||id.includes('supplieraccounts')||/KORISNICI|KORISNIČKI|USER ACCOUNTS|PROFILI NA SERVERU|PRISTUP|AUTENTIK|AUTH|LOZINK|PASSWORD|ROLE I PRISTUP|KORISNIČKI RAČUN|KORISNICKI RACUN/.test(t))return'account';
 
  // MASTER owns business/master data and operational warehouse rules.
  if(id.includes('stablemaster')||id.includes('settingsmaster')||id.includes('masterdata')||id.includes('masterfoundation')||id.includes('delaysettings')||id.includes('dwell')||id.includes('responsible')||/MASTER PODACI|LOKACIJE|SKLADIŠT|RAMPE|BROJ RAMPI|KAPACITET|DOBAVLJAČI|DOBAVLJACI|ODGOVORNE OSOBE|RADNO VRIJEME|PRIJAM.*VRIJEME|KAŠNJENJ|KASNJENJ|NO-SHOW|TOLERANCIJA/.test(t))return'master';
@@ -109,12 +109,25 @@ function show(key){
   p.hidden=!yes;
   p.classList.toggle('yardivo-settings-tab-hidden',!yes);
   p.classList.toggle('yardivo-settings-tab-visible',yes);
-  if(yes){p.removeAttribute('aria-hidden');p.style.removeProperty('display')}else p.setAttribute('aria-hidden','true');
+  if(yes){
+   // Canonical Admin Settings owns visibility while this section is active.
+   // Old RBAC/cleanup modules sometimes leave display:none!important behind.
+   p.classList.remove('role-hidden');
+   p.removeAttribute('hidden');p.removeAttribute('aria-hidden');
+   p.style.setProperty('display','block','important');
+   p.style.setProperty('visibility','visible','important');
+   p.style.setProperty('opacity','1','important');
+  }else{
+   p.setAttribute('aria-hidden','true');
+   p.style.setProperty('display','none','important');
+  }
  });
 
- shell?.querySelectorAll('[data-yas-section]').forEach(b=>{const on=b.dataset.yasSection===key;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false')});
+ // Only the three sidebar buttons are navigation. Content panels also carry
+ // data-yas-section for classification and must never intercept their own clicks.
+ shell?.querySelectorAll('.yas-sidebar button[data-yas-section]').forEach(b=>{const on=b.dataset.yasSection===key;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false')});
  updateHead(key,count);
- if(key==='account')queueMicrotask(installBulkActions);
+ if(key==='account')queueMicrotask(()=>{installBulkActions();const p=document.getElementById('masterUserAdmin');if(p){p.hidden=false;p.classList.remove('role-hidden','yardivo-settings-tab-hidden');p.classList.add('yardivo-settings-tab-visible');p.removeAttribute('aria-hidden');p.style.setProperty('display','block','important');p.style.setProperty('visibility','visible','important');p.style.setProperty('opacity','1','important')}});
  settings()?.classList.add('yardon-settings-ready');
 }
 
@@ -127,7 +140,7 @@ function organize(){
 }
 function schedule(ms=50){clearTimeout(reconcileTimer);reconcileTimer=setTimeout(()=>{if(settingsActive())organize()},ms)}
 
-function sectionButton(e){return e.target?.closest?.('#yardonAdminSettingsShell [data-yas-section]')||null}
+function sectionButton(e){return e.target?.closest?.('#yardonAdminSettingsShell .yas-sidebar button[data-yas-section]')||null}
 document.addEventListener('click',e=>{
  const b=sectionButton(e);if(b){e.preventDefault();show(b.dataset.yasSection);return}
  if(e.target?.closest?.('[data-view="settings"],[data-home-target="settings"],#navSettings'))schedule(20);
