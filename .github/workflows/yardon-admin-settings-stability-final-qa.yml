@@ -87,7 +87,6 @@ jobs:
             });
             if(!setup.api||!setup.settings) throw new Error('Settings authority setup missing');
 
-            // Let login/role modules settle, then open Settings exactly as an Admin would.
             await page.waitForTimeout(700);
             await page.evaluate(()=>{
               try{window.YardivoRoleStableFinal?.open?.('settings')}catch(_){}
@@ -108,7 +107,6 @@ jobs:
             }));
             if(!mounted.shell||mounted.buttons!==3||!mounted.gridInMount||mounted.settingsDisplay==='none') throw new Error('Three-section Admin Settings mount invalid '+JSON.stringify(mounted));
 
-            // MASTER POSTAVKE: canonical Master editor + global delay rules must be visible inline.
             await page.evaluate(()=>window.YardivoSettingsHardFixV583?.show?.('master'));
             await page.waitForTimeout(350);
             const master=await page.evaluate(()=>({
@@ -121,7 +119,6 @@ jobs:
             }));
             if(!master.active||!master.pane||!master.editor||!master.editorVisible||!master.delayVisible) throw new Error('MASTER POSTAVKE empty/broken '+JSON.stringify(master));
 
-            // ACCOUNT POSTAVKE: actual existing account administration panel must be visible.
             await page.evaluate(()=>window.YardivoSettingsHardFixV583?.show?.('account'));
             await page.waitForTimeout(350);
             const account=await page.evaluate(()=>({
@@ -133,7 +130,6 @@ jobs:
             }));
             if(!account.active||!account.panel||!account.visible||!account.create) throw new Error('ACCOUNT POSTAVKE empty/broken '+JSON.stringify(account));
 
-            // YARDON POSTAVKE: canonical QR panel remains the only QR settings authority.
             await page.evaluate(()=>window.YardivoSettingsHardFixV583?.show?.('yardon'));
             await page.waitForTimeout(300);
             if(await page.locator('#yardivoQrRoleAdminV586').count()!==1) throw new Error('Canonical QR panel count != 1');
@@ -144,13 +140,15 @@ jobs:
             const baseline=await page.evaluate(()=>({children:document.querySelector('#settings .settings-grid')?.children.length||0,qr:document.querySelectorAll('#yardivoQrRoleAdminV586').length}));
             const churn=await page.evaluate(async()=>{
               const g=document.querySelector('#settings .settings-grid');let adds=0,rems=0,records=0;
+              // Measure structural panel churn only. Internal table/list row refreshes are
+              // valid operational updates and must not be counted as Settings flicker.
               const o=new MutationObserver(ms=>{records+=ms.length;for(const m of ms){adds+=m.addedNodes.length;rems+=m.removedNodes.length}});
-              o.observe(g,{childList:true,subtree:true});
+              o.observe(g,{childList:true,subtree:false});
               for(let i=0;i<3;i++){window.dispatchEvent(new CustomEvent('yardivo:data-synced',{detail:{source:'qa-noop-'+i}}));await new Promise(r=>setTimeout(r,200));}
               await new Promise(r=>setTimeout(r,500));o.disconnect();return {adds,rems,records};
             });
             const after=await page.evaluate(()=>({children:document.querySelector('#settings .settings-grid')?.children.length||0,qr:document.querySelectorAll('#yardivoQrRoleAdminV586').length,ready:document.getElementById('settings')?.classList.contains('yardon-settings-ready')}));
-            if(churn.adds>4||churn.rems>4) throw new Error('DOM flicker/churn '+JSON.stringify({baseline,churn,after}));
+            if(churn.adds>2||churn.rems>2) throw new Error('Settings panel flicker/churn '+JSON.stringify({baseline,churn,after}));
             if(after.qr!==1||Math.abs(after.children-baseline.children)>2||!after.ready) throw new Error('Settings unstable '+JSON.stringify({baseline,churn,after}));
 
             const critical=errors.filter(x=>!/rampInfo is not defined/i.test(x));if(critical.length)throw new Error('Page errors: '+critical.join(' | '));
