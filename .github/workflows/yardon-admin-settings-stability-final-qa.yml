@@ -82,29 +82,37 @@ jobs:
               document.getElementById('loginOverlay')?.style.setProperty('display','none','important');
               document.getElementById('yardivoWelcomeSplash')?.style.setProperty('display','none','important');
               const app=document.querySelector('.app-shell');if(app){app.style.setProperty('display','grid','important');app.style.setProperty('visibility','visible','important')}
-              document.querySelectorAll('.view').forEach(v=>{v.classList.remove('active');v.style.removeProperty('display')});
-              const s=document.getElementById('settings');if(s){s.classList.add('active');s.classList.remove('role-hidden');s.style.setProperty('display','block','important');s.style.setProperty('visibility','visible','important')}
               window.dispatchEvent(new CustomEvent('yardivo:login',{detail:{session:window.currentSession}}));
-              window.dispatchEvent(new CustomEvent('yardivo:view-opened',{detail:{view:'settings'}}));
-              window.YardivoSettingsHardFixV583?.refresh?.();
-              return {api:!!window.YardivoSettingsHardFixV583,settings:!!s};
+              return {api:!!window.YardivoSettingsHardFixV583,settings:!!document.getElementById('settings')};
             });
             if(!setup.api||!setup.settings) throw new Error('Settings authority setup missing');
-            await page.waitForTimeout(1200);
+
+            // Let login/role modules settle, then open Settings exactly as an Admin would.
+            await page.waitForTimeout(700);
+            await page.evaluate(()=>{
+              try{window.YardivoRoleStableFinal?.open?.('settings')}catch(_){}
+              try{window.openAppView?.('settings')}catch(_){}
+              document.querySelectorAll('.view').forEach(v=>{if(v.id!=='settings')v.classList.remove('active')});
+              const s=document.getElementById('settings');
+              if(s){s.classList.add('active');s.classList.remove('role-hidden');s.removeAttribute('hidden');s.removeAttribute('aria-hidden');s.style.setProperty('display','block','important');s.style.setProperty('visibility','visible','important')}
+              window.dispatchEvent(new CustomEvent('yardivo:view-opened',{detail:{view:'settings'}}));
+              window.YardivoSettingsHardFixV583?.refresh?.();
+            });
+            await page.waitForTimeout(600);
 
             const mounted=await page.evaluate(()=>({
               shell:!!document.getElementById('yardonAdminSettingsShell'),
-              buttons:document.querySelectorAll('#yardonAdminSettingsShell [data-yas-section]').length,
+              buttons:document.querySelectorAll('#yardonAdminSettingsShell .yas-sidebar button[data-yas-section]').length,
               gridInMount:document.querySelector('#yardonAdminSettingsMount > .settings-grid')!==null,
               settingsDisplay:getComputedStyle(document.getElementById('settings')).display
             }));
-            if(!mounted.shell||mounted.buttons!==3||!mounted.gridInMount) throw new Error('Three-section Admin Settings mount invalid '+JSON.stringify(mounted));
+            if(!mounted.shell||mounted.buttons!==3||!mounted.gridInMount||mounted.settingsDisplay==='none') throw new Error('Three-section Admin Settings mount invalid '+JSON.stringify(mounted));
 
             // MASTER POSTAVKE: canonical Master editor + global delay rules must be visible inline.
             await page.evaluate(()=>window.YardivoSettingsHardFixV583?.show?.('master'));
             await page.waitForTimeout(350);
             const master=await page.evaluate(()=>({
-              active:document.querySelector('[data-yas-section="master"]')?.classList.contains('active')||false,
+              active:document.querySelector('#yardonAdminSettingsShell .yas-sidebar button[data-yas-section="master"]')?.classList.contains('active')||false,
               pane:!!document.getElementById('yardivoSettingsMasterPaneV583'),
               paneParent:document.getElementById('yardivoSettingsMasterPaneV583')?.parentElement?.className||'',
               editor:!!document.getElementById('yardivoStableMasterEditorV583'),
@@ -117,7 +125,7 @@ jobs:
             await page.evaluate(()=>window.YardivoSettingsHardFixV583?.show?.('account'));
             await page.waitForTimeout(350);
             const account=await page.evaluate(()=>({
-              active:document.querySelector('[data-yas-section="account"]')?.classList.contains('active')||false,
+              active:document.querySelector('#yardonAdminSettingsShell .yas-sidebar button[data-yas-section="account"]')?.classList.contains('active')||false,
               panel:!!document.getElementById('masterUserAdmin'),
               visible:document.getElementById('masterUserAdmin')?getComputedStyle(document.getElementById('masterUserAdmin')).display!=='none':false,
               create:!!document.getElementById('muSave')||!!document.getElementById('yardivoAdminAddUserBtn'),
