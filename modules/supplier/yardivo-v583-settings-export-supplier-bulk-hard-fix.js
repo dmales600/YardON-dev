@@ -149,7 +149,7 @@ document.addEventListener('keydown',e=>{if(!['Enter',' '].includes(e.key))return
 window.addEventListener('yardivo:view-opened',e=>{if(e?.detail?.view==='settings')schedule(20)});
 window.addEventListener('yardivo:login',()=>setTimeout(organize,160));
 window.addEventListener('yardivo:master-data-changed',()=>schedule(80));
-window.addEventListener('yardivo:data-synced',()=>schedule(80));
+/* Operational yardivo:data-synced events must not rebuild Admin Settings. */
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(organize,220),{once:true});else setTimeout(organize,120);
 
 /* Existing server account actions remain intact inside ACCOUNT POSTAVKE. */
