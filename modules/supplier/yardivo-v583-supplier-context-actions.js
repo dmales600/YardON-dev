@@ -50,10 +50,10 @@ function openFor(x,clientX,clientY){
 }
 function decorateRows(){
  const th=document.querySelector('#supplierRequests table thead tr th:nth-child(9)');if(th)th.textContent='';
- const mobile=touchUi()&&canAct();
+ const actionsVisible=canAct(),mobile=touchUi();
  document.querySelectorAll('#supplierRequests #ysrBody tr[data-ysr-detail]').forEach(tr=>{
-  const id=String(tr.dataset.ysrDetail||''),x=rowById(id);tr.title=canAct()?(mobile?'Dodirni AKCIJE za upravljanje najavom':'Desni klik za akcije najave'):'Klikni za detalje najave';
-  const old=tr.querySelector('[data-yv-mobile-supplier-actions]');if(!mobile||!x||!itemsFor(x)){old?.remove();return}if(old)return;
+  const id=String(tr.dataset.ysrDetail||''),x=rowById(id);tr.title=canAct()?(mobile?'Dodirni AKCIJE za upravljanje najavom':'Klikni AKCIJE za upravljanje najavom'):'Klikni za detalje najave';
+  const old=tr.querySelector('[data-yv-mobile-supplier-actions]');if(!actionsVisible||!x||!itemsFor(x)){old?.remove();return}if(old)return;
   const first=tr.querySelector('td');if(!first)return;const b=document.createElement('button');b.type='button';b.className='secondary yv-mobile-supplier-actions';b.setAttribute(MOBILE_ACTION,id);b.textContent='AKCIJE';b.style.cssText='display:block!important;min-height:44px;margin-top:8px;padding:8px 12px;font-size:12px;font-weight:900;touch-action:manipulation';first.appendChild(b);
  });
 }
