@@ -136,6 +136,20 @@ async function makePage(browser,role){
   const page=await context.newPage();
   const errors=[];
   page.on('pageerror',e=>errors.push(String(e.message||e)));
+  await page.addInitScript(()=>{
+    document.addEventListener('DOMContentLoaded',()=>{
+      const keepAuthenticated=()=>{
+        const overlay=document.getElementById('loginOverlay');
+        if(overlay){overlay.style.setProperty('display','none','important');overlay.style.setProperty('pointer-events','none','important');overlay.setAttribute('aria-hidden','true')}
+        const splash=document.getElementById('yardivoWelcomeSplash');
+        if(splash){splash.style.setProperty('display','none','important');splash.style.setProperty('pointer-events','none','important')}
+      };
+      keepAuthenticated();
+      const observer=new MutationObserver(keepAuthenticated);
+      observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['style','class','aria-hidden']});
+      window.__qaAuthOverlayObserver=observer;
+    },{once:true});
+  });
   await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
   await page.waitForTimeout(1500);
   await page.evaluate(({session,role,master})=>{
@@ -169,8 +183,10 @@ async function makePage(browser,role){
     [...document.body.classList].filter(x=>/^yv-role-.*-v583$/.test(x)).forEach(x=>document.body.classList.remove(x));
     document.body.classList.add('yv-role-'+role+'-v583');
     document.documentElement.classList.add('yardivo-login-ready','yardivo-welcome-complete');
-    document.getElementById('loginOverlay')?.style.setProperty('display','none','important');
-    document.getElementById('yardivoWelcomeSplash')?.style.setProperty('display','none','important');
+    const overlay=document.getElementById('loginOverlay');
+    if(overlay){overlay.style.setProperty('display','none','important');overlay.style.setProperty('pointer-events','none','important');overlay.setAttribute('aria-hidden','true')}
+    const splash=document.getElementById('yardivoWelcomeSplash');
+    if(splash){splash.style.setProperty('display','none','important');splash.style.setProperty('pointer-events','none','important')}
     const shell=document.querySelector('.app-shell');
     if(shell){shell.style.setProperty('display','grid','important');shell.style.setProperty('visibility','visible','important')}
     window.dispatchEvent(new CustomEvent('yardivo:master-data-updated',{detail:{master}}));
