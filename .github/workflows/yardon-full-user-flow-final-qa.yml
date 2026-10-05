@@ -53,16 +53,21 @@ jobs:
           if old not in s:
               raise SystemExit('Supplier optional-details QA anchor missing')
           s=s.replace(old,new,1)
-          old2="""    await page.waitForTimeout(600);\n    expect(state.deliveries.length===1,tag('Supplier booking did not create exactly one delivery'));"""
-          new2="""    await page.waitForTimeout(600);\n    console.log('SUPPLIER_SEND_DIAGNOSTICS '+JSON.stringify({viewport:vp.name,deliveries:state.deliveries,requests:state.requests.slice(-12)}));\n    expect(state.deliveries.length===1,tag('Supplier booking did not create exactly one delivery'));"""
+          old2="""    await slot.scrollIntoViewIfNeeded();\n    await slot.click();\n    const send=page.locator('#sbnSend');"""
+          new2="""    await slot.scrollIntoViewIfNeeded();\n    console.log('SUPPLIER_SLOT_BEFORE_CLICK '+JSON.stringify(await slot.evaluate(el=>({ramp:el.dataset.ramp,start:el.dataset.start,end:el.dataset.end,name:el.dataset.name,text:el.textContent}))));\n    await slot.click();\n    console.log('SUPPLIER_CHOICE_AFTER_CLICK '+JSON.stringify(await page.evaluate(()=>({choice:document.getElementById('sbnChoice')?.textContent||'',status:document.getElementById('sbnStatus')?.textContent||'',sendDisabled:!!document.getElementById('sbnSend')?.disabled,selected:[...document.querySelectorAll('#sbnMap .sbn-slot.selected')].map(x=>({ramp:x.dataset.ramp,start:x.dataset.start,text:x.textContent}))}))));\n    const send=page.locator('#sbnSend');"""
           if old2 not in s:
-              raise SystemExit('Supplier diagnostics anchor missing')
+              raise SystemExit('Supplier slot diagnostics anchor missing')
           s=s.replace(old2,new2,1)
-          old3="""    page.on('dialog',async d=>{await d.accept()});"""
-          new3="""    page.on('dialog',async d=>{console.log('SUPPLIER_DIALOG '+vp.name+' '+d.type()+' '+d.message());await d.accept()});"""
+          old3="""    await send.click();\n    await page.waitForTimeout(600);\n    expect(state.deliveries.length===1,tag('Supplier booking did not create exactly one delivery'));"""
+          new3="""    await send.click();\n    await page.waitForTimeout(2500);\n    console.log('SUPPLIER_AFTER_SEND '+JSON.stringify(await page.evaluate(()=>({status:document.getElementById('sbnStatus')?.textContent||'',sendText:document.getElementById('sbnSend')?.textContent||'',sendDisabled:!!document.getElementById('sbnSend')?.disabled,choice:document.getElementById('sbnChoice')?.textContent||''}))));\n    console.log('SUPPLIER_SEND_DIAGNOSTICS '+JSON.stringify({viewport:vp.name,deliveries:state.deliveries,requests:state.requests.slice(-20)}));\n    expect(state.deliveries.length===1,tag('Supplier booking did not create exactly one delivery'));"""
           if old3 not in s:
-              raise SystemExit('Supplier dialog anchor missing')
+              raise SystemExit('Supplier send diagnostics anchor missing')
           s=s.replace(old3,new3,1)
+          old4="""    page.on('dialog',async d=>{await d.accept()});"""
+          new4="""    page.on('dialog',async d=>{console.log('SUPPLIER_DIALOG '+vp.name+' '+d.type()+' '+d.message());await d.accept()});"""
+          if old4 not in s:
+              raise SystemExit('Supplier dialog anchor missing')
+          s=s.replace(old4,new4,1)
           p.write_text(s)
           PY
           node --check .github/qa/yardon-full-user-flow-final.js
