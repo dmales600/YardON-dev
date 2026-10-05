@@ -1,5 +1,5 @@
 name: YARDIVO role UI QA
-# Inventory supplier-request QA follows the canonical notification ingest path.
+# Inventory supplier-request QA follows canonical notification + voice enqueue events.
 
 on:
   workflow_dispatch:
@@ -77,6 +77,8 @@ jobs:
                 await page.waitForTimeout(2200);
                 await page.evaluate(()=>{
                   window.__qaVoiceReads=[];
+                  window.__qaVoiceEnqueued=[];
+                  window.addEventListener('yardivo:voice-enqueued',e=>window.__qaVoiceEnqueued.push(e.detail||{}));
                   const api=window.YardivoAIVoiceNotifications;
                   if(api){
                     api.readNow=n=>{window.__qaVoiceReads.push(n)};
@@ -127,12 +129,13 @@ jobs:
                   if(toastCount<1)errors.push('Inventory supplier request did not create side toast');
                 }
                 const voiceReads=await page.evaluate(()=>window.__qaVoiceReads||[]);
+                const voiceEnqueued=await page.evaluate(()=>window.__qaVoiceEnqueued||[]);
                 const forecastReads=voiceReads.filter(n=>/Danas imate/i.test(String(n?.body||'')));
                 if(role==='reception'&&forecastReads.length!==1)errors.push('Reception login forecast voice count='+forecastReads.length);
                 if(role!=='reception'&&forecastReads.length!==0)errors.push(role+' received Reception-only login forecast voice');
                 if(role==='inventory'){
-                  const supplierReads=voiceReads.filter(n=>String(n?.event||'').toUpperCase()==='SUPPLIER_REQUEST'||/NOVA NAJAVA DOBAVLJAČA/i.test(String(n?.title||'')));
-                  if(supplierReads.length!==1)errors.push('Inventory supplier-request priority voice count='+supplierReads.length);
+                  const supplierReads=voiceEnqueued.filter(n=>String(n?.event||'').toUpperCase()==='SUPPLIER_REQUEST'&&String(n?.id||'')==='QA-SUPREQ-1'&&n?.priority===true&&String(n?.role||'')==='inventory');
+                  if(supplierReads.length!==1)errors.push('Inventory supplier-request priority voice enqueue count='+supplierReads.length);
                 }
 
                 const snap=await page.evaluate(()=>{
