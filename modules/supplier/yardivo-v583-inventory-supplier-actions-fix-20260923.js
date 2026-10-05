@@ -55,15 +55,18 @@ async function approve(id,confirmFirst){
   if(!['pending','revision_requested','proposal_sent'].includes(st))return alert('Najava više ne čeka potvrdu.');
   const date=String(x.delivery_date||''),time=String(x.requested_time||'').slice(0,5);
   if(!date||!time)return alert('Najava nema potpun datum ili termin.');
-  if(confirmFirst&&!confirm('Odobriti termin '+date+' · '+time+'?\n\nRampa će se dodijeliti interno u YardOnu.'))return;
+  if(confirmFirst&&!confirm('Odobriti termin '+date+' · '+time+'?\n\nYardOn AI će fizičku rampu dodijeliti prema stvarnom stanju pri dolasku.'))return;
   try{
     await window.YardivoSupplierLiveSync.call('internal_update',{
-      id:x.id,status:'confirmed',
-      review_note:'Najavu i termin potvrdio: '+actor()+'. Rampa se dodjeljuje interno u YardOnu prema operativnom planu.'
+      id:x.id,
+      status:'confirmed',
+      dock:null,
+      proposed_dock:null,
+      review_note:'Najavu i termin potvrdio: '+actor()+'. Fizička rampa nije rezervirana; YardOn AI dodjeljuje je prema stvarnom stanju pri dolasku.'
     });
     closePlanner();closeContext();
     await refresh(x.id,'confirmed');
-    try{if(typeof showYmsToast==='function')showYmsToast('success','TERMIN POTVRĐEN','Najava je aktivna. YardOn će planirati rampu interno.',4200)}catch(_){}
+    try{if(typeof showYmsToast==='function')showYmsToast('success','TERMIN POTVRĐEN','Najava je aktivna. Fizička rampa dodijelit će se automatski pri dolasku.',4200)}catch(_){}
   }catch(e){alert('Najavu nije moguće potvrditi:\n'+err(e))}
 }
 async function reject(id){
@@ -104,13 +107,19 @@ async function sendProposal(){
   if(!v.date||!v.time)return alert('Odaberi datum i termin.');
   try{
     await window.YardivoSupplierLiveSync.call('internal_update',{
-      id:x.id,delivery_date:v.date,requested_time:v.time,status:'proposal_sent',
-      proposed_date:v.date,proposed_time:v.time,proposed_dock:null,
-      review_note:'Promjenu termina inicirao: '+actor()+'. Dobavljač treba prihvatiti ili zatražiti drugi termin. Rampa se ne rezervira Supplieru.'
+      id:x.id,
+      delivery_date:v.date,
+      requested_time:v.time,
+      dock:null,
+      status:'proposal_sent',
+      proposed_date:v.date,
+      proposed_time:v.time,
+      proposed_dock:null,
+      review_note:'Promjenu termina inicirao: '+actor()+'. Dobavljač treba prihvatiti ili zatražiti drugi termin. Fizička rampa se ne rezervira unaprijed.'
     });
     closePlanner();closeContext();
     await refresh(x.id,'proposal_sent');
-    try{if(typeof showYmsToast==='function')showYmsToast('success','PRIJEDLOG POSLAN','Novi termin je poslan dobavljaču. Rampa se planira interno.',3600)}catch(_){}
+    try{if(typeof showYmsToast==='function')showYmsToast('success','PRIJEDLOG POSLAN','Novi termin je poslan dobavljaču. Fizička rampa dodjeljuje se automatski pri dolasku.',3600)}catch(_){}
   }catch(e){alert('Prijedlog nije poslan:\n'+err(e))}
 }
 
@@ -147,5 +156,5 @@ window.addEventListener('click',function(e){
   }
 },true);
 
-window.YARDIVO_DEV_BUILD='20260930-dev-v5.8.3-time-only-supplier-actions';
+window.YARDIVO_DEV_BUILD='20261005-dev-v5.8.3-inventory-time-only-no-dock';
 })();
