@@ -1,5 +1,5 @@
 name: YARDIVO role UI QA
-# rerun after canonical role visibility fix
+# Inventory supplier-request QA follows the canonical notification ingest path.
 
 on:
   workflow_dispatch:
@@ -10,6 +10,8 @@ on:
       - "modules/supplier/**"
       - "modules/gate/**"
       - "modules/receiving/**"
+      - "modules/services/yardivo-notifications-final-v5.js"
+      - "modules/services/yardivo-ai-voice-notifications-v583.js"
       - "styles/**"
       - "index.html"
 
@@ -117,9 +119,8 @@ jobs:
                       at:new Date().toISOString(),
                       readBy:{}
                     };
-                    const list=window.YardivoNotifications?.load?.()||[];
-                    window.YardivoNotifications?.save?.([...list.filter(x=>x.id!=='QA-SUPREQ-1'),n]);
-                    window.dispatchEvent(new CustomEvent('yardivo:data-synced',{detail:{source:'qa-supplier-request'}}));
+                    if(!window.YardivoNotifications?.ingest)throw new Error('Canonical notification ingest API missing');
+                    window.YardivoNotifications.ingest(n,{announce:true});
                   });
                   await page.waitForTimeout(220);
                   const toastCount=await page.locator('.y5-toast').count();
@@ -170,6 +171,8 @@ jobs:
             }
             await browser.close();
             console.log('ROLE_UI_RESULTS='+JSON.stringify(all));
-            console.log('YARDIVO_ROLE_UI_QA_DONE');
+            const failures=all.flatMap(x=>(x.errors||[]).map(error=>({viewport:x.viewport,role:x.role,error})));
+            if(failures.length)throw new Error('ROLE UI QA failures: '+JSON.stringify(failures));
+            console.log('YARDIVO_ROLE_UI_QA_PASS');
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
