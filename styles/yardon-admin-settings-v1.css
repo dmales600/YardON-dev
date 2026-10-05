@@ -49,3 +49,4 @@
 @media(max-width:760px){#yardonAdminSettingsShell{grid-template-columns:1fr}#yardonAdminSettingsShell .yas-sidebar{position:static}#yardonAdminSettingsShell .yas-sidebar nav{grid-template-columns:1fr 1fr 1fr}#yardonAdminSettingsShell .yas-sidebar button{text-align:center;padding:0 8px;font-size:9px}#yardonSettingsCategoryHead{align-items:flex-start;flex-direction:column}}
 @media(max-width:560px){#yardonAdminSettingsShell .yas-sidebar nav{grid-template-columns:1fr}#settings .yqr6-grid,#settings .yqr6-role-grid{grid-template-columns:1fr}}
 /* 2026-10-02: trigger final three-section Admin Settings QA after structural-flicker test refinement. */
+/* 2026-10-05: rerun point 3 Final QA after removing obsolete five-tab Settings workflow. */
