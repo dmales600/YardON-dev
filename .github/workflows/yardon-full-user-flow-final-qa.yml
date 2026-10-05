@@ -42,7 +42,7 @@ jobs:
           node --check .github/qa/yardon-full-user-flow-final.js
           grep -q "syncSupplierStatus" modules/receiving/service.js
           grep -q "'Zaprimljeno':'completed'" modules/receiving/service.js
-      - name: Prepare user-like optional details interaction
+      - name: Prepare user-like Supplier interaction and diagnostics
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -52,7 +52,18 @@ jobs:
           new="""    await page.fill('#sbnSku','4');\n    await page.locator('#sbnExtra').evaluate(el=>{el.hidden=false;el.open=true});\n    await page.fill('#sbnOrder','PO-QA-001');"""
           if old not in s:
               raise SystemExit('Supplier optional-details QA anchor missing')
-          p.write_text(s.replace(old,new,1))
+          s=s.replace(old,new,1)
+          old2="""    await page.waitForTimeout(600);\n    expect(state.deliveries.length===1,tag('Supplier booking did not create exactly one delivery'));"""
+          new2="""    await page.waitForTimeout(600);\n    console.log('SUPPLIER_SEND_DIAGNOSTICS '+JSON.stringify({viewport:vp.name,deliveries:state.deliveries,requests:state.requests.slice(-12)}));\n    expect(state.deliveries.length===1,tag('Supplier booking did not create exactly one delivery'));"""
+          if old2 not in s:
+              raise SystemExit('Supplier diagnostics anchor missing')
+          s=s.replace(old2,new2,1)
+          old3="""    page.on('dialog',async d=>{await d.accept()});"""
+          new3="""    page.on('dialog',async d=>{console.log('SUPPLIER_DIALOG '+vp.name+' '+d.type()+' '+d.message());await d.accept()});"""
+          if old3 not in s:
+              raise SystemExit('Supplier dialog anchor missing')
+          s=s.replace(old3,new3,1)
+          p.write_text(s)
           PY
           node --check .github/qa/yardon-full-user-flow-final.js
       - name: Install Playwright
