@@ -57,6 +57,19 @@ function decorateRows(){
   const first=tr.querySelector('td');if(!first)return;const b=document.createElement('button');b.type='button';b.className='secondary yv-mobile-supplier-actions';b.setAttribute(MOBILE_ACTION,id);b.textContent='AKCIJE';b.style.cssText='display:block!important;min-height:44px;margin-top:8px;padding:8px 12px;font-size:12px;font-weight:900;touch-action:manipulation';first.appendChild(b);
  });
 }
+/* Native/mobile controls can emit change after the quantity input event. Re-kick the
+   existing booking availability listener when warehouse + quantities are all ready. */
+function stabilizeSupplierBooking(){
+ const wh=document.getElementById('sbnWarehouseSelect'),p=document.getElementById('sbnPallets'),s=document.getElementById('sbnSku');
+ if(!wh||!p||!s||wh.dataset.yvAvailabilityStable==='1')return;
+ wh.dataset.yvAvailabilityStable='1';
+ const kick=()=>{
+  if(!String(wh.value||'').trim()||Number(p.value||0)<=0||Number(s.value||0)<=0)return;
+  setTimeout(()=>p.dispatchEvent(new Event('input',{bubbles:true})),0);
+ };
+ ['input','change'].forEach(ev=>wh.addEventListener(ev,kick));
+ [p,s].forEach(el=>el.addEventListener('change',()=>el.dispatchEvent(new Event('input',{bubbles:true}))));
+}
 document.addEventListener('contextmenu',e=>{const tr=e.target.closest?.('#supplierRequests #ysrBody tr[data-ysr-detail]');if(!tr||!canAct())return;const x=rowById(tr.dataset.ysrDetail);if(!x||!itemsFor(x))return;e.preventDefault();e.stopPropagation();openFor(x,e.clientX,e.clientY)},true);
 document.addEventListener('click',e=>{
  const mobileBtn=e.target.closest?.('[data-yv-mobile-supplier-actions]');
@@ -66,8 +79,9 @@ document.addEventListener('click',e=>{
  if(!e.target.closest?.('#'+MENU_ID))close();
 },true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
-window.addEventListener('scroll',close,true);window.addEventListener('resize',()=>{close();decorateRows()});
-window.addEventListener('yardivo:supplier-request-updated',()=>setTimeout(decorateRows,80));window.addEventListener('yardivo:supplier-inbox-changed',()=>setTimeout(decorateRows,80));window.addEventListener('yardivo:login',()=>setTimeout(decorateRows,1800));window.addEventListener('load',()=>setTimeout(decorateRows,2800));
+window.addEventListener('scroll',close,true);window.addEventListener('resize',()=>{close();decorateRows();stabilizeSupplierBooking()});
+window.addEventListener('yardivo:supplier-request-updated',()=>setTimeout(decorateRows,80));window.addEventListener('yardivo:supplier-inbox-changed',()=>setTimeout(decorateRows,80));window.addEventListener('yardivo:login',()=>setTimeout(()=>{decorateRows();stabilizeSupplierBooking()},1800));window.addEventListener('load',()=>setTimeout(()=>{decorateRows();stabilizeSupplierBooking()},2800));
 const mo=new MutationObserver(()=>decorateRows());window.addEventListener('load',()=>{const b=document.getElementById('ysrBody');if(b)mo.observe(b,{childList:true})});
+setTimeout(stabilizeSupplierBooking,600);
 window.YardivoSupplierContextActionsV583={close,openFor,rowById,refresh:decorateRows};
 })();
