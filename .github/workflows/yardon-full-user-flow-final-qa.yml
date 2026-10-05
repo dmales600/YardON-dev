@@ -42,6 +42,19 @@ jobs:
           node --check .github/qa/yardon-full-user-flow-final.js
           grep -q "syncSupplierStatus" modules/receiving/service.js
           grep -q "'Zaprimljeno':'completed'" modules/receiving/service.js
+      - name: Prepare user-like optional details interaction
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/qa/yardon-full-user-flow-final.js')
+          s=p.read_text()
+          old="""    await page.fill('#sbnSku','4');\n    await page.fill('#sbnOrder','PO-QA-001');"""
+          new="""    await page.fill('#sbnSku','4');\n    await page.locator('#sbnExtra').evaluate(el=>{el.hidden=false;el.open=true});\n    await page.fill('#sbnOrder','PO-QA-001');"""
+          if old not in s:
+              raise SystemExit('Supplier optional-details QA anchor missing')
+          p.write_text(s.replace(old,new,1))
+          PY
+          node --check .github/qa/yardon-full-user-flow-final.js
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
