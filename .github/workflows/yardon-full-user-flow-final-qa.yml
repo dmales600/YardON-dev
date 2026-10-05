@@ -42,7 +42,7 @@ jobs:
           node --check .github/qa/yardon-full-user-flow-final.js
           grep -q "syncSupplierStatus" modules/receiving/service.js
           grep -q "'Zaprimljeno':'completed'" modules/receiving/service.js
-      - name: Prepare user-like Supplier interaction and diagnostics
+      - name: Prepare current user interactions and diagnostics
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -52,22 +52,31 @@ jobs:
           new0="""  const page=await context.newPage();\n  const errors=[];\n  page.on('console',m=>console.log('BROWSER_CONSOLE '+m.type()+' '+m.text()));\n  page.on('pageerror',e=>errors.push(String(e.message||e)));"""
           if old0 not in s: raise SystemExit('Browser console anchor missing')
           s=s.replace(old0,new0,1)
+
           old="""    await page.fill('#sbnSku','4');\n    await page.fill('#sbnOrder','PO-QA-001');"""
           new="""    await page.fill('#sbnSku','4');\n    await page.locator('#sbnExtra').evaluate(el=>{el.hidden=false;el.open=true});\n    await page.fill('#sbnOrder','PO-QA-001');"""
           if old not in s: raise SystemExit('Supplier optional-details QA anchor missing')
           s=s.replace(old,new,1)
+
           old2="""    await slot.scrollIntoViewIfNeeded();\n    await slot.click();\n    const send=page.locator('#sbnSend');"""
           new2="""    await slot.scrollIntoViewIfNeeded();\n    console.log('SUPPLIER_SLOT_BEFORE_CLICK '+JSON.stringify(await slot.evaluate(el=>({ramp:el.dataset.ramp,start:el.dataset.start,end:el.dataset.end,name:el.dataset.name,text:el.textContent}))));\n    await slot.click();\n    console.log('SUPPLIER_CHOICE_AFTER_CLICK '+JSON.stringify(await page.evaluate(()=>({choice:document.getElementById('sbnChoice')?.textContent||'',status:document.getElementById('sbnStatus')?.textContent||'',sendDisabled:!!document.getElementById('sbnSend')?.disabled,selected:[...document.querySelectorAll('#sbnMap .sbn-slot.selected')].map(x=>({ramp:x.dataset.ramp,start:x.dataset.start,text:x.textContent}))}))));\n    const send=page.locator('#sbnSend');"""
           if old2 not in s: raise SystemExit('Supplier slot diagnostics anchor missing')
           s=s.replace(old2,new2,1)
+
           old3="""    await send.click();\n    await page.waitForTimeout(600);\n    expect(state.deliveries.length===1,tag('Supplier booking did not create exactly one delivery'));"""
           new3="""    await send.click();\n    const sendConfirm=page.locator('#yardonSupplierSendConfirm .ysc-confirm');\n    await sendConfirm.waitFor({state:'visible',timeout:5000});\n    if(vp.mobile)await mobileAudit(page,sendConfirm,'Supplier confirm announcement');\n    await sendConfirm.click();\n    await page.waitForTimeout(2500);\n    console.log('SUPPLIER_AFTER_SEND '+JSON.stringify(await page.evaluate(()=>({status:document.getElementById('sbnStatus')?.textContent||'',sendText:document.getElementById('sbnSend')?.textContent||'',sendDisabled:!!document.getElementById('sbnSend')?.disabled,choice:document.getElementById('sbnChoice')?.textContent||''}))));\n    console.log('SUPPLIER_SEND_DIAGNOSTICS '+JSON.stringify({viewport:vp.name,deliveries:state.deliveries,requests:state.requests.slice(-20),errors}));\n    expect(state.deliveries.length===1,tag('Supplier booking did not create exactly one delivery'));"""
           if old3 not in s: raise SystemExit('Supplier send diagnostics anchor missing')
           s=s.replace(old3,new3,1)
+
           old4="""    page.on('dialog',async d=>{await d.accept()});"""
           new4="""    page.on('dialog',async d=>{console.log('SUPPLIER_DIALOG '+vp.name+' '+d.type()+' '+d.message());await d.accept()});"""
           if old4 not in s: raise SystemExit('Supplier dialog anchor missing')
           s=s.replace(old4,new4,1)
+
+          old_inventory="""    await page.evaluate(async()=>{await window.YardivoSupplierRequests?.load?.();window.YardivoSupplierRequests?.render?.()});\n    const proposal=page.locator('#ysrBody button[data-a=\"proposal\"][data-id=\"DEL-001\"]');\n    await proposal.waitFor({state:'visible',timeout:10000});\n    if(vp.mobile)await mobileAudit(page,proposal,'Inventory propose');\n    const answers=[state.deliveries[0].delivery_date,'10:00','R1'];\n    page.on('dialog',async d=>{if(d.type()==='prompt')await d.accept(answers.shift()||'');else await d.accept()});\n    await proposal.scrollIntoViewIfNeeded();\n    await proposal.click();\n    await page.waitForTimeout(700);"""
+          new_inventory="""    await page.evaluate(async()=>{\n      await window.YardivoSupplierRequests?.load?.();\n      await window.YardivoSupplierPlannerV580?.refresh?.(true);\n      window.YardivoSupplierRequests?.render?.();\n    });\n    console.log('INVENTORY_INBOX '+JSON.stringify(await page.evaluate(()=>({role:window.currentSession?.role||'',rows:window.YardivoSupplierPlannerV580?.getRows?.()||[],html:document.getElementById('ysrBody')?.innerText||''}))));\n    const proposal=page.locator('#ysrBody button[data-v580-plan=\"DEL-001\"]');\n    await proposal.waitFor({state:'visible',timeout:10000});\n    if(vp.mobile)await mobileAudit(page,proposal,'Inventory propose');\n    await proposal.scrollIntoViewIfNeeded();\n    await proposal.click();\n    const planner=page.locator('#ysrPlannerOverlay.open');\n    await planner.waitFor({state:'visible',timeout:6000});\n    const time=page.locator('#ysrpTime');\n    const dock=page.locator('#ysrpDock');\n    await page.waitForFunction(()=>document.querySelectorAll('#ysrpTime option').length>0&&document.querySelectorAll('#ysrpDock option').length>0,{timeout:8000});\n    await time.selectOption('10:00');\n    await dock.selectOption('1');\n    await time.dispatchEvent('change');\n    await page.waitForTimeout(250);\n    const plannerSend=page.locator('[data-ysrp-send]');\n    if(vp.mobile)await mobileAudit(page,plannerSend,'Inventory send proposal');\n    console.log('INVENTORY_PLANNER '+JSON.stringify(await page.evaluate(()=>({time:document.getElementById('ysrpTime')?.value,dock:document.getElementById('ysrpDock')?.value,check:document.getElementById('ysrpCheck')?.textContent||''}))));\n    await plannerSend.click();\n    await page.waitForTimeout(900);"""
+          if old_inventory not in s: raise SystemExit('Canonical Inventory planner QA anchor missing')
+          s=s.replace(old_inventory,new_inventory,1)
           p.write_text(s)
 
           m=Path('modules/supplier/yardivo-v583-supplier-booking-rebuilt-clean-authority.js')
