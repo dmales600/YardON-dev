@@ -26,13 +26,17 @@ function enabledFor(warehouse){
   return cfg.enabled!==false;
 }
 
-function warehouseFor(id){
-  let warehouse=String(document.getElementById('globalWarehouse')?.value||window.activeWarehouse||'');
+function announcementFor(id){
   try{
     const list=Array.isArray(window.announcements)?window.announcements:(typeof announcements!=='undefined'&&Array.isArray(announcements)?announcements:[]);
-    const row=list.find(x=>String(x?.id)===String(id));
-    if(row?.warehouse)warehouse=String(row.warehouse);
-  }catch(_){}
+    return list.find(x=>String(x?.id)===String(id))||null;
+  }catch(_){return null}
+}
+
+function warehouseFor(id){
+  let warehouse=String(document.getElementById('globalWarehouse')?.value||window.activeWarehouse||'');
+  const row=announcementFor(id);
+  if(row?.warehouse)warehouse=String(row.warehouse);
   return warehouse;
 }
 
@@ -51,6 +55,38 @@ function emit(id,status,source){
   }catch(_){}
 }
 
+const SUPPLIER_STATUS={
+  'U dvorištu':'arrival',
+  'Na rampi':'dock',
+  'Zaprimanje':'receiving',
+  'Zaprimljeno':'completed',
+  'Odbijen':'rejected'
+};
+
+async function syncSupplierStatus(id,status){
+  const next=SUPPLIER_STATUS[String(status||'')];
+  if(!next)return false;
+  const row=announcementFor(id);
+  const supplierDeliveryId=String(row?.supplierDeliveryId||'').trim();
+  if(!supplierDeliveryId)return false;
+  if(String(row?.status||'')!==String(status||''))return false;
+  const api=window.YardivoSupplierLiveSync?.call;
+  if(typeof api!=='function')return false;
+  let lastError=null;
+  for(let attempt=0;attempt<2;attempt++){
+    try{
+      await api('internal_update',{id:supplierDeliveryId,status:next});
+      row.supplierApprovalStatus=next;
+      return true;
+    }catch(e){
+      lastError=e;
+      if(attempt===0)await new Promise(r=>setTimeout(r,350));
+    }
+  }
+  console.warn('YARDIVO receiving supplier status sync failed',supplierDeliveryId,next,lastError);
+  return false;
+}
+
 function install(){
   if(installed&&window.setReceivingAnnouncementStatus?.__yardivoReceivingOwner)return true;
   const current=window.setReceivingAnnouncementStatus;
@@ -65,10 +101,14 @@ function install(){
       return;
     }
     const result=original.apply(this,arguments);
-    if(result&&typeof result.then==='function'){
-      result.then(()=>emit(id,status,source)).catch(()=>{});
-    }else{
+    const after=()=>{
       emit(id,status,source);
+      void syncSupplierStatus(id,status);
+    };
+    if(result&&typeof result.then==='function'){
+      result.then(after).catch(()=>{});
+    }else{
+      after();
     }
     return result;
   }
@@ -85,6 +125,7 @@ window.YardivoReceivingService={
   install,
   enabledFor,
   warehouseFor,
+  syncSupplierStatus,
   original:()=>original
 };
 window.yardivoReceivingQrEnabledForWarehouseV585=enabledFor;
