@@ -1,0 +1,53 @@
+name: YardOn Full User Flow Final QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/yardon-full-user-flow-final-qa.yml"
+      - ".github/qa/yardon-full-user-flow-final.js"
+      - "index.html"
+      - "modules/supplier/**"
+      - "modules/receiving/**"
+      - "modules/self-gate/**"
+      - "modules/gate/**"
+      - "modules/auth/**"
+      - "modules/master-data/**"
+      - "styles/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yardon-full-user-flow-final-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full-user-flow-final:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static checks
+        run: |
+          node --check modules/receiving/service.js
+          node --check modules/supplier/service.js
+          node --check modules/supplier/yardivo-v560-supplier-live-sync.js
+          node --check modules/supplier/yardivo-v570-supplier-approval-workflow.js
+          node --check modules/supplier/runtime/yardivo-v574-supplier-proposal-flow.js
+          node --check modules/self-gate/service.js
+          node --check .github/qa/yardon-full-user-flow-final.js
+          grep -q "syncSupplierStatus" modules/receiving/service.js
+          grep -q "'Zaprimljeno':'completed'" modules/receiving/service.js
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run desktop and mobile full user flow
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-full-user-final-http.log 2>&1 &
+          node .github/qa/yardon-full-user-flow-final.js
