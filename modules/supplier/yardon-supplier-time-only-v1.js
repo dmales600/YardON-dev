@@ -6,8 +6,8 @@ const $=id=>document.getElementById(id);
 function role(){let r=String(window.currentSession?.app_role||window.currentSession?.role||document.body?.dataset?.yardivoRole||'').toLowerCase().trim();if(r==='zalihe'||r.includes('zalih'))r='inventory';if(r==='prijam')r='reception';if(r==='voditelj'||r==='management')r='manager';return r}
 function supplierLang(){try{const s=window.currentSession||{},k='yardivo_supplier_language_v549_'+String(s.authUserId||s.username||s.user||'supplier');return localStorage.getItem(k)==='en'?'en':'hr'}catch(_){return'hr'}}
 const text={
- hr:{note:'Dobavljač bira samo termin. YardOn interno planira rampu i konačno je dodjeljuje prema stvarnom stanju pri dolasku.',qty:'Broj paleta određuje procijenjeno trajanje prijama i zauzeće kapaciteta termina.',capacity:'KAPACITET',date:'Željeni datum (YYYY-MM-DD), ostavite prazno ako se ne mijenja:',time:'Željeni termin (HH:MM), ostavite prazno ako se ne mijenja:',notePrompt:'Napomena za Upravljanje zalihama:',sent:'Zahtjev za promjenu termina je poslan. Rampa se ne rezervira unaprijed.',failed:'Zahtjev nije poslan',confirmResolve:'Potvrditi zahtjev dobavljača za promjenu termina?',resolved:'PROMJENA TERMINA RIJEŠENA'},
- en:{note:'The supplier selects the appointment time only. YardOn plans the dock internally and makes the final assignment from live yard conditions on arrival.',qty:'Pallet quantity determines the estimated receiving duration and appointment-capacity usage.',capacity:'CAPACITY',date:'Requested date (YYYY-MM-DD), leave blank if unchanged:',time:'Requested time (HH:MM), leave blank if unchanged:',notePrompt:'Note for Inventory Management:',sent:'Appointment change request sent. A physical dock is not reserved in advance.',failed:'Request was not sent',confirmResolve:'Confirm the supplier appointment-change request?',resolved:'APPOINTMENT CHANGE RESOLVED'}
+ hr:{note:'Dobavljač bira samo termin. YardOn interno planira kapacitet i konačnu rampu dodjeljuje prema stvarnom stanju pri dolasku.',qty:'Broj paleta određuje procijenjeno trajanje prijama i zauzeće kapaciteta termina.',capacity:'KAPACITET',date:'Željeni datum (YYYY-MM-DD), ostavite prazno ako se ne mijenja:',time:'Željeni termin (HH:MM), ostavite prazno ako se ne mijenja:',notePrompt:'Napomena za Upravljanje zalihama:',sent:'Zahtjev za promjenu termina je poslan. Rampa se ne rezervira unaprijed.',failed:'Zahtjev nije poslan',confirmResolve:'Potvrditi zahtjev dobavljača za promjenu termina?',resolved:'PROMJENA TERMINA RIJEŠENA'},
+ en:{note:'The supplier selects the appointment time only. YardOn plans capacity internally and assigns the final dock from live yard conditions on arrival.',qty:'Pallet quantity determines the estimated receiving duration and appointment-capacity usage.',capacity:'CAPACITY',date:'Requested date (YYYY-MM-DD), leave blank if unchanged:',time:'Requested time (HH:MM), leave blank if unchanged:',notePrompt:'Note for Inventory Management:',sent:'Appointment change request sent. A physical dock is not reserved in advance.',failed:'Request was not sent',confirmResolve:'Confirm the supplier appointment-change request?',resolved:'APPOINTMENT CHANGE RESOLVED'}
 };
 const tr=k=>text[supplierLang()]?.[k]||text.hr[k]||k;
 
@@ -36,12 +36,38 @@ function decorateSupplier(){
  p.querySelectorAll('#sbnMap .sbn-grid tbody th.ramp').forEach(x=>{if(/TERMIN|RAMPA|DOCK|CAPACITY|KAPACITET/i.test(x.textContent||''))x.textContent=tr('capacity')});
  p.querySelectorAll('th').forEach(x=>{const v=String(x.textContent||'').trim().toUpperCase();if(v==='RAMPA'||v==='DOCK')x.textContent=supplierLang()==='en'?'DOCK · ASSIGNED ON ARRIVAL':'RAMPA · DODJELA PO DOLASKU'});
 }
+function stripInventoryRampLine(cell){
+ if(!cell)return;
+ const nodes=[...cell.childNodes];
+ for(const n of nodes){
+   if(n.nodeType!==Node.TEXT_NODE||!/^\s*Rampa\s*:/i.test(String(n.textContent||'')))continue;
+   const prev=n.previousSibling,next=n.nextSibling;
+   if(prev?.nodeName==='BR')prev.remove();
+   if(next?.nodeType===Node.ELEMENT_NODE&&next.tagName==='STRONG')next.remove();
+   n.remove();
+ }
+}
+function decorateInventoryRows(){
+ const body=$('ysrBody');if(!body)return;
+ body.querySelectorAll('tr').forEach(tr=>stripInventoryRampLine(tr.cells?.[2]));
+}
 function decoratePlanner(){
  const o=$('ysrPlannerOverlay');if(!o)return;
  ensureStyle();
  const sub=o.querySelector('.ysrp-head p');if(sub)sub.textContent='Upravljanje zalihama · odabir datuma i termina prema ukupnom kapacitetu skladišta';
  const card=o.querySelector('.ysrp-card:nth-child(2)');
- if(card&&!o.querySelector('.yardon-time-only-planner-note')){const n=document.createElement('div');n.className='yardon-time-only-planner-note';n.textContent='Supplieru se predlaže samo termin. Prikaz rampe, ako se pojavi u preporuci, služi samo kao interni predplan YardOna.';card.querySelector('h3')?.insertAdjacentElement('afterend',n)}
+ if(card&&!o.querySelector('.yardon-time-only-planner-note')){const n=document.createElement('div');n.className='yardon-time-only-planner-note';n.textContent='Upravljanje zalihama određuje samo datum i termin. YardOn AI dodjeljuje fizičku rampu tek prema stvarnom stanju pri dolasku.';card.querySelector('h3')?.insertAdjacentElement('afterend',n)}
+ const rec=o.querySelector('#ysrpRecommendation');
+ const strong=rec?.querySelector('strong');
+ if(strong&&/Rampa\s*R?\d+/i.test(strong.textContent||''))strong.textContent=String(strong.textContent||'').replace(/\s*·\s*Rampa\s*R?\d+/i,'').trim();
+ const p=rec?.querySelector('p');
+ if(p&&/ramp/i.test(p.textContent||''))p.textContent='YardOn provjerava ukupni kapacitet skladišta za odabrani termin. Fizička rampa dodjeljuje se automatski pri dolasku.';
+ const check=$('ysrpCheck'),time=$('ysrpTime')?.value;
+ if(check&&/Rampa|rampu/i.test(check.textContent||'')){
+   if(check.classList.contains('good'))check.textContent=`✓ DOBAR ODABIR · Termin ${time||'—'} ima raspoloživ kapacitet.`;
+   else if(check.classList.contains('bad'))check.textContent=`⚠ TERMIN JE POPUNJEN · Odaberi drugi termin ili YardOn preporuku.`;
+ }
+ decorateInventoryRows();
 }
 
 async function supplierReschedule(id){
@@ -81,11 +107,12 @@ window.addEventListener('click',e=>{
  }
 },true);
 
-const mo=new MutationObserver(()=>{decorateSupplier();decoratePlanner()});
-function boot(){ensureStyle();decorateSupplier();decoratePlanner();try{mo.observe(document.body,{subtree:true,childList:true})}catch(_){}}
+const mo=new MutationObserver(()=>{decorateSupplier();decoratePlanner();decorateInventoryRows()});
+function boot(){ensureStyle();decorateSupplier();decoratePlanner();decorateInventoryRows();try{mo.observe(document.body,{subtree:true,childList:true})}catch(_){}}
 window.addEventListener('yardivo:login',()=>setTimeout(boot,120));
 window.addEventListener('yardivo:supplier-mine-rows',()=>setTimeout(decorateSupplier,40));
+window.addEventListener('yardivo:supplier-request-updated',()=>setTimeout(()=>{decoratePlanner();decorateInventoryRows()},40));
 window.addEventListener('load',()=>setTimeout(boot,250),{once:true});
 setTimeout(boot,80);
-window.YardOnSupplierTimeOnlyV1={decorate:decorateSupplier,bookingMode:'TIME_ONLY'};
+window.YardOnSupplierTimeOnlyV1={decorate:()=>{decorateSupplier();decoratePlanner();decorateInventoryRows()},bookingMode:'TIME_ONLY'};
 })();
