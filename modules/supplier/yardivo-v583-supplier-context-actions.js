@@ -37,8 +37,31 @@ function itemsFor(x){
  }
  return h;
 }
+function syncPlannerWarehouseFromMaster(id){
+ const code=String(id||'').trim();if(!code)return null;
+ let master={};
+ try{master=window.YardivoMasterDataService?.read?.()||window.YardivoAppStateV583?.master?.()||JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}')||{}}catch(_){master={}}
+ const w=(Array.isArray(master.warehouses)?master.warehouses:[]).find(v=>v&&v.active!==false&&String(v.id)===code);if(!w)return null;
+ const activeRamps=(Array.isArray(w.ramp_settings)?w.ramp_settings:[]).filter(r=>r&&r.active!==false&&Number(r.number)>0);
+ const cfg={
+  code,
+  name:String(w.name||code),
+  location_id:String(w.location_id||''),
+  location:String((master.locations||[]).find(l=>String(l?.id||'')===String(w.location_id||''))?.name||w.location_id||''),
+  ramps:activeRamps.length||Number(w.ramps)||0,
+  receptionStart:String(w.reception_from||w.receptionStart||'06:00').slice(0,5),
+  receptionEnd:String(w.reception_to||w.receptionEnd||'13:00').slice(0,5)
+ };
+ try{
+  let target=null;
+  if(typeof WAREHOUSES!=='undefined'&&WAREHOUSES)target=WAREHOUSES;
+  else{window.WAREHOUSES=window.WAREHOUSES||{};target=window.WAREHOUSES}
+  target[code]={...(target[code]||{}),...cfg};
+ }catch(_){try{window.WAREHOUSES=window.WAREHOUSES||{};window.WAREHOUSES[code]={...(window.WAREHOUSES[code]||{}),...cfg}}catch(__){}}
+ return cfg;
+}
 function openFor(x,clientX,clientY){
- if(!x||!canAct())return;const items=itemsFor(x);if(!items)return;const m=ensure();
+ if(!x||!canAct())return;syncPlannerWarehouseFromMaster(x.warehouse);const items=itemsFor(x);if(!items)return;const m=ensure();
  const supplier=x.supplier_name||x.supplier_username||'Dobavljač';
  const wh=(window.YardivoAppStateV583?.master?.()?.warehouses||[]).find?.(w=>String(w.id)===String(x.warehouse))?.name||x.warehouse||'';
  m.innerHTML=`<div class="yscm-head"><strong>${esc(supplier)}</strong><small>${esc(wh)} · ${esc(String(x.delivery_date||''))} ${esc(String(x.requested_time||'').slice(0,5))}</small></div>${items}`;
@@ -52,7 +75,7 @@ function decorateRows(){
  const th=document.querySelector('#supplierRequests table thead tr th:nth-child(9)');if(th)th.textContent='';
  const actionsVisible=canAct(),mobile=touchUi();
  document.querySelectorAll('#supplierRequests #ysrBody tr[data-ysr-detail]').forEach(tr=>{
-  const id=String(tr.dataset.ysrDetail||''),x=rowById(id);tr.title=canAct()?(mobile?'Dodirni AKCIJE za upravljanje najavom':'Klikni AKCIJE za upravljanje najavom'):'Klikni za detalje najave';
+  const id=String(tr.dataset.ysrDetail||''),x=rowById(id);if(x)syncPlannerWarehouseFromMaster(x.warehouse);tr.title=canAct()?(mobile?'Dodirni AKCIJE za upravljanje najavom':'Klikni AKCIJE za upravljanje najavom'):'Klikni za detalje najave';
   const old=tr.querySelector('[data-yv-mobile-supplier-actions]');if(!actionsVisible||!x||!itemsFor(x)){old?.remove();return}if(old)return;
   const first=tr.querySelector('td');if(!first)return;const b=document.createElement('button');b.type='button';b.className='secondary yv-mobile-supplier-actions';b.setAttribute(MOBILE_ACTION,id);b.textContent='AKCIJE';b.style.cssText='display:block!important;min-height:44px;margin-top:8px;padding:8px 12px;font-size:12px;font-weight:900;touch-action:manipulation';first.appendChild(b);
  });
@@ -83,5 +106,5 @@ window.addEventListener('scroll',close,true);window.addEventListener('resize',()
 window.addEventListener('yardivo:supplier-request-updated',()=>setTimeout(decorateRows,80));window.addEventListener('yardivo:supplier-inbox-changed',()=>setTimeout(decorateRows,80));window.addEventListener('yardivo:login',()=>setTimeout(()=>{decorateRows();stabilizeSupplierBooking()},1800));window.addEventListener('load',()=>setTimeout(()=>{decorateRows();stabilizeSupplierBooking()},2800));
 const mo=new MutationObserver(()=>decorateRows());window.addEventListener('load',()=>{const b=document.getElementById('ysrBody');if(b)mo.observe(b,{childList:true})});
 setTimeout(stabilizeSupplierBooking,600);
-window.YardivoSupplierContextActionsV583={close,openFor,rowById,refresh:decorateRows};
+window.YardivoSupplierContextActionsV583={close,openFor,rowById,refresh:decorateRows,syncPlannerWarehouseFromMaster};
 })();
