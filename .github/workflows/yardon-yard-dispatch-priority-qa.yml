@@ -1,0 +1,35 @@
+name: YardOn Yard Dispatch Priority QA
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'modules/receiving/service.js'
+      - 'modules/supplier/service.js'
+      - 'supabase/functions/yardivo-yard-dispatch/index.ts'
+      - '.github/qa/yardon-yard-dispatch-priority-qa.js'
+      - '.github/workflows/yardon-yard-dispatch-priority-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  yard-dispatch-priority:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Static checks
+        run: |
+          node --check modules/receiving/service.js
+          node --check modules/supplier/service.js
+          node --check .github/qa/yardon-yard-dispatch-priority-qa.js
+          grep -q "yardivo-yard-dispatch" modules/receiving/service.js
+          grep -q "bookingMode:'TIME_ONLY'" modules/supplier/service.js
+          grep -q "actor_name:'YardOn AI'" supabase/functions/yardivo-yard-dispatch/index.ts
+          grep -q "diff>=-15&&diff<=30" supabase/functions/yardivo-yard-dispatch/index.ts
+      - name: Run multi-truck parking and priority scenarios
+        run: node .github/qa/yardon-yard-dispatch-priority-qa.js
