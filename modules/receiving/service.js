@@ -4,6 +4,8 @@ if(window.YardivoReceivingService?.owner==='modules/receiving/service.js')return
 
 let installed=false;
 let original=null;
+let yardDispatchRunning=false;
+let yardDispatchLastRun=0;
 
 function currentCfg(){
   try{
@@ -55,6 +57,49 @@ function emit(id,status,source){
   }catch(_){}
 }
 
+function appRole(){
+  let r='';
+  try{r=String(window.currentSession?.app_role||window.currentSession?.role||'').toLowerCase().trim()}catch(_){}
+  if(r==='porta'||r==='portir')r='gate';
+  if(r==='prijam')r='reception';
+  return r;
+}
+function yardDispatchAllowed(){return ['admin','gate','reception'].includes(appRole())}
+async function yardDispatchToken(){
+  try{if(typeof window.YardivoSupplierService?.token==='function')return await window.YardivoSupplierService.token()}catch(_){}
+  const direct=String(window.__yardivoSupplierAccessToken||'').trim();if(direct)return direct;
+  const c=await window.YardivoAuth?.client?.();let s=(await c?.auth?.getSession?.())?.data?.session||null;
+  if(!s?.access_token)s=(await c?.auth?.refreshSession?.())?.data?.session||null;
+  if(!s?.access_token)throw new Error('ONLINE PRIJAVA NIJE AKTIVNA.');
+  return s.access_token;
+}
+async function dispatchWaitingYard(warehouse='',force=false){
+  if(!yardDispatchAllowed()||yardDispatchRunning)return null;
+  const now=Date.now();if(!force&&now-yardDispatchLastRun<1800)return null;
+  yardDispatchRunning=true;yardDispatchLastRun=now;
+  try{
+    const base=String(window.YardivoSupabaseClient?.base||'https://ldzwgdwzolbvjxyznlry.supabase.co');
+    const key=String(window.YardivoSupabaseClient?.publishableKey||'sb_publishable_f3daeEDsH7zNSiFR5QluaQ_AP4Ptjzz');
+    const t=await yardDispatchToken();
+    const r=await fetch(base+'/functions/v1/yardivo-yard-dispatch',{
+      method:'POST',
+      headers:{apikey:key,Authorization:'Bearer '+t,'Content-Type':'application/json'},
+      body:JSON.stringify({action:'dispatch',...(warehouse?{warehouse}: {})})
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||d?.ok===false)throw new Error(d?.error||('YARD DISPATCH HTTP '+r.status));
+    const assignments=(d.results||[]).flatMap(x=>x?.assignments||[]);
+    if(assignments.length){
+      try{window.dispatchEvent(new CustomEvent('yardivo:yard-ai-dispatched',{detail:{assignments,results:d.results||[]}}))}catch(_){}
+      try{window.showYmsToast?.('success','YARDON AI · RAMPA DODIJELJENA',assignments.map(x=>String(x.dock||'')).filter(Boolean).join(', '),3600)}catch(_){}
+    }
+    return d;
+  }catch(e){
+    console.warn('YardOn AI yard dispatch',e);
+    return null;
+  }finally{yardDispatchRunning=false}
+}
+
 const SUPPLIER_STATUS={
   'U dvorištu':'arrival',
   'Na rampi':'dock',
@@ -104,6 +149,7 @@ function install(){
     const after=()=>{
       emit(id,status,source);
       void syncSupplierStatus(id,status);
+      if(['Zaprimljeno','Odbijen'].includes(String(status||'')))setTimeout(()=>void dispatchWaitingYard(wh,true),120);
     };
     if(result&&typeof result.then==='function'){
       result.then(after).catch(()=>{});
@@ -126,11 +172,23 @@ window.YardivoReceivingService={
   enabledFor,
   warehouseFor,
   syncSupplierStatus,
+  dispatchWaitingYard,
   original:()=>original
 };
+window.YardivoYardDispatch={owner:'modules/receiving/service.js',dispatch:dispatchWaitingYard,allowed:yardDispatchAllowed};
 window.yardivoReceivingQrEnabledForWarehouseV585=enabledFor;
 
 install();
 document.addEventListener('DOMContentLoaded',install,{once:true});
-window.addEventListener('load',install,{once:true});
+document.addEventListener('click',e=>{
+  if(!yardDispatchAllowed())return;
+  if(e.target?.closest?.('button[data-approve],button[data-gate-approve],[data-yv-manual-gate-enter]'))setTimeout(()=>void dispatchWaitingYard('',true),700);
+},true);
+window.addEventListener('yardivo:login',()=>setTimeout(()=>void dispatchWaitingYard('',true),900));
+window.addEventListener('focus',()=>void dispatchWaitingYard('',false));
+window.addEventListener('load',()=>{
+  install();
+  setTimeout(()=>void dispatchWaitingYard('',true),1600);
+  setInterval(()=>{if(document.visibilityState==='visible'&&yardDispatchAllowed())void dispatchWaitingYard('',false)},5000);
+},{once:true});
 })();
