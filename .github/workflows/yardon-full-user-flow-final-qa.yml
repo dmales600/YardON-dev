@@ -48,6 +48,10 @@ jobs:
           from pathlib import Path
           p=Path('.github/qa/yardon-full-user-flow-final.js')
           s=p.read_text()
+          old0="""  const page=await context.newPage();\n  const errors=[];\n  page.on('pageerror',e=>errors.push(String(e.message||e)));"""
+          new0="""  const page=await context.newPage();\n  const errors=[];\n  page.on('console',m=>console.log('BROWSER_CONSOLE '+m.type()+' '+m.text()));\n  page.on('pageerror',e=>errors.push(String(e.message||e)));"""
+          if old0 not in s: raise SystemExit('Browser console anchor missing')
+          s=s.replace(old0,new0,1)
           old="""    await page.fill('#sbnSku','4');\n    await page.fill('#sbnOrder','PO-QA-001');"""
           new="""    await page.fill('#sbnSku','4');\n    await page.locator('#sbnExtra').evaluate(el=>{el.hidden=false;el.open=true});\n    await page.fill('#sbnOrder','PO-QA-001');"""
           if old not in s: raise SystemExit('Supplier optional-details QA anchor missing')
