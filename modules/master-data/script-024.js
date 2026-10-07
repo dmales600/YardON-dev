@@ -1109,17 +1109,19 @@ function allowedViewsForRole(role){
   }
   return map[role]||[];
 }
+function yardivoAiControlEnabledForRoleUi(){try{const c=JSON.parse(localStorage.getItem('yardivo_auto_replan_cfg_v1')||'{}')||{};return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED'}catch(_){return false}}
 function applyRoleAccess(){
   if(!currentSession)return;
   const allowed=allowedViewsForRole(currentSession.role);
-  document.querySelectorAll('[data-home-target]').forEach(card=>card.style.display=allowed.includes(card.dataset.homeTarget)?'block':'none');
+  const canShow=id=>allowed.includes(id)&&(id!=='aiOperations'||yardivoAiControlEnabledForRoleUi());
+  document.querySelectorAll('[data-home-target]').forEach(card=>card.style.display=canShow(card.dataset.homeTarget)?'block':'none');
 
   document.querySelectorAll('[data-view]').forEach(btn=>{
-    btn.classList.toggle('role-hidden',!allowed.includes(btn.dataset.view));
+    btn.classList.toggle('role-hidden',!canShow(btn.dataset.view));
   });
 
   const active=document.querySelector('.view.active');
-  if(active && !allowed.includes(active.id)){
+  if(active && !canShow(active.id)){
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     document.getElementById('dashboard')?.classList.add('active');
     document.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));
