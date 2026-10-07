@@ -3,7 +3,12 @@
 if(window.__YARDIVO_MASTER_SINGLE_EDITOR_V12__)return;
 window.__YARDIVO_MASTER_SINGLE_EDITOR_V12__=true;
 
+function masterEditing(){
+  const a=document.activeElement;
+  return !!a?.closest?.('#yardivoStableMasterEditorV583')&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName||'');
+}
 function removeDuplicate(){
+  if(masterEditing())return;
   const old=document.getElementById('yardivoMasterFoundationV583');
   if(old)old.remove();
 
