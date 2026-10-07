@@ -376,7 +376,7 @@ function showGateDecisionPopup(x){
     '<div class="ygdp-fact"><small>REGISTRACIJA</small><b>'+esc(x.vehicle_plate||'NIJE UNESENA')+'</b></div>'+
     '<div class="ygdp-fact"><small>VOZAČ</small><b>'+esc(x.driver_name||'NIJE UNESEN')+'</b></div>'+
     '<div class="ygdp-fact"><small>NARUDŽBA</small><b>'+esc(x.order_number||'OPCIONALNO / NIJE UNESENA')+'</b></div>'+
-    '<div class="ygdp-fact"><small>RAMPA / TERMIN</small><b>'+esc((x.dock||'—')+' · '+(x.appointment_at?new Date(x.appointment_at).toLocaleString('hr-HR'):'—'))+'</b></div>';
+    '<div class="ygdp-fact"><small>TERMIN</small><b>'+esc(x.appointment_at?new Date(x.appointment_at).toLocaleString('hr-HR'):'—')+'</b></div>';
   const alert=m.querySelector('#ygdpAlert'),actions=m.querySelector('#ygdpActions');
   if(complete){
     alert.textContent='Podaci su uredni. Portir može odobriti ulaz; nakon odobrenja status najave postaje U DVORIŠTU.';
@@ -425,20 +425,22 @@ async function loadGate(){
       return `<div class="ysg-row ${x.state==='PROCEED_DOCK'?'go':'wait'}">
         <div class="ysg-announced">✓ UREDNO NAJAVLJEN</div>
         <div class="ysg-mainline">${esc(ref||'NAJAVA')} · ${esc(x.supplier_name||'Dobavljač')} · ${esc(x.vehicle_plate||'BEZ TABLICA')}</div>
-        <div class="ysg-destination">SKLADIŠTE: ${esc(wh||'—')}${loc?` · LOKACIJA: ${esc(loc)}`:''}${dock?` · PLANIRANA RAMPA: ${esc(String(dock).replace(/^R/i,''))}`:''}</div>
+        <div class="ysg-destination">SKLADIŠTE: ${esc(wh||'—')}${loc?` · LOKACIJA: ${esc(loc)}`:''}${x.state==='PROCEED_DOCK'&&dock?` · DODIJELJENA RAMPA: ${esc(String(dock).replace(/^R/i,''))}`:''}</div>
         <div class="meta">Vozač: ${esc(x.driver_name||'nije upisan')} · Termin: ${esc(when)}${order?` · Narudžba: ${esc(order)}`:''}<br>${esc(x.last_instruction||'')}</div>
-        ${x.state==='WAITING_GATE'?`<div class="ysg-actions"><input data-parking="${esc(x.id)}" value="${esc(x.parking_slot||'P1')}" placeholder="Parking"><input data-gmsg="${esc(x.id)}" placeholder="Dodatna poruka vozaču (opcionalno)"><button class="primary" data-approve="${esc(x.id)}">ODOBRI ULAZ</button><button class="danger" data-reject="${esc(x.id)}">ODBIJ ULAZ</button></div>`:`<div class="ysg-actions"><input data-dock="${esc(x.id)}" value="${esc(x.dock||'')}" placeholder="Rampa npr. R3"><input data-imsg="${esc(x.id)}" placeholder="Poruka vozaču"><button class="primary" data-instruct="${esc(x.id)}">POŠALJI UPUTU</button></div>`}
+        ${x.state==='WAITING_GATE'?`<div class="ysg-actions"><input data-gmsg="${esc(x.id)}" placeholder="Dodatna poruka vozaču (opcionalno)"><button class="primary" data-approve="${esc(x.id)}">ODOBRI ULAZ</button><button class="danger" data-reject="${esc(x.id)}">ODBIJ ULAZ</button></div>`:`<div class="ysg-actions"><span class="meta">Rampa/parking dodjeljuju se automatski prema stanju dvorišta.</span></div>`}
       </div>`;
     }).join('');
   }catch(e){p.querySelector('#ysgRows').innerHTML='<div class="meta" style="color:#ff9ca4">Greška: '+esc(e?.message||e)+'</div>'}
 }
 async function decide(id,decision){
-  const parking=document.querySelector(`[data-parking="${CSS.escape(id)}"]`)?.value||'P1';
   const message=document.querySelector(`[data-gmsg="${CSS.escape(id)}"]`)?.value||'';
   try{
-    await api('gate_decide',{id,decision,parkingSlot:parking,message});
+    await api('gate_decide',{id,decision,message});
+    if(decision==='APPROVE'){
+      try{await window.YardivoYardDispatch?.dispatch?.('',true)}catch(_){}
+    }
     await loadGate();
-    window.showYmsToast?.('success',decision==='APPROVE'?'ULAZ ODOBREN · U DVORIŠTU':'ULAZ ODBIJEN',decision==='APPROVE'?'Status najave je U DVORIŠTU.':'YARDIVO Delivery Pass je ažuriran.')
+    window.showYmsToast?.('success',decision==='APPROVE'?'ULAZ ODOBREN · YARDON ODREĐUJE ODREDIŠTE':'ULAZ ODBIJEN',decision==='APPROVE'?'Ako je rampa slobodna vozač dobiva rampu; inače prvo slobodno parking mjesto.':'YARDIVO Delivery Pass je ažuriran.')
   }catch(e){
     const msg=String(e?.message||e);
     if(/DRIVER_INFO_REQUIRED|Nedostaju podaci/i.test(msg)){
