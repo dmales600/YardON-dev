@@ -161,9 +161,13 @@ function renderStatus(){
   const labels=['NAJAVA','POTVRDA','DOLAZAK','RAMPA','ZAPRIMANJE','ZAVRŠENO'];
   host.innerHTML=active.map(x=>{
     const idx=progressIndex(x.status);
+    const dockLabel=x.dock?(/^R/i.test(x.dock)?x.dock:'R'+x.dock):'';
+    const dockNotice=dockLabel&&['arrival','dock','receiving'].includes(statusKey(x.status))
+      ?'<div style="margin:10px 0;padding:12px 14px;border:1px solid #2d8b56;border-radius:10px;background:rgba(45,139,86,.12);font-weight:950">✓ YardOn AI dodijelio rampu: <strong>'+esc(dockLabel)+'</strong></div>'
+      :'';
     const qr=x.qrUrl?'<div class="ysps-qr-live"><div class="ysps-qr-canvas" data-yv-server-qr-canvas="'+esc(x.id)+'"></div><div class="ysps-qr-copy"><strong>▣ QR DOCK JE SPREMAN</strong><p>Ovaj QR Dock pošalji vozaču za potvrdu na Docku / Prijamu. Gate Check-In se radi posebnim QR-om na ulazu.</p><div class="ysps-qr-actions"><button type="button" class="btn-primary" data-yv-server-qr-open="'+esc(x.id)+'">OTVORI QR</button><button type="button" class="btn-secondary" data-yv-server-qr-pdf="'+esc(x.id)+'">PREUZMI QR · PDF</button></div></div></div>':'<div class="ysps-noqr">QR Dock još nije izdan od strane YARDIVO zaliha.</div>';
     return '<article class="ysps-card">'+
-      '<div><div class="ysps-title"><strong>'+esc(window.YardivoAnnouncementNumberV583?.displayId?.(x.id)||x.id)+' · '+esc(x.order||'BEZ PO')+'</strong><span class="ysph-status '+statusClass(x.status)+'">'+esc(statusLabel(x.status))+'</span></div>'+
+      '<div><div class="ysps-title"><strong>'+esc(window.YardivoAnnouncementNumberV583?.displayId?.(x.id)||x.id)+' · '+esc(x.order||'BEZ PO')+'</strong><span class="ysph-status '+statusClass(x.status)+'">'+esc(statusLabel(x.status))+'</span></div>'+dockNotice+
       '<div class="ysps-grid">'+
         '<div class="ysps-fact"><small>SKLADIŠTE</small><b>'+esc(whLabel(x.warehouse))+'</b></div>'+
         '<div class="ysps-fact"><small>DATUM / TERMIN</small><b>'+esc(x.date||'—')+' · '+esc(x.time||'—')+'</b></div>'+
