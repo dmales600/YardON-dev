@@ -184,6 +184,15 @@ jobs:
             await page.evaluate(()=>{clearInterval(window.__qaMasterPulse);window.__qaMasterPulse=0});
             const typedLocation=await page.locator('#smNewLocation').inputValue();
             if(typedLocation!=='Zagreb QA') throw new Error('Master location input lost text during background refresh: '+JSON.stringify(typedLocation));
+            // Also cover a legacy focus-loss race: a redraw after blur must preserve
+            // the current draft instead of replacing it with an empty input.
+            await page.locator('#smNewLocation').fill('Zagreb QA');
+            await page.evaluate(()=>{
+              document.body.setAttribute('tabindex','-1');document.body.focus();
+              window.YardivoStableMasterV583?.render?.(true);
+            });
+            const afterBlurRedraw=await page.locator('#smNewLocation').inputValue();
+            if(afterBlurRedraw!=='Zagreb QA') throw new Error('Master location draft lost after focus-loss redraw: '+JSON.stringify(afterBlurRedraw));
             await page.locator('[data-sm-add-loc]').evaluate(el=>el.click());
             await page.waitForTimeout(180);
             let zeroCrud=await page.evaluate(()=>{
