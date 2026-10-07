@@ -13,6 +13,8 @@ on:
       - "modules/services/yardivo-qr-role-control-v586.js"
       - "modules/master-data/runtime/yardivo-v583-master-popup-only-fix.js"
       - "modules/master-data/runtime/yardivo-master-single-editor-v12-js.js"
+      - "modules/master-data/script-024.js"
+      - "modules/supplier/yardivo-v583-global-master-context-names-final.js"
       - "modules/services/yardivo-master-admin-settings-v583.js"
       - "modules/master-data/runtime/yardivo-v583-settings-single-page-master-light-blue-authority.js"
       - "modules/master-data/phase2-258-yardivo-v583-add-user-smart-system-toggle-js.js"
@@ -46,6 +48,8 @@ jobs:
           node --check modules/services/yardivo-qr-role-control-v586.js
           node --check modules/master-data/runtime/yardivo-v583-master-popup-only-fix.js
           node --check modules/master-data/runtime/yardivo-master-single-editor-v12-js.js
+          node --check modules/master-data/script-024.js
+          node --check modules/supplier/yardivo-v583-global-master-context-names-final.js
           node --check modules/services/yardivo-master-admin-settings-v583.js
           node --check modules/master-data/runtime/yardivo-v583-settings-single-page-master-light-blue-authority.js
           node --check modules/master-data/phase2-258-yardivo-v583-add-user-smart-system-toggle-js.js
