@@ -17,6 +17,8 @@ function role(){
  return r;
 }
 function isManager(){return role()==='manager'}
+function aiControlEnabled(){try{const c=JSON.parse(localStorage.getItem('yardivo_auto_replan_cfg_v1')||'{}')||{};return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED'}catch(_){return false}}
+function managerViewAllowed(id){return ALLOWED.has(String(id||''))&&(String(id||'')!=='aiOperations'||aiControlEnabled())}
 function md(){
  try{
   const d=JSON.parse(localStorage.getItem(MASTER)||'{}')||{};
@@ -146,14 +148,14 @@ function forceView(raw){
  });
  document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{
    const bid=String(b.dataset.view||'');
-   const ok=ALLOWED.has(bid);
+   const ok=managerViewAllowed(bid);
    b.style.setProperty('display',ok?'flex':'none','important');
    b.style.setProperty('visibility',ok?'visible':'hidden','important');
    b.classList.toggle('active',bid===id);
  });
  document.querySelectorAll('#homeMenuGrid [data-home-target]').forEach(c=>{
    let cid=String(c.dataset.homeTarget||'');if(cid==='controltower')cid='controlTower';
-   const ok=ALLOWED.has(cid)&&cid!=='homeMenu';
+   const ok=managerViewAllowed(cid)&&cid!=='homeMenu';
    c.style.setProperty('display',ok?'block':'none','important');
    c.style.setProperty('visibility',ok?'visible':'hidden','important');
  });
@@ -296,12 +298,14 @@ window.addEventListener('click',e=>{
  const nav=e.target?.closest?.('.nav-btn[data-view]');
  if(nav){
    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+   if(nav.dataset.view==='aiOperations'&&!aiControlEnabled())return;
    forceView(nav.dataset.view);
    return;
  }
  const card=e.target?.closest?.('#homeMenuGrid [data-home-target]');
  if(card){
    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+   if(card.dataset.homeTarget==='aiOperations'&&!aiControlEnabled())return;
    forceView(card.dataset.homeTarget);
    return;
  }
