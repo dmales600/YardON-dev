@@ -98,6 +98,17 @@ jobs:
             // Keep the real login overlay from reappearing and intercepting Master clicks.
             await page.addStyleTag({content:'#loginOverlay,#yardivoWelcomeSplash{display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important}'});
             await page.evaluate(()=>{
+              const suppress=(el)=>{
+                if(!el)return;
+                el.hidden=true;el.setAttribute('aria-hidden','true');
+                el.style.setProperty('display','none','important');
+                el.style.setProperty('visibility','hidden','important');
+                el.style.setProperty('pointer-events','none','important');
+                el.style.setProperty('opacity','0','important');
+              };
+              const login=document.getElementById('loginOverlay'),welcome=document.getElementById('yardivoWelcomeSplash');
+              suppress(login);suppress(welcome);
+              if(login){const mo=new MutationObserver(()=>suppress(login));mo.observe(login,{attributes:true,attributeFilter:['class','style','hidden','aria-hidden']});window.__qaLoginOverlayGuard=mo}
               try{window.YardivoRoleStableFinal?.open?.('settings')}catch(_){}
               try{window.openAppView?.('settings')}catch(_){}
               document.querySelectorAll('.view').forEach(v=>{if(v.id!=='settings')v.classList.remove('active')});
@@ -159,7 +170,7 @@ jobs:
             await page.evaluate(()=>{
               window.__qaMasterPulse=setInterval(()=>window.dispatchEvent(new CustomEvent('yardivo:master-data-changed',{detail:{source:'qa-background-pulse'}})),25);
             });
-            await page.locator('#smNewLocation').click();
+            await page.locator('#smNewLocation').focus();
             await page.locator('#smNewLocation').pressSequentially('Zagreb QA',{delay:55});
             await page.evaluate(()=>{clearInterval(window.__qaMasterPulse);window.__qaMasterPulse=0});
             const typedLocation=await page.locator('#smNewLocation').inputValue();
