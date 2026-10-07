@@ -283,6 +283,11 @@ function render(force=false){
     Master form. Legacy callers still pass true; that must NOT bypass typing
     protection because it can erase characters between keystrokes. */
  const explicit=force==='operation';
+ const legacyForce=force===true;
+ /* Legacy modules historically used render(true) as a hammer. Once the
+    canonical editor is mounted, that call must be a no-op; otherwise it can
+    continuously detach #smNewLocation before the user even receives focus. */
+ if(legacyForce&&h.childElementCount>0)return;
  if(typing&&!explicit)return;
  if(!explicit&&Date.now()<masterEditHoldUntil)return;
  if(!explicit)captureDrafts();
