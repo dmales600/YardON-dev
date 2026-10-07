@@ -1000,6 +1000,10 @@ function yardivoRefreshAllWarehouseUi(){
   ['warehouseFilter','annWarehouse','announcementWarehouse','savedWarehouseFilter','dailyMapWarehouseSelect','weeklyMapWarehouse','uaWarehouse']
     .forEach(id=>refill(document.getElementById(id),{location:activeLoc}));
   document.querySelectorAll('select').forEach(sel=>{
+    /* Stable Master owns all selectors inside its editor. In particular
+       #smNewWarehouseLocation is a LOCATION selector despite "Warehouse"
+       appearing in its id, so global warehouse sync must never refill it. */
+    if(sel.closest?.('#yardivoStableMasterEditorV583'))return;
     if(['loginRole','globalWarehouse','warehouseFilter','annWarehouse','announcementWarehouse','savedWarehouseFilter','dailyMapWarehouseSelect','weeklyMapWarehouse','uaWarehouse','ysaLocation','ywaLocation','yufLocation','muLocation'].includes(sel.id))return;
     if(/warehouse|sklad/i.test(String(sel.id||'')+' '+String(sel.name||'')))refill(sel,{location:activeLoc});
   });
@@ -1058,6 +1062,7 @@ function syncWarehouseSelectorsToLoginLocation(){
 
   // Rebuild any other warehouse selectors that contain known warehouse codes.
   document.querySelectorAll('select').forEach(sel=>{
+    if(sel.closest?.('#yardivoStableMasterEditorV583'))return;
     if(['warehouseFilter','annWarehouse','savedWarehouseFilter','dailyMapWarehouseSelect','loginLocation','loginRole'].includes(sel.id))return;
     const values=Array.from(sel.options||[]).map(o=>o.value);
     const isWarehouseSelect=values.some(v=>/^W(101|103|104|201|203|204)$/.test(v));
