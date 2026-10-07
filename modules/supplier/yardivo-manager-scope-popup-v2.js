@@ -10,6 +10,8 @@ const ALLOWED=new Set(['homeMenu','dashboard','controlTower','aiOperations','ana
 function session(){try{return (typeof currentSession!=='undefined'?currentSession:window.currentSession)||null}catch(_){return window.currentSession||null}}
 function role(){let r=String(session()?.role||session()?.app_role||'').trim().toLowerCase();if(r==='management'||r==='voditelj')r='manager';return r}
 function isManager(){return role()==='manager'}
+function aiControlEnabled(){try{const c=JSON.parse(localStorage.getItem('yardivo_auto_replan_cfg_v1')||'{}')||{};return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED'}catch(_){return false}}
+function menuAllowed(id){return ALLOWED.has(String(id||''))&&(String(id||'')!=='aiOperations'||aiControlEnabled())}
 function canManageRamps(){return ['admin','manager'].includes(role())}
 function master(){try{const d=JSON.parse(localStorage.getItem(MASTER)||'{}');return {locations:Array.isArray(d.locations)?d.locations:[],warehouses:Array.isArray(d.warehouses)?d.warehouses:[],...d}}catch(_){return{locations:[],warehouses:[]}}}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
@@ -59,7 +61,7 @@ function enforceMenu(){
  setRoleAttrs();
  const labels={homeMenu:'Početni izbornik',dashboard:'Nadzorna ploča',controlTower:'Control Tower',analytics:'Analytics',myYard:'My Yard',suppliers:'Dobavljači',overview:'Overview dobavljača',dailyMap:'Dnevna mapa',weeklyMap:'Tjedna mapa'};
  document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{
-   const id=String(b.dataset.view||''),ok=ALLOWED.has(id);
+   const id=String(b.dataset.view||''),ok=menuAllowed(id);
    b.classList.toggle('role-hidden',!ok);
    b.style.setProperty('display',ok?'flex':'none','important');
    b.style.setProperty('visibility',ok?'visible':'hidden','important');
@@ -67,7 +69,7 @@ function enforceMenu(){
  });
  document.querySelectorAll('#homeMenuGrid [data-home-target]').forEach(card=>{
    let id=String(card.dataset.homeTarget||'');if(id==='controltower')id='controlTower';
-   const ok=ALLOWED.has(id)&&id!=='homeMenu';
+   const ok=menuAllowed(id)&&id!=='homeMenu';
    card.classList.toggle('role-hidden',!ok);
    card.style.setProperty('display',ok?'block':'none','important');
    card.style.setProperty('visibility',ok?'visible':'hidden','important');
