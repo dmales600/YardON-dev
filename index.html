@@ -1346,11 +1346,12 @@ AUTOMATSKA PREPORUKA</small>
 <button class="primary" id="addCustomHoliday" style="margin-top:10px" type="button">DODAJ NERADNI DAN</button>
 </div>
 </section>
-<section class="danger-zone">
-<div class="panel-head"><div><h2>OPASNA ZONA</h2><small>Samo Admin</small></div></div>
+<section class="danger-zone" id="yardonResetPanel" data-admin-only>
+<div class="panel-head"><div><h2>RESET YARDON</h2><small>Samo Admin dujemales</small></div></div>
 <div class="danger-body">
-<p><strong>FACTORY ZERO</strong> se izvršava kroz autoritativni RESET YardOn ispod. Briše svu poslovnu povijest, Master podatke, korisnike i Auth račune osim canonical Admina <strong>dujemales</strong>.</p>
-<button aria-hidden="true" class="delete-all-btn" hidden="" id="deleteAllDataBtn" type="button">LEGACY RESET RETIRED</button>
+<p><strong>POTPUNI RESET YARDON</strong> briše sve YardOn poslovne podatke iz baze i sve korisničke accounte. Ostaje samo Admin <strong>dujemales</strong>. Nakon reseta nema dobavljača, lokacija, skladišta, rampi, najava, Gate/Self Gate podataka, chatova, dokumenata, incidenata ni povijesti.</p>
+<button class="delete-all-btn" id="yardonResetBtn" type="button">RESET YARDON</button>
+<div id="yardonResetStatus" aria-live="polite" style="margin-top:10px;font-weight:800"></div>
 </div>
 </section>
 </div>
@@ -2062,7 +2063,7 @@ AUTOMATSKA PREPORUKA</small>
 
 <script id="yardivo-v583-production-empty-guard-final" src="./modules/master-data/runtime/yardivo-v583-production-empty-guard-final.js"></script>
 
-<script id="yardivo-v583-dev-total-reset-final" src="modules/supplier/yardivo-v583-dev-total-reset-final.js?v=20261007"></script>
+<script id="yardon-reset-final" src="modules/supplier/yardivo-v583-dev-total-reset-final.js?v=20261007b"></script>
 
 <script id="yardivo-v583-stable-master-supplier-zero-final" src="modules/supplier/yardivo-v583-stable-master-supplier-zero-final.js?v=20260925"></script>
 
