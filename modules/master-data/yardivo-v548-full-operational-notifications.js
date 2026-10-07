@@ -19,7 +19,9 @@ function normalizeDock(v){
   const raw=norm(v).toUpperCase();
   if(!raw)return'';
   const m=raw.replace(/RAMPA/g,'').replace(/^R+/,'').trim().match(/\d+/);
-  return m?String(Number(m[0])):raw;
+  if(!m)return'';
+  const n=Number(m[0]);
+  return Number.isFinite(n)&&n>0?String(n):'';
 }
 function normalizeWarehouse(v){
   const raw=norm(v).toUpperCase();
@@ -163,7 +165,12 @@ function classify(c,s){
   if(c.k==='approvalStatus')return [`NENAJAVLJENI · ODLUKA`,`${base(s)} · odobrenje ${c.from||'—'} → ${c.to||'—'}`];
   if(c.k==='date'||c.k==='time')return ['PROMJENA TERMINA',`${base(s)} · ${c.label}: ${c.from||'—'} → ${c.to||'—'}`];
   if(c.k==='warehouse')return ['PROMJENA SKLADIŠTA',`${base(s)} · Skladište: ${warehouseLabel(c.from)} → ${warehouseLabel(c.to)}`];
-  if(c.k==='dock')return ['PROMJENA RAMPE',`${base(s)} · Rampa: R${normalizeDock(c.from)||'—'} → R${normalizeDock(c.to)||'—'}`];
+  if(c.k==='dock'){
+    const from=normalizeDock(c.from),to=normalizeDock(c.to);
+    if(!from&&to)return ['YARDON DODIJELIO RAMPU',`${s.supplier||'Dobavljač'} · ${s.date||'—'} ${s.time||'—'} · ${warehouseLabel(s.warehouse)} · YardOn dodijelio rampu R${to}.`];
+    if(from&&!to)return ['RAMPA OSLOBOĐENA',`${s.supplier||'Dobavljač'} · ${warehouseLabel(s.warehouse)} · prethodna rampa R${from} više nije dodijeljena.`];
+    return ['PROMJENA RAMPE',`${base(s)} · Rampa: R${from} → R${to}`];
+  }
   if(c.k==='gateEnteredAt')return ['ULAZAK KROZ PORTU',`${base(s)} · vozilo je ušlo kroz portu.`];
   if(c.k==='yardArrivalAt')return ['DOLAZAK U DVORIŠTE',`${base(s)} · vozilo je evidentirano u dvorištu.`];
   if(c.k==='checkinAt'||c.k==='arrivalRecordedAt'||c.k==='actualArrivalAt'||c.k==='actualDate'||c.k==='actualTime')return ['PRIJAVA DOLASKA',`${base(s)} · evidentiran stvarni dolazak.`];
