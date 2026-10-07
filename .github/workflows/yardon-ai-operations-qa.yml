@@ -142,7 +142,9 @@ jobs:
               const entryVisible=(await nav.isVisible())||(await home.isVisible());
               if(!entryVisible)throw new Error(role+' cannot see AI Operations entry point');
               await page.evaluate(()=>window.YardivoRoleStableFinal?.open?.('aiOperations'));
-              await page.waitForTimeout(900);
+              await page.waitForTimeout(180);
+              await page.evaluate(async()=>{window.YardOnAIOperations?.applyVisibility?.();await window.YardOnAIOperations?.refresh?.()});
+              await page.waitForTimeout(260);
               if(!await page.locator('#aiOperations').isVisible())throw new Error(role+' AI Operations view not visible');
               if(await page.locator('#aiOperations .yaio-job').count()<3)throw new Error(role+' plan board missing jobs');
               if(!await page.getByText('Supplier C',{exact:true}).first().isVisible())throw new Error(role+' supplier plan row missing');
