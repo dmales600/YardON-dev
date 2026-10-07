@@ -9,7 +9,11 @@ async function toggleSmart(){const m=master(),st=smartState(),on=!!st.enabled&&s
 function ensure(){ensureSmart();try{window.YardivoSettingsHardFixV583?.refresh?.()}catch(_){} }
 document.addEventListener('click',e=>{if(e.target?.closest?.('#yardivoUnifiedSmartDbSwitchV583')){e.preventDefault();toggleSmart()}},true);
 window.addEventListener('yardivo:login',()=>setTimeout(ensure,180));
-window.addEventListener('yardivo:master-data-changed',()=>setTimeout(ensure,100));
+window.addEventListener('yardivo:master-data-changed',()=>{
+  /* Master CRUD already has a canonical UI owner. Updating SMART state here is
+     enough; rebuilding the whole Settings shell would detach active inputs. */
+  setTimeout(ensureSmart,100);
+});
 window.addEventListener('yardivo:view-opened',e=>{if(e?.detail?.view==='settings')setTimeout(ensure,100)});
 window.YardivoSmartSupplierAccountsFixV583={ensure,toggleSmart};
 })();
