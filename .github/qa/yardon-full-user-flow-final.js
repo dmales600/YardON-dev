@@ -108,6 +108,14 @@ async function routeBackend(context){
       }
       return ok({ok:true,data:{}});
     }
+    if(fn==='yardivo-yard-dispatch'){
+      const row=state.deliveries[0];
+      if(row&&String(row.status)==='arrival'){
+        updateDelivery(row,{status:'dock',dock:'R1'});
+        return ok({ok:true,disabled:false,results:[{delivery_pass_id:'PASS-001',state:'PROCEED_DOCK',dock:'R1',supplier_name:row.supplier_name}]});
+      }
+      return ok({ok:true,disabled:false,results:[]});
+    }
     if(fn==='yardivo-self-gate'){
       const action=String(body.action||'');
       const row=state.deliveries[0];
@@ -129,6 +137,7 @@ async function routeBackend(context){
     if(fn==='yardivo-sync'){
       if(body.action==='bootstrap')return ok({ok:true,state:[
         {key:'yardivo_master_data_registry_v583',deleted:false,value_json:JSON.stringify(MASTER)},
+        {key:'yardivo_auto_replan_cfg_v1',deleted:false,value_json:JSON.stringify({enabled:true,mode:'AUTO_SAFE',assistantEnabled:false})},
         {key:'yardivo_qr_scan_cfg_v583',deleted:false,value_json:JSON.stringify({enabled:false,byWarehouse:{W001:{enabled:false}}})}
       ]});
       return ok({ok:true});
@@ -155,6 +164,7 @@ async function makePage(browser,role,vp){
     localStorage.setItem('yardivo_master_data_registry_v583',JSON.stringify(master));
     localStorage.setItem('yardivo_master_boot_cache_v583',JSON.stringify(master));
     localStorage.setItem('yardivo_qr_scan_cfg_v583',JSON.stringify({enabled:false,byWarehouse:{W001:{enabled:false}}}));
+    localStorage.setItem('yardivo_auto_replan_cfg_v1',JSON.stringify({enabled:true,mode:'AUTO_SAFE',assistantEnabled:false}));
     localStorage.setItem('yardivo_ramp_qr_mobile_v1','0');
     localStorage.setItem('yardivo_active_warehouse','W001');
     localStorage.setItem('studenac_active_warehouse','W001');
@@ -190,6 +200,7 @@ async function makePage(browser,role,vp){
     window.activeWarehouse='W001';
     try{activeWarehouse='W001'}catch(_){}
     localStorage.setItem('yardivo_master_data_registry_v583',JSON.stringify(master));
+    localStorage.setItem('yardivo_auto_replan_cfg_v1',JSON.stringify({enabled:true,mode:'AUTO_SAFE',assistantEnabled:false}));
     localStorage.setItem('yardivo_remembered_session',JSON.stringify(session));
     try{if(window.YardivoMasterDataService)window.YardivoMasterDataService.read=()=>master}catch(_){}
     const gw=document.getElementById('globalWarehouse');
