@@ -34,6 +34,9 @@ function refreshWarehouseSelectors(){
   document.querySelectorAll('select').forEach(sel=>{
     const id=String(sel.id||''),name=String(sel.name||'');
     if(protectedIds.has(id))return;
+    /* Stable Master owns its own location/warehouse selectors. In particular,
+       smNewWarehouseLocation contains the word "Warehouse" but is a LOCATION selector. */
+    if(sel.closest('#yardivoStableMasterEditorV583'))return;
     if(id==='ymdWarehouseLocation')return;
     if(sel.closest('#yardivoMasterDataRegistryV583') && id!=='rampSettingsWarehouse')return;
     if(!/warehouse|sklad/i.test(id+' '+name))return;
