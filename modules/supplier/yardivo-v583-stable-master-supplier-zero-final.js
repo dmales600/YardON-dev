@@ -267,6 +267,14 @@ function host(){
  if(!h){h=document.createElement('section');h.id='yardivoStableMasterEditorV583';pane.prepend(h)}
  return h
 }
+function captureDrafts(){
+ const loc=document.getElementById('smNewLocation');
+ const wh=document.getElementById('smNewWarehouse');
+ const whLoc=document.getElementById('smNewWarehouseLocation');
+ if(loc)draftLocationName=String(loc.value||'');
+ if(wh)draftWarehouseName=String(wh.value||'');
+ if(whLoc&&String(whLoc.value||''))draftWarehouseLocation=String(whLoc.value||'');
+}
 function render(force=false){
  const h=host();if(!h)return;
  const a=document.activeElement;
@@ -277,6 +285,7 @@ function render(force=false){
  const explicit=force==='operation';
  if(typing&&!explicit)return;
  if(!explicit&&Date.now()<masterEditHoldUntil)return;
+ if(!explicit)captureDrafts();
  const d=master(),locs=d.locations.filter(x=>x.active!==false),whs=d.warehouses.filter(x=>x.active!==false);
  /* Settings Master configuration is intentionally independent from Header context. */
  if(configWarehouseId&&!whs.some(w=>String(w.id)===String(configWarehouseId)))configWarehouseId='';
