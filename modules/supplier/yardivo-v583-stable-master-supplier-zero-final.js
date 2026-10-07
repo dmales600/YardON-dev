@@ -92,7 +92,7 @@ function addLocation(name){
  const d=master(),id=next('LOC',d.locations);
  d.locations.push({id,name:n,active:true});draftLocationName='';commit(d,'location.add');
  /* Creating a location does not select it as runtime context. */
- render(true);
+ render('operation');
 }
 function saveLocation(id){
  const input=document.querySelector(`[data-sm-loc-name="${id}"]`),n=String(input?.value||'').trim();if(!n)return;
@@ -102,7 +102,7 @@ function deleteLocation(id){
  const d=master();if(d.warehouses.some(w=>w.location_id===id))return alert('Prvo obriši skladišta ove lokacije.');
  d.locations=d.locations.filter(x=>x.id!==id);commit(d,'location.delete');
  try{if(activeLocation()===id)window.YardivoAppStateV583?.setLocation?.('')}catch(_){}
- render(true);
+ render('operation');
 }
 function addWarehouse(name,locationId){
  const n=String(name||'').trim(),loc=String(locationId||'').trim(),d=master();
@@ -121,20 +121,20 @@ function addWarehouse(name,locationId){
  draftWarehouseName='';draftWarehouseLocation='';
  configWarehouseId=id;
  /* Keep Settings configuration local; do not mutate the global header context on create. */
- render(true);
+ render('operation');
  setTimeout(()=>document.getElementById('smWarehouseConfiguration')?.scrollIntoView?.({behavior:'smooth',block:'start'}),40);
 }
 function saveWarehouseName(id){
  const n=String(document.querySelector(`[data-sm-wh-name="${id}"]`)?.value||'').trim();if(!n)return;
  const d=master(),w=d.warehouses.find(x=>x.id===id);if(!w)return;
- w.name=n;commit(d,'warehouse.update');render(true);
+ w.name=n;commit(d,'warehouse.update');render('operation');
 }
 function deleteWarehouse(id){
  const d=master();d.warehouses=d.warehouses.filter(x=>x.id!==id);commit(d,'warehouse.delete');
  for(const k of [CAP,HOURS,DET,RH,RATE,RMETA,RCFG,EPAL]){const o=jget(k,{});delete o[id];jset(k,o)}
  try{if(activeWarehouse()===id)window.YardivoAppStateV583?.setWarehouse?.('')}catch(_){}
  if(String(configWarehouseId)===String(id))configWarehouseId='';
- render(true);
+ render('operation');
 }
 function cap(id){const w=master().warehouses.find(x=>String(x.id)===String(id));const v=w?.daily_pallet_capacity??jget(CAP,{})?.[id]?.warehousePallets;return v==null||v===''?null:Number(v)}
 function whHours(id){const x=jget(HOURS,{})?.[id]||{};return{from:x.from||'',to:x.to||''}}
@@ -204,7 +204,7 @@ function changeRampCount(id,delta){
  const cfg=jget(RCFG,{});cfg[id]=cfg[id]||{count:0,locked:[]};cfg[id].count=newCount;cfg[id].locked=(cfg[id].locked||[]).filter(x=>Number(x)<=newCount);jset(RCFG,cfg);
  if(newCount>oldCount){const hh=jget(RH,{});hh[id]=hh[id]||{};for(let r=oldCount+1;r<=newCount;r++)hh[id][String(r)]={from:inheritedFrom,to:inheritedTo};jset(RH,hh)}
  try{window.YardivoRampConfig?.setCount?.(id,newCount)}catch(_){}
- render(true);
+ render('operation');
 }
 function saveRamp(id,r){
  const pair=id+':'+r;
@@ -256,7 +256,7 @@ function toggleRampActive(id,r){
  try{window.YardivoSupabase?.flushQueue?.()}catch(_){}
  refreshOperational();
  try{showYmsToast?.(row.active?'success':'warning',row.active?'RAMPA UKLJUČENA':'RAMPA ISKLJUČENA',`${row.name||`Rampa ${r}`} · ${w.name}`)}catch(_){}
- render(true);
+ render('operation');
 }
 
 /* ---------------- Render only on explicit operations/navigation ---------------- */
@@ -271,7 +271,12 @@ function render(force=false){
  const h=host();if(!h)return;
  const a=document.activeElement;
  const typing=!!a?.closest?.('#yardivoStableMasterEditorV583')&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName||'');
- if(!force&&(typing||Date.now()<masterEditHoldUntil))return;
+ /* Only this module's explicit CRUD/navigation redraw may replace a focused
+    Master form. Legacy callers still pass true; that must NOT bypass typing
+    protection because it can erase characters between keystrokes. */
+ const explicit=force==='operation';
+ if(typing&&!explicit)return;
+ if(!explicit&&Date.now()<masterEditHoldUntil)return;
  const d=master(),locs=d.locations.filter(x=>x.active!==false),whs=d.warehouses.filter(x=>x.active!==false);
  /* Settings Master configuration is intentionally independent from Header context. */
  if(configWarehouseId&&!whs.some(w=>String(w.id)===String(configWarehouseId)))configWarehouseId='';
@@ -366,7 +371,7 @@ document.addEventListener('click',e=>{
  b=e.target.closest?.('[data-sm-save-loc]');if(b){e.preventDefault();e.stopImmediatePropagation();saveLocation(b.dataset.smSaveLoc);return}
  b=e.target.closest?.('[data-sm-del-loc]');if(b){e.preventDefault();e.stopImmediatePropagation();if(confirm('Obrisati lokaciju?'))deleteLocation(b.dataset.smDelLoc);return}
  b=e.target.closest?.('[data-sm-add-wh]');if(b){e.preventDefault();e.stopImmediatePropagation();addWarehouse(document.getElementById('smNewWarehouse')?.value,document.getElementById('smNewWarehouseLocation')?.value);return}
- b=e.target.closest?.('[data-sm-config-wh]');if(b){e.preventDefault();e.stopImmediatePropagation();configWarehouseId=String(b.dataset.smConfigWh||'');render(true);setTimeout(()=>document.getElementById('smWarehouseConfiguration')?.scrollIntoView?.({behavior:'smooth',block:'start'}),20);return}
+ b=e.target.closest?.('[data-sm-config-wh]');if(b){e.preventDefault();e.stopImmediatePropagation();configWarehouseId=String(b.dataset.smConfigWh||'');render('operation');setTimeout(()=>document.getElementById('smWarehouseConfiguration')?.scrollIntoView?.({behavior:'smooth',block:'start'}),20);return}
  b=e.target.closest?.('[data-sm-save-wh]');if(b){e.preventDefault();e.stopImmediatePropagation();saveWarehouseName(b.dataset.smSaveWh);return}
  b=e.target.closest?.('[data-sm-del-wh]');if(b){e.preventDefault();e.stopImmediatePropagation();if(confirm('Obrisati skladište?'))deleteWarehouse(b.dataset.smDelWh);return}
  b=e.target.closest?.('[data-sm-save-ops]');if(b){e.preventDefault();e.stopImmediatePropagation();saveWarehouseOps(b.dataset.smSaveOps);return}
@@ -404,7 +409,7 @@ document.addEventListener('change',e=>{
    return;
  }
  const sel=e.target.closest?.('#smConfigWarehouse');if(!sel)return;
- configWarehouseId=String(sel.value||'');render(true);
+ configWarehouseId=String(sel.value||'');render('operation');
 },true);
 
 /* Only explicit navigation/real master changes when editor isn't being edited. */
