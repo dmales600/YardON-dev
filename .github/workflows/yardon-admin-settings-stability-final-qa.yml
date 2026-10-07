@@ -9,6 +9,7 @@ on:
       - "modules/supplier/yardivo-v583-settings-export-supplier-bulk-hard-fix.js"
       - "modules/supplier/yardivo-v583-stable-master-supplier-zero-final.js"
       - "modules/supplier/phase2-248-yardivo-v583-master-bootstrap-backend-frontend-authority-final.js"
+      - "modules/master-data/yardivo-v583-production-master-cleanup-final.js"
       - "modules/services/yardivo-qr-role-control-v586.js"
       - "modules/master-data/runtime/yardivo-v583-master-popup-only-fix.js"
       - "modules/services/yardivo-master-admin-settings-v583.js"
@@ -40,6 +41,7 @@ jobs:
           node --check modules/supplier/yardivo-v583-settings-export-supplier-bulk-hard-fix.js
           node --check modules/supplier/yardivo-v583-stable-master-supplier-zero-final.js
           node --check modules/supplier/phase2-248-yardivo-v583-master-bootstrap-backend-frontend-authority-final.js
+          node --check modules/master-data/yardivo-v583-production-master-cleanup-final.js
           node --check modules/services/yardivo-qr-role-control-v586.js
           node --check modules/master-data/runtime/yardivo-v583-master-popup-only-fix.js
           node --check modules/services/yardivo-master-admin-settings-v583.js
