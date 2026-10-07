@@ -13,7 +13,8 @@ function remember(){
 }
 function paint(){
  try{window.YardivoLocationDropdownAuthorityV583?.sync?.()}catch(_){}
- try{window.YardivoStableMasterV583?.render?.()}catch(_){}
+ /* StableMasterV583 exclusively owns its editable form and already listens for
+    real Master changes with a focus guard. Bootstrap must never redraw it. */
  try{window.YardivoMasterDataV583?.refresh?.()}catch(_){}
  try{window.YardivoMasterHeaderCapacityBindingV583?.refresh?.()}catch(_){}
 }
