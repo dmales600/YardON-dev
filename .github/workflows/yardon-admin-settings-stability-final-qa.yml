@@ -94,6 +94,9 @@ jobs:
             if(!setup.api||!setup.settings) throw new Error('Settings authority setup missing');
 
             await page.waitForTimeout(700);
+            // This is an isolated mock-admin browser test, not a real Auth session.
+            // Keep the real login overlay from reappearing and intercepting Master clicks.
+            await page.addStyleTag({content:'#loginOverlay,#yardivoWelcomeSplash{display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important}'});
             await page.evaluate(()=>{
               try{window.YardivoRoleStableFinal?.open?.('settings')}catch(_){}
               try{window.openAppView?.('settings')}catch(_){}
