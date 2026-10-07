@@ -81,17 +81,39 @@ async function geminiDockAssignments(candidates:any[],free:number[],warehouse:st
  return clean;
 }
 async function event(passId:string,message:string){const {error}=await db.from('yardivo_delivery_pass_events').insert({delivery_pass_id:passId,kind:'ai_dispatch',message,actor_role:'ai',actor_name:'YardOn AI'});if(error)throw error}
+async function mirrorAssignedDock(p:any,ramp:number,actor:any){
+  const now=new Date().toISOString(),dockNoValue=String(ramp),supplierDeliveryId=String(p?.supplier_delivery_id||'').trim();
+  if(supplierDeliveryId){
+    const {error:de}=await db.from('yardivo_supplier_deliveries').update({dock:dockNoValue,dock_number:ramp,status:'arrival',updated_at:now}).eq('id',supplierDeliveryId);
+    if(de)throw de;
+  }
+  const ids=[String(p?.announcement_id||'').trim(),supplierDeliveryId?('SUPDEL-'+supplierDeliveryId):''].filter(Boolean);
+  if(!ids.length)return;
+  const {data:rows,error:ae}=await db.from('yardivo_announcements').select('announcement_id,payload,status').in('announcement_id',[...new Set(ids)]).eq('deleted',false);
+  if(ae)throw ae;
+  for(const row of rows||[]){
+    const payload=(row?.payload&&typeof row.payload==='object')?{...row.payload}:{};
+    payload.dock=dockNoValue;
+    payload.status='U dvorištu';
+    payload.updatedAt=now;
+    if(supplierDeliveryId&&!payload.supplierDeliveryId)payload.supplierDeliveryId=supplierDeliveryId;
+    const {error:ue}=await db.from('yardivo_announcements').update({status:'U dvorištu',payload,updated_by:String(actor?.username||'YardOn AI'),updated_at:now}).eq('announcement_id',row.announcement_id);
+    if(ue)throw ue;
+  }
+}
 async function dispatchWarehouse(warehouse:string,actor:any){
   const m=await master(),w=(m.warehouses||[]).find((x:any)=>x&&x.active!==false&&String(x.id)===warehouse);if(!w)throw new Error('Skladište nije aktivno u Master podacima.');
   const ramps=activeRampNumbers(w);if(!ramps.length)return {warehouse,assignments:[],queue:[],freeRamps:[],reason:'NO_ACTIVE_RAMPS'};
   await releaseFinishedDockPasses(warehouse);
-  const {data:busy,error:be}=await db.from('yardivo_delivery_passes').select('id,dock,state').eq('warehouse',warehouse).eq('state','PROCEED_DOCK');if(be)throw be;
+  const {data:busy,error:be}=await db.from('yardivo_delivery_passes').select('id,announcement_id,supplier_delivery_id,dock,state').eq('warehouse',warehouse).eq('state','PROCEED_DOCK');if(be)throw be;
+  for(const active of busy||[]){const ramp=dockNo(active.dock);if(ramp>0)await mirrorAssignedDock(active,ramp,actor)}
   const occupied=new Set((busy||[]).map((x:any)=>dockNo(x.dock)).filter((n:number)=>n>0));const free=ramps.filter((n:number)=>!occupied.has(n));
   const {data:waiting,error:we}=await db.from('yardivo_delivery_passes').select('*').eq('warehouse',warehouse).eq('gate_decision','APPROVED').in('state',['PARKING','WAITING_DOCK']).order('checked_in_at',{ascending:true,nullsFirst:false});if(we)throw we;
   const now=Date.now(),sorted=(waiting||[]).slice().sort((a:any,b:any)=>compareWaiting(a,b,now));
   const eligible=sorted.filter((p:any)=>priority(p,now).tier<=1),policyCandidates=eligible.slice(0,free.length);const aiAssignments=policyCandidates.length?await geminiDockAssignments(policyCandidates,free,warehouse,now):[],assignments:any[]=[];
   for(const choice of aiAssignments){const p=policyCandidates.find((x:any)=>String(x.id)===String(choice.pass_id));if(!p)continue;const ramp=Number(choice.ramp),dock='R'+ramp;const msg=`YardOn AI: ${dock} je slobodna. ${timingText(p,now)}. Krenite na ${dock}.`;
     const {data:updated,error:ue}=await db.from('yardivo_delivery_passes').update({dock,state:'PROCEED_DOCK',parking_slot:null,last_instruction:msg,updated_at:new Date().toISOString()}).eq('id',p.id).in('state',['PARKING','WAITING_DOCK']).select('id,announcement_id,supplier_delivery_id,warehouse,appointment_at,checked_in_at,dock,state,last_instruction').maybeSingle();if(ue)throw ue;if(!updated)continue;
+    await mirrorAssignedDock(updated,ramp,actor);
     await event(String(p.id),msg);assignments.push(updated);
   }
   const assignedIds=new Set(assignments.map((x:any)=>String(x.id)));const queue=sorted.filter((x:any)=>!assignedIds.has(String(x.id))).map((x:any)=>({id:x.id,appointment_at:x.appointment_at,checked_in_at:x.checked_in_at,parking_slot:x.parking_slot,priority:priority(x,now)}));
