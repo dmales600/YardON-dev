@@ -11,7 +11,12 @@ expect(edge.includes("diff>=-15&&diff<=30"),'Production dispatcher lost -15/+30 
 expect(edge.includes("actor_name:'YardOn AI'"),'Production dispatcher must write YardOn AI chat/event messages');
 expect(edge.includes("in('state',['PARKING','WAITING_DOCK'])"),'Production dispatcher must select only parked/waiting trucks');
 expect(edge.includes("state:'PROCEED_DOCK'"),'Production dispatcher must move selected truck to PROCEED_DOCK');
+expect(edge.includes("yardivo_supplier_deliveries').update({dock:dockNoValue,dock_number:ramp,status:'arrival'"),'AI dock assignment must mirror numeric dock into Supplier delivery');
+expect(edge.includes("payload.dock=dockNoValue"),'AI dock assignment must mirror dock into canonical announcement payload used by maps');
+expect(edge.includes("status:'U dvorištu',payload"),'Canonical announcement must move to yard status when AI assigns a dock');
 expect(receiving.includes("/functions/v1/yardivo-yard-dispatch"),'Receiving/Gate runtime is not wired to AI dispatcher');
+expect(receiving.includes("YardivoSupplierLiveSync?.pullInternal?.(true)"),'Receiving must pull fresh Supplier rows after AI dock assignment');
+expect(receiving.includes("window.renderDailyMap?.()"),'Receiving must redraw Daily Map after AI dock assignment');
 expect(receiving.includes("['Zaprimljeno','Odbijen']"),'Receiving completion must trigger immediate queue dispatch');
 expect(receiving.includes("setInterval(()=>{if(document.visibilityState==='visible'&&yardDispatchAllowed())"),'Yard dispatcher periodic reconciliation missing');
 expect(supplierService.includes("bookingMode:'TIME_ONLY'"),'Supplier booking must remain TIME_ONLY; Supplier must not own a ramp');
