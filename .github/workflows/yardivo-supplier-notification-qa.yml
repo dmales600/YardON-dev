@@ -115,21 +115,28 @@ jobs:
             assert(loginState.badge==='2','Supplier badge expected 2 pending rows, got '+loginState.badge);
 
             await page.evaluate(()=>{
-              const n={
-                id:'SUPREQ-new4',event:'SUPPLIER_REQUEST',type:'blue',
-                title:'NOVA NAJAVA DOBAVLJAČA',body:'S4 · 2026-09-27 11:00',
-                warehouse:'W001',location:'LOC001',supplier:'S4',
-                supplierDeliveryId:'new4',announcementId:'SUPDEL-new4',
-                roles:['admin','manager','inventory'],
-                createdAt:new Date().toISOString(),at:new Date().toISOString(),readBy:{}
+              const row={
+                id:'new4',status:'pending',supplier_name:'S4',warehouse:'W001',
+                delivery_date:'2026-09-27',requested_time:'11:00',pallets:24,sku_count:7,
+                created_at:new Date().toISOString()
               };
-              window.YardivoNotifications?.ingest?.(n,{announce:true});
+              window.__qaPendingRows=[...(window.__qaPendingRows||[]),row];
+              window.dispatchEvent(new CustomEvent('yardivo:supplier-internal-rows',{detail:{rows:window.__qaPendingRows}}));
             });
-            await page.waitForTimeout(900);
-            const newToast=await page.evaluate(()=>(window.__qaVisibleToasts||[]).filter(n=>String(n?.event||'').toUpperCase()==='SUPPLIER_REQUEST'&&String(n?.id||'')==='SUPREQ-new4').length);
-            const newVoice=await page.evaluate(()=>(window.__qaVoiceReads||[]).filter(n=>String(n?.event||'').toUpperCase()==='SUPPLIER_REQUEST'&&String(n?.id||'')==='SUPREQ-new4'&&n?.priority===true&&String(n?.role||'')==='inventory').length);
+            await page.waitForTimeout(500);
+            const liveState=await page.evaluate(()=>({
+              toast:(window.__qaVisibleToasts||[]).filter(n=>String(n?.event||'').toUpperCase()==='SUPPLIER_REQUEST'&&String(n?.id||'')==='SUPREQ-new4').length,
+              voice:(window.__qaVoiceReads||[]).filter(n=>String(n?.event||'').toUpperCase()==='SUPPLIER_REQUEST'&&String(n?.id||'')==='SUPREQ-new4'&&n?.priority===true&&String(n?.role||'')==='inventory').length,
+              stored:(window.YardivoNotifications?.load?.()||[]).some(n=>String(n?.id||'')==='SUPREQ-new4'&&String(n?.title||'')==='NOVA NAJAVA DOBAVLJAČA'),
+              bellText:document.getElementById('notifList')?.textContent||'',
+              bellCount:document.getElementById('notifCount')?.textContent||''
+            }));
+            const newToast=liveState.toast,newVoice=liveState.voice;
             assert(newToast===1,'New Supplier request expected exactly 1 side toast, got '+newToast);
             assert(newVoice===1,'New Supplier request expected exactly 1 AI voice event, got '+newVoice);
+            assert(liveState.stored,'New Supplier request was not persisted to canonical notification store');
+            assert(/NOVA NAJAVA DOBAVLJAČA/.test(liveState.bellText),'Bell list missing NOVA NAJAVA DOBAVLJAČA');
+            assert(Number(liveState.bellCount)>=1,'Bell unread count was not increased');
 
             // Delete UI: create a representative pending row and verify the delete action
             // calls delete_internal and removes its local notification.
@@ -177,7 +184,7 @@ jobs:
             assert(!deletedNotificationStillPresent,'Deleted Supplier request notification remained in local notification store');
 
             assert(pageErrors.length===0,'Page errors: '+pageErrors.join(' | '));
-            console.log('SUPPLIER_NOTIFICATION_QA='+JSON.stringify({loginState,newToast,newVoice,deleteCalls,pageErrors}));
+            console.log('SUPPLIER_NOTIFICATION_QA='+JSON.stringify({loginState,liveState,newToast,newVoice,deleteCalls,pageErrors}));
             await context.close();
             await browser.close();
             if(failures.length){console.error('QA_FAILURES='+JSON.stringify(failures));process.exit(1)}
