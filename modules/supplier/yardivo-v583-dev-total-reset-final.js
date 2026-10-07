@@ -23,7 +23,7 @@ function mount(){
  const label=document.getElementById('yardivoResetKeeperLabel');if(label)label.textContent=(username()||'trenutni Admin')+' · ADMIN';
  const btn=document.getElementById('yardivoResetYardivoBtn');if(btn&&!btn.dataset.bound){btn.dataset.bound='1';btn.addEventListener('click',resetYardivo)}
 }
-function preserveAuthStorage(){const out={local:{},session:{}};for(const [name,st] of [['local',localStorage],['session',sessionStorage]]){try{for(let i=0;i<st.length;i++){const k=st.key(i);if(k&&(/^sb-[a-z0-9_-]+-auth-token$/i.test(k)||/^supabase\.auth\./i.test(k)))out[name][k]=st.getItem(k)}}catch(_){}}return out}
+function preserveAuthStorage(){const out={local:{},session:{}};let activeKey='';try{activeKey=String(window.YardivoTabAuthV583?.storageKey||'')}catch(_){};for(const [name,st] of [['local',localStorage],['session',sessionStorage]]){try{for(let i=0;i<st.length;i++){const k=st.key(i);if(k&&(k===activeKey||/^yardivo-auth-/i.test(k)||/^sb-[a-z0-9_-]+-auth-token$/i.test(k)||/^supabase\.auth\./i.test(k)))out[name][k]=st.getItem(k)}}catch(_){}}return out}
 function restoreAuthStorage(saved){for(const [name,vals] of Object.entries(saved||{})){const st=name==='session'?sessionStorage:localStorage;for(const [k,v] of Object.entries(vals||{})){try{if(v!=null)st.setItem(k,v)}catch(_){}}}}
 function emptyMaster(){return {suppliers:[],locations:[],warehouses:[],responsible_people:[],smart:{enabled:false,mode:'PAUSED'},__factoryZeroV583:true,__cleanMasterFoundationV583:true,__resetYardivoV583:true,__masterUpdatedAtV583:new Date().toISOString()}}
 function resetRuntimeArrays(){for(const n of ['announcements','incidents','notifications','notificationHistory','trucks','unannounced'])try{if(Array.isArray(window[n]))window[n].length=0}catch(_){};try{if(typeof announcements!=='undefined'&&Array.isArray(announcements))announcements.length=0;if(typeof incidents!=='undefined'&&Array.isArray(incidents))incidents.length=0;if(typeof notifications!=='undefined'&&Array.isArray(notifications))notifications.length=0}catch(_){}}
@@ -48,8 +48,29 @@ function localHardReset(keep){
  try{window.YardivoBrowserlessStorageV583?.purge?.()}catch(_){}
 }
 async function client(){const c=await window.YardivoAuth?.client?.();if(!c)throw new Error('ONLINE AUTH NIJE SPREMAN.');return c}
-async function adminInvoke(action,payload={}){if(window.YardivoAdminUsersServerV583?.invoke)return await window.YardivoAdminUsersServerV583.invoke(action,payload);const c=await client(),{data,error}=await c.functions.invoke('yardivo-admin-users',{body:{action,...payload}});if(error)throw error;if(data?.error)throw new Error(data.error);return data?.data??data}
-async function factoryResetServer(deleteAccounts){const c=await client(),{data,error}=await c.functions.invoke('yardivo-factory-reset',{body:{confirm:'RESET YARDIVO',delete_accounts:deleteAccounts===true}});if(error)throw error;if(!data?.ok)throw new Error(data?.error||'Server Factory Zero nije uspio.');return data}
+async function directInvoke(slug,body){
+ const c=await client(),base=String(window.YardivoSupabaseClient?.base||'').replace(/\/$/,''),
+ key=String(window.YardivoSupabaseClient?.publishableKey||'');
+ if(!base||!key)throw new Error('SUPABASE KONFIGURACIJA NIJE UČITANA.');
+ async function session(force=false){
+  let s=null;
+  try{s=(await (force?c.auth.refreshSession():c.auth.getSession()))?.data?.session||null}catch(_){}
+  if(!s?.access_token&&!force){try{s=(await c.auth.refreshSession())?.data?.session||null}catch(_){}}
+  if(!s?.access_token)throw new Error('ONLINE PRIJAVA NIJE AKTIVNA. Ponovno se prijavi.');
+  return s;
+ }
+ async function call(token){
+  const res=await fetch(base+'/functions/v1/'+slug,{method:'POST',cache:'no-store',headers:{apikey:key,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  const data=await res.json().catch(()=>({}));
+  return {res,data};
+ }
+ let s=await session(false),out=await call(s.access_token);
+ if(out.res.status===401){s=await session(true);out=await call(s.access_token)}
+ if(!out.res.ok||out.data?.ok===false)throw new Error(String(out.data?.error||out.data?.message||('HTTP '+out.res.status)));
+ return out.data;
+}
+async function adminInvoke(action,payload={}){const data=await directInvoke('yardivo-admin-users',{action,...payload});return data?.data??data}
+async function factoryResetServer(deleteAccounts){const data=await directInvoke('yardivo-factory-reset',{confirm:'RESET YARDIVO',delete_accounts:deleteAccounts===true});if(!data?.ok)throw new Error(data?.error||'Server Factory Zero nije uspio.');return data}
 async function deleteOtherUsers(keep){const res=await adminInvoke('list',{}),users=Array.isArray(res)?res:(Array.isArray(res?.users)?res.users:[]),k=users.find(u=>norm(u?.username)===keep&&norm(u?.app_role)==='admin'&&u?.active!==false);if(!k)throw new Error('Trenutni Admin nije pronađen na serveru.');const failed=[];let deleted=0;for(const u of users){if(!u?.auth_user_id||u.auth_user_id===k.auth_user_id)continue;try{await adminInvoke('delete',{auth_user_id:u.auth_user_id});deleted++}catch(e){failed.push(`${u.username||u.auth_user_id}: ${e?.message||e}`)}}if(failed.length)throw new Error('Nisu obrisani svi drugi korisnici: '+failed.join(' | '));return {deleted,keeper:k}}
 function rerenderEmpty(){for(const n of ['render','renderAnnouncements','renderAnnouncementSchedule','renderDailyMap','renderWeeklyMap','renderReceiving','renderOverview','renderDashboard','renderRampe','renderDockOverview','renderCheckinPro','renderPlannerPro','renderSupplierProfiles'])try{if(typeof window[n]==='function')window[n]()}catch(_){};try{window.YardivoMasterFoundationV583?.render?.();window.dispatchEvent(new CustomEvent('yardivo:master-data-changed',{detail:{source:'reset-yardivo'}}));window.dispatchEvent(new CustomEvent('yardivo:context-changed',{detail:{location:'',warehouse:''}}))}catch(_){}}
 async function verifyEmpty(keep,deleteAccounts){
