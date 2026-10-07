@@ -5,6 +5,8 @@ function expect(v,msg){if(!v)fail(msg)}
 const edge=fs.readFileSync('supabase/functions/yardivo-yard-dispatch/index.ts','utf8');
 const receiving=fs.readFileSync('modules/receiving/service.js','utf8');
 const supplierService=fs.readFileSync('modules/supplier/service.js','utf8');
+const operationalNotifications=fs.readFileSync('modules/master-data/yardivo-v548-full-operational-notifications.js','utf8');
+const notificationService=fs.readFileSync('modules/services/yardivo-notifications-final-v5.js','utf8');
 
 // Production wiring / business-rule guards.
 expect(edge.includes("diff>=-15&&diff<=30"),'Production dispatcher lost -15/+30 active appointment window');
@@ -20,6 +22,9 @@ expect(receiving.includes("window.renderDailyMap?.()"),'Receiving must redraw Da
 expect(receiving.includes("['Zaprimljeno','Odbijen']"),'Receiving completion must trigger immediate queue dispatch');
 expect(receiving.includes("setInterval(()=>{if(document.visibilityState==='visible'&&yardDispatchAllowed())"),'Yard dispatcher periodic reconciliation missing');
 expect(supplierService.includes("bookingMode:'TIME_ONLY'"),'Supplier booking must remain TIME_ONLY; Supplier must not own a ramp');
+expect(operationalNotifications.includes("YARDON DODIJELIO RAMPU"),'First AI dock assignment must be labelled as YardOn dock assignment, not ramp change');
+expect(operationalNotifications.includes("n>0?String(n):''"),'Operational notifications must reject R0 as a physical ramp');
+expect(notificationService.includes("n>0?String(n):''"),'Notification service must reject R0 as a physical ramp');
 
 function ms(hm){
   const [h,m]=hm.split(':').map(Number);
