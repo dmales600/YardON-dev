@@ -8,6 +8,11 @@ on:
       - "index.html"
       - "styles/yardon-ai-operations-v1.css"
       - "modules/ai/yardon-ai-operations-v1.js"
+      - "modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js"
+      - "modules/receiving/service.js"
+      - "modules/operations/yardon-ai-plan-map-authority-v1.js"
+      - "supabase/functions/yardivo-yard-dispatch/index.ts"
+      - "supabase/functions/yardivo-ai-operations/index.ts"
       - "modules/auth/role-visibility.js"
       - "modules/supplier/yardivo-role-stability-final-v6-20260902-js.js"
       - "modules/supplier/yardivo-clean-operational-core.js"
@@ -37,7 +42,14 @@ jobs:
       - name: Syntax check AI Operations
         run: |
           node --check modules/ai/yardon-ai-operations-v1.js
+          node --check modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
+          node --check modules/receiving/service.js
+          node --check modules/operations/yardon-ai-plan-map-authority-v1.js
           test -s styles/yardon-ai-operations-v1.css
+          grep -q "AI_CONTROL_OFF" supabase/functions/yardivo-yard-dispatch/index.ts
+          grep -q "AI_CONTROL_OFF" supabase/functions/yardivo-ai-operations/index.ts
+          grep -q "yardivoAiAssistantToggle" modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
+          grep -q "yardivoAiControlToggle" modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
           grep -q 'data-view="aiOperations"' index.html
           grep -q 'id="aiOperations"' index.html
           grep -q 'yardon-ai-operations-v1.js' index.html
@@ -96,6 +108,7 @@ jobs:
             await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
             await page.waitForTimeout(1800);
             await page.evaluate(role=>{
+              localStorage.setItem('yardivo_auto_replan_cfg_v1',JSON.stringify({enabled:true,mode:'AUTO_SAFE',assistantEnabled:true}));
               window.currentSession={user:'qa_'+role,username:'qa_'+role,role,app_role:role,location:'LOC001',warehouses:['W001'],serverAuthorized:true};
               try{currentSession=window.currentSession}catch(_){}
               document.body.dataset.yardivoRole=role;
@@ -150,6 +163,41 @@ jobs:
               const homeVisible=await page.locator('[data-home-target="aiOperations"]').isVisible();
               if(navVisible||homeVisible)throw new Error(role+' must not see AI Operations');
               if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
+              await context.close();
+            }
+
+            {
+              const context=await browser.newContext({viewport:{width:1440,height:1000}});
+              const page=await context.newPage();
+              const errors=await prepare(page,'inventory');
+              await page.evaluate(()=>{
+                localStorage.setItem('yardivo_auto_replan_cfg_v1',JSON.stringify({enabled:false,mode:'PAUSED',assistantEnabled:false}));
+                window.dispatchEvent(new CustomEvent('yardivo:ai-admin-config',{detail:{enabled:false,mode:'PAUSED',assistantEnabled:false}}));
+                window.YardOnAIOperations?.applyVisibility?.();
+                window.YardivoSmartOperationalVisibilityV583?.apply?.();
+                window.YardivoSmartAssistantV583?.applyAvailability?.();
+              });
+              await page.waitForTimeout(120);
+              if(await page.locator('.nav-btn[data-view="aiOperations"]').isVisible())throw new Error('AI Operations nav must hide when Admin AI control is OFF');
+              if(await page.locator('[data-home-target="aiOperations"]').isVisible())throw new Error('AI Operations home card must hide when Admin AI control is OFF');
+              const enabled=await page.evaluate(()=>window.YardOnAIOperations?.enabled?.());
+              if(enabled!==false)throw new Error('AI Operations runtime still reports enabled while Admin AI control is OFF');
+              if(errors.length)throw new Error('AI OFF page errors: '+errors.join(' | '));
+              await context.close();
+            }
+
+            {
+              const context=await browser.newContext({viewport:{width:1440,height:1000}});
+              const page=await context.newPage();
+              const errors=await prepare(page,'admin');
+              await page.evaluate(()=>{
+                window.YardOnAIAdminV1?.inject?.();
+                window.YardivoSettingsHardFixV583?.show?.('yardon');
+              });
+              await page.waitForTimeout(120);
+              if(await page.locator('#yardivoAiAssistantToggle').count()!==1)throw new Error('Admin YardOn Assistant toggle missing');
+              if(await page.locator('#yardivoAiControlToggle').count()!==1)throw new Error('Admin AI control toggle missing');
+              if(errors.length)throw new Error('Admin settings page errors: '+errors.join(' | '));
               await context.close();
             }
             await browser.close();
