@@ -47,7 +47,7 @@ function activeRampNumbers(w:any){
 }
 function terminalAnnouncementStatus(v:any){return ['ZAPRIMLJENO','COMPLETED','RECEIVED','ODBIJEN','REJECTED','OTKAZAN','OTKAZANO','CANCELLED','CANCELED'].includes(String(v||'').trim().toUpperCase())}
 async function releaseFinishedDockPasses(warehouse:string){
-  const {data:active,error}=await db.from('yardivo_delivery_passes').select('id,announcement_id,state').eq('warehouse',warehouse).eq('state','PROCEED_DOCK');if(error)throw error;
+  const {data:active,error}=await db.from('yardivo_delivery_passes').select('id,announcement_id,state').eq('warehouse',warehouse).in('state',['PROCEED_DOCK','AT_DOCK','RECEIVING']);if(error)throw error;
   const ids=[...new Set((active||[]).map((x:any)=>String(x.announcement_id||'')).filter(Boolean))];if(!ids.length)return 0;
   const {data:anns,error:ae}=await db.from('yardivo_announcements').select('announcement_id,status,payload').in('announcement_id',ids).eq('deleted',false);if(ae)throw ae;
   const amap=new Map((anns||[]).map((a:any)=>[String(a.announcement_id),String(a.status||a.payload?.status||'')]));
@@ -105,7 +105,7 @@ async function dispatchWarehouse(warehouse:string,actor:any){
   const m=await master(),w=(m.warehouses||[]).find((x:any)=>x&&x.active!==false&&String(x.id)===warehouse);if(!w)throw new Error('Skladište nije aktivno u Master podacima.');
   const ramps=activeRampNumbers(w);if(!ramps.length)return {warehouse,assignments:[],queue:[],freeRamps:[],reason:'NO_ACTIVE_RAMPS'};
   await releaseFinishedDockPasses(warehouse);
-  const {data:busy,error:be}=await db.from('yardivo_delivery_passes').select('id,announcement_id,supplier_delivery_id,dock,state').eq('warehouse',warehouse).eq('state','PROCEED_DOCK');if(be)throw be;
+  const {data:busy,error:be}=await db.from('yardivo_delivery_passes').select('id,announcement_id,supplier_delivery_id,dock,state').eq('warehouse',warehouse).in('state',['PROCEED_DOCK','AT_DOCK','RECEIVING']);if(be)throw be;
   for(const active of busy||[]){const ramp=dockNo(active.dock);if(ramp>0)await mirrorAssignedDock(active,ramp,actor)}
   const occupied=new Set((busy||[]).map((x:any)=>dockNo(x.dock)).filter((n:number)=>n>0));const free=ramps.filter((n:number)=>!occupied.has(n));
   const {data:waiting,error:we}=await db.from('yardivo_delivery_passes').select('*').eq('warehouse',warehouse).eq('gate_decision','APPROVED').in('state',['PARKING','WAITING_DOCK']).order('checked_in_at',{ascending:true,nullsFirst:false});if(we)throw we;
