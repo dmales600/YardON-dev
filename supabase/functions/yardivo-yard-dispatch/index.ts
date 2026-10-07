@@ -18,6 +18,12 @@ async function master(){
   if(data?.value_json&&typeof data.value_json==='object')return data.value_json;
   try{return JSON.parse(String(data?.value_json||'{}'))}catch{return {warehouses:[]}}
 }
+async function aiControlEnabled(){
+  const {data,error}=await db.from('yardivo_app_state').select('value_json').eq('key','yardivo_auto_replan_cfg_v1').eq('deleted',false).maybeSingle();
+  if(error)throw error;
+  let c:any={};try{c=typeof data?.value_json==='string'?JSON.parse(data.value_json):data?.value_json||{}}catch{}
+  return c?.enabled===true&&String(c?.mode||'').toUpperCase()!=='PAUSED';
+}
 function dockNo(v:any){const m=String(v??'').match(/\d+/);return m?Number(m[0]):0}
 function activeRampNumbers(w:any){
   const rs=(Array.isArray(w?.ramp_settings)?w.ramp_settings:[]).filter((r:any)=>r&&r.active!==false&&Number(r.number)>0).map((r:any)=>Number(r.number));
@@ -73,6 +79,7 @@ Deno.serve(async(req)=>{
   if(req.method==='OPTIONS')return new Response('ok',{headers:H});if(req.method!=='POST')return J({ok:false,error:'METHOD_NOT_ALLOWED'},405);
   try{
     const p=await profile(req),b=await req.json().catch(()=>({})),action=String(b.action||'dispatch').toLowerCase();if(action!=='dispatch')return J({ok:false,error:'UNKNOWN_ACTION'},400);
+    if(!(await aiControlEnabled()))return J({ok:true,disabled:true,reason:'AI_CONTROL_OFF',results:[]});
     const requested=String(b.warehouse||'').trim(),allowed=Array.isArray(p.warehouses)?p.warehouses.map(String):[];
     let warehouses:string[]=[];
     if(requested){if(p.app_role!=='admin'&&!p.all_warehouses&&!allowed.includes(requested))throw new Error('Nema ovlasti za ovo skladište.');warehouses=[requested]}
