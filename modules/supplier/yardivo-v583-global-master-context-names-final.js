@@ -42,6 +42,7 @@ function syncRegistry(){
  }catch(_){}
 }
 function sanitizeSelect(sel){
+ if(sel?.closest?.('#yardivoStableMasterEditorV583'))return;
  const ids=new Set(warehouseIds());
  [...sel.options].forEach(o=>{
   const v=String(o.value||'').trim();
