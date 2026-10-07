@@ -72,7 +72,7 @@ async function maybeAutoDock(p){
 
 function annKeys(x){
   const p=x?.payload||{};
-  return [x?.announcement_id,p.announcementRef,p.orderNumber,p.reference,p.supplierDeliveryId,p.supplierPortalId,p.plannedPlate,p.vehiclePlate,p.arrivalPlate].map(norm).filter(Boolean);
+  return [x?.announcement_id,p.id,p.announcementRef,p.orderNumber,p.reference,p.supplierDeliveryId,p.supplierPortalId,p.plannedPlate,p.vehiclePlate,p.arrivalPlate].map(norm).filter(Boolean);
 }
 function deliveryKeys(x){return [x?.id,x?.client_id,x?.order_number,x?.vehicle_plate,x?.trailer_plate].map(norm).filter(Boolean)}
 function annSort(a,b){const ta=String(a?.appointment_date||'')+String(a?.appointment_time||''),tb=String(b?.appointment_date||'')+String(b?.appointment_time||'');return tb.localeCompare(ta)}
@@ -82,6 +82,8 @@ async function announcementsFor(whIds){
 }
 async function resolveInLocation(ref,whIds){
   const key=norm(ref),anns=await announcementsFor(whIds);
+  const exact=anns.find(x=>norm(x?.announcement_id)===key||norm(x?.payload?.id)===key);
+  if(exact)return exact;
   const direct=anns.filter(x=>annKeys(x).includes(key)).sort(annSort)[0];
   if(direct)return direct;
   const {data:ds,error}=await db.from('yardivo_supplier_deliveries').select('id,client_id,order_number,vehicle_plate,trailer_plate,warehouse,status,delivery_date,requested_time').in('warehouse',whIds).order('delivery_date',{ascending:false}).limit(300);
@@ -115,10 +117,17 @@ async function issueFor(hit,m){
   let delivery=null;
   if(deliveryId){const q=await db.from('yardivo_supplier_deliveries').select('*').eq('id',deliveryId).maybeSingle();if(q.error)throw q.error;delivery=q.data}
   const wh=String(hit.warehouse||p.warehouse||delivery?.warehouse||''),w=(m.warehouses||[]).find(x=>String(x.id)===wh),loc=String(w?.location_id||delivery?.location||p.location||'');
-  const ex=await db.from('yardivo_delivery_passes').select('*').eq('announcement_id',String(hit.announcement_id)).maybeSingle();if(ex.error)throw ex.error;
-  if(ex.data&&!terminal(ex.data.state))return ex.data;
-  const raw=tok(),h=await sha(raw),planned=String(delivery?.planned_dock||p.aiPlannedDock||p.plannedDock||delivery?.dock||p.dock||'').trim();
-  const row={announcement_id:String(hit.announcement_id),supplier_delivery_id:deliveryId,pass_token_hash:h,wall_session_token_hash:null,warehouse:wh,location:loc,supplier_name:String(delivery?.supplier_name||hit.supplier||p.supplier||'Dobavljač'),appointment_at:appAt(delivery||p),dock:planned||null,parking_slot:null,driver_name:delivery?.driver_name||null,driver_phone:delivery?.driver_contact||null,vehicle_plate:delivery?.vehicle_plate||p.plannedPlate||p.vehiclePlate||null,trailer_plate:delivery?.trailer_plate||null,carrier_company:null,state:'OPEN',gate_decision:null,last_instruction:'Self Gate najava je pronađena. Dovršite check-in.',checked_in_at:null,completed_at:null,payload:{order_number:delivery?.order_number||p.orderNumber||'',pallets:delivery?.pallets??p.pallets??0,sku:delivery?.sku_count??p.sku??0,planned_dock:planned||null},updated_at:new Date().toISOString()};
+  let ex:any={data:null,error:null};
+  if(deliveryId)ex=await db.from('yardivo_delivery_passes').select('*').eq('supplier_delivery_id',deliveryId).order('updated_at',{ascending:false}).limit(1).maybeSingle();
+  if(!ex.data)ex=await db.from('yardivo_delivery_passes').select('*').eq('announcement_id',String(hit.announcement_id)).maybeSingle();
+  if(ex.error)throw ex.error;
+  if(ex.data&&!terminal(ex.data.state)){
+    const canonicalSupplier=String(delivery?.supplier_name||hit.supplier||p.supplier||ex.data.supplier_name||'Dobavljač');
+    const {data,error}=await db.from('yardivo_delivery_passes').update({announcement_id:String(hit.announcement_id),supplier_delivery_id:deliveryId,supplier_name:canonicalSupplier,warehouse:wh,location:loc,dock:null,payload:{...(ex.data.payload||{}),order_number:delivery?.order_number||p.orderNumber||'',pallets:delivery?.pallets??p.pallets??0,sku:delivery?.sku_count??p.sku??0,planned_dock:null},updated_at:new Date().toISOString()}).eq('id',ex.data.id).select('*').single();
+    if(error)throw error;return data||ex.data;
+  }
+  const raw=tok(),h=await sha(raw);
+  const row={announcement_id:String(hit.announcement_id),supplier_delivery_id:deliveryId,pass_token_hash:h,wall_session_token_hash:null,warehouse:wh,location:loc,supplier_name:String(delivery?.supplier_name||hit.supplier||p.supplier||'Dobavljač'),appointment_at:appAt(delivery||p),dock:null,parking_slot:null,driver_name:delivery?.driver_name||null,driver_phone:delivery?.driver_contact||null,vehicle_plate:delivery?.vehicle_plate||p.plannedPlate||p.vehiclePlate||null,trailer_plate:delivery?.trailer_plate||null,carrier_company:null,state:'OPEN',gate_decision:null,last_instruction:'Self Gate najava je pronađena. Dovršite check-in.',checked_in_at:null,completed_at:null,payload:{order_number:delivery?.order_number||p.orderNumber||'',pallets:delivery?.pallets??p.pallets??0,sku:delivery?.sku_count??p.sku??0,planned_dock:null},updated_at:new Date().toISOString()};
   if(ex.data){const {data,error}=await db.from('yardivo_delivery_passes').update(row).eq('id',ex.data.id).select('*').single();if(error)throw error;return data}
   const {data,error}=await db.from('yardivo_delivery_passes').insert(row).select('*').single();if(error)throw error;return data;
 }
@@ -163,16 +172,15 @@ Deno.serve(async req=>{
       if(expected.driver&&!enteredDriver)return J({ok:false,error:'VOZAC_OBAVEZAN',message:'Unesite ime vozača iz najave.'},400);
       if(expected.driver&&normPerson(enteredDriver)!==normPerson(expected.driver))return J({ok:false,error:'VOZAC_SE_NE_PODUDARA',message:'Ime vozača ne odgovara najavi.'},409);
       let p=await issueFor(hit,m);
-      const session=tok(),sh=await sha(session),iso=new Date().toISOString(),w=(m.warehouses||[]).find(x=>String(x.id)===hitWh),whName=String(w?.name||hitWh),early=p.appointment_at?Date.now()<new Date(p.appointment_at).getTime()-15*60*1000:false,dock=String(p.dock||'');
+      const session=tok(),sh=await sha(session),iso=new Date().toISOString(),w=(m.warehouses||[]).find(x=>String(x.id)===hitWh),whName=String(w?.name||hitWh),early=p.appointment_at?Date.now()<new Date(p.appointment_at).getTime()-15*60*1000:false;
       let instruction=`Najava pronađena · ${whName}. Čeka se odobrenje Porte.`;
-      if(early)instruction=`Najava pronađena · ${whName}. Došli ste ranije; Porta će dodijeliti parking.`;
-      else if(dock)instruction=`Najava pronađena · ${whName}. ${dockLabel(dock)} je AI planirana; čeka se potvrda Porte.`;
+      if(early)instruction=`Najava pronađena · ${whName}. Došli ste ranije; nakon odobrenja YardOn će odrediti rampu ili prvo slobodno parking mjesto.`;
       const wallPlate=String(b.plate||'').trim().toUpperCase()||p.vehicle_plate,wallDriver=String(b.driver||'').trim()||p.driver_name,wallPhone=String(b.phone||'').trim()||p.driver_phone;
       const upd=await db.from('yardivo_delivery_passes').update({wall_session_token_hash:sh,vehicle_plate:wallPlate,driver_name:wallDriver,driver_phone:wallPhone,state:'WAITING_GATE',checked_in_at:iso,last_instruction:instruction,location:wc.location,warehouse:hitWh,updated_at:iso}).eq('id',p.id).select('*').single();if(upd.error)throw upd.error;p=upd.data||p;
       if(p.supplier_delivery_id){const q=await db.from('yardivo_supplier_deliveries').update({vehicle_plate:wallPlate||null,driver_name:wallDriver||null,driver_contact:wallPhone||null,updated_at:iso}).eq('id',p.supplier_delivery_id);if(q.error)throw q.error}
       await event(p.id,'self_checkin',`Self Gate Check-In zaprimljen · ${whName}. Čeka se odobrenje Porte.`,'driver',wallDriver||'Vozač');
       await notifyGate(p,hit,iso);
-      return J({ok:true,sessionToken:session,location:wc.location,warehouse:hitWh,warehouseName:whName,announcementId:String(hit.announcement_id),plannedDock:dock||null});
+      return J({ok:true,sessionToken:session,location:wc.location,warehouse:hitWh,warehouseName:whName,announcementId:String(hit.announcement_id),plannedDock:null});
     }
 
     let p=await findSession(raw);if(!p)return J({ok:false,error:'DELIVERY_PASS_INVALID',message:'Delivery Pass nije pronađen.'},404);
@@ -186,14 +194,20 @@ Deno.serve(async req=>{
         await db.from('yardivo_delivery_passes').update({state:ns,completed_at:ns==='COMPLETED'?new Date().toISOString():p.completed_at,updated_at:new Date().toISOString()}).eq('id',p.id);
         return J({ok:false,error:'DELIVERY_PASS_INACTIVE',message:inactiveMessage(ns),state:ns},410);
       }
-      p=await maybeAutoDock(p);
+      /* Ramp assignment is owned exclusively by yardivo-yard-dispatch after Gate approval. */
       const m=await master(),w=(m.warehouses||[]).find(x=>String(x.id)===String(p.warehouse)),locId=String(p.location||w?.location_id||''),loc=(m.locations||[]).find(x=>String(x.id)===locId),ev=await db.from('yardivo_delivery_pass_events').select('*').eq('delivery_pass_id',p.id).order('created_at',{ascending:false}).limit(30);if(ev.error)throw ev.error;
       return J({ok:true,pass:{...p,location:locId,location_name:String(loc?.name||locId),warehouse_name:String(w?.name||p.warehouse)},events:ev.data||[]});
     }
 
     if(action==='driver_message'){
       const msg=String(b.message||'').trim().slice(0,1000);if(!msg)return J({ok:false,error:'EMPTY_MESSAGE',message:'Upišite poruku.'},400);
-      await event(p.id,'driver_message',msg,'driver',p.driver_name||'Vozač');return J({ok:true});
+      await event(p.id,'driver_message',msg,'driver',p.driver_name||'Vozač');
+      const iso=new Date().toISOString(),key='yardivo_live_notifications_v1',{data:s,error:se}=await db.from('yardivo_app_state').select('*').eq('key',key).eq('deleted',false).maybeSingle();if(se)throw se;
+      let list=parse(s?.value_json,[]);if(!Array.isArray(list))list=[];
+      const n={id:'SELF-GATE-MSG-'+String(p.id)+'-'+String(Date.now()),event:'SELF_GATE_DRIVER_MESSAGE',type:'info',title:'PORUKA VOZAČA',body:`${p.supplier_name||'Dobavljač'} · ${p.vehicle_plate||'vozilo'} · ${msg}`,roles:['reception'],deliveryPassId:String(p.id),announcementId:String(p.announcement_id||''),supplierDeliveryId:String(p.supplier_delivery_id||''),warehouse:String(p.warehouse||''),location:String(p.location||''),source:'self_gate_chat',at:iso,createdAt:iso,readBy:{}};
+      list=[...list,n].slice(-500);const patch={value_json:JSON.stringify(list),updated_at:iso,updated_by:'yardivo-self-gate-public',client_id:'yardivo-self-gate-public',deleted:false};
+      const q=s?.key?await db.from('yardivo_app_state').update(patch).eq('key',key):await db.from('yardivo_app_state').insert({key,...patch});if(q.error)throw q.error;
+      return J({ok:true});
     }
     return J({ok:false,error:'UNKNOWN_ACTION'},400);
   }catch(e){return J({ok:false,error:'SELF_GATE_ERROR',message:String(e?.message||e)},500)}
