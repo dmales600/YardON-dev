@@ -12,6 +12,7 @@ on:
       - "modules/master-data/yardivo-v583-production-master-cleanup-final.js"
       - "modules/services/yardivo-qr-role-control-v586.js"
       - "modules/master-data/runtime/yardivo-v583-master-popup-only-fix.js"
+      - "modules/master-data/runtime/yardivo-master-single-editor-v12-js.js"
       - "modules/services/yardivo-master-admin-settings-v583.js"
       - "modules/master-data/runtime/yardivo-v583-settings-single-page-master-light-blue-authority.js"
       - "modules/master-data/phase2-258-yardivo-v583-add-user-smart-system-toggle-js.js"
@@ -44,6 +45,7 @@ jobs:
           node --check modules/master-data/yardivo-v583-production-master-cleanup-final.js
           node --check modules/services/yardivo-qr-role-control-v586.js
           node --check modules/master-data/runtime/yardivo-v583-master-popup-only-fix.js
+          node --check modules/master-data/runtime/yardivo-master-single-editor-v12-js.js
           node --check modules/services/yardivo-master-admin-settings-v583.js
           node --check modules/master-data/runtime/yardivo-v583-settings-single-page-master-light-blue-authority.js
           node --check modules/master-data/phase2-258-yardivo-v583-add-user-smart-system-toggle-js.js
@@ -168,7 +170,14 @@ jobs:
             });
             if(redrawTrace.length) throw new Error('Stable Master redrawn by background event: '+redrawTrace[0]);
             await page.evaluate(()=>{
-              window.__qaMasterPulse=setInterval(()=>window.dispatchEvent(new CustomEvent('yardivo:master-data-changed',{detail:{source:'qa-background-pulse'}})),25);
+              window.__qaMasterPulse=setInterval(()=>{
+                window.dispatchEvent(new CustomEvent('yardivo:master-data-changed',{detail:{source:'qa-background-pulse'}}));
+                // Simulate the exact legacy pressure that used to erase text:
+                // old modules forcing a redraw/reparent while Admin is typing.
+                try{window.YardivoStableMasterV583?.render?.(true)}catch(_){}
+                try{window.YardivoMasterPopupOnlyV583?.refresh?.()}catch(_){}
+                try{window.YardivoMasterSingleEditorV12?.apply?.()}catch(_){}
+              },25);
             });
             await page.locator('#smNewLocation').focus();
             await page.locator('#smNewLocation').pressSequentially('Zagreb QA',{delay:55});
