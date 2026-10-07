@@ -3,7 +3,12 @@ if(window.__YARDIVO_MASTER_POPUP_ONLY_FIX__)return;window.__YARDIVO_MASTER_POPUP
 function adminInlineGrid(){
  return document.querySelector('#yardonAdminSettingsShell #yardonAdminSettingsMount .settings-grid')||document.querySelector('#settings .settings-grid');
 }
+function masterEditing(){
+ const a=document.activeElement;
+ return !!a?.closest?.('#yardivoStableMasterEditorV583')&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName||'');
+}
 function moveMasterInline(){
+ if(masterEditing())return true;
  const grid=adminInlineGrid();if(!grid)return false;
  let pane=document.getElementById('yardivoSettingsMasterPaneV583');
  if(!pane){pane=document.createElement('div');pane.id='yardivoSettingsMasterPaneV583'}
@@ -14,6 +19,7 @@ function moveMasterInline(){
  return true;
 }
 function moveMasterIntoPopup(){
+ if(masterEditing())return;
  // New Admin Settings owns MASTER inline. Do not steal it into the legacy popup.
  if(document.getElementById('yardonAdminSettingsShell')&&moveMasterInline())return;
  const body=document.getElementById('yardivoMasterPopupBodyV583');if(!body)return;
