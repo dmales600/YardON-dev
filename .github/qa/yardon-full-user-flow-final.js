@@ -352,10 +352,11 @@ async function runFlow(browser,vp){
     if(vp.mobile)await mobileAudit(page,approve,'Gate approve');
     await approve.scrollIntoViewIfNeeded();
     await approve.click();
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(900);
     expect(state.gateDecision==='APPROVE',tag('Gate did not record APPROVE'));
-    expect(state.deliveries[0].status==='arrival',tag('Gate did not advance delivery to arrival'));
-    checkpoints.push(tag('GATE_APPROVED_ARRIVAL'));
+    expect(state.deliveries[0].status==='dock',tag('AI did not route approved arrival directly to a free dock'));
+    expect(String(state.deliveries[0].dock)==='R1',tag('AI did not assign the free R1 dock'));
+    checkpoints.push(tag('GATE_APPROVED_AI_DOCK_R1'));
     if(critical(errors).length)throw new Error(tag('Gate page errors: '+critical(errors).join(' | ')));
     await context.close();
   }
@@ -375,15 +376,9 @@ async function runFlow(browser,vp){
     await receivingRow.scrollIntoViewIfNeeded();
     const mirrored=await page.evaluate(()=>{try{return announcements.find(x=>String(x.supplierDeliveryId||'')==='DEL-001')||null}catch(_){return null}});
     expect(!!mirrored,tag('Reception did not mirror supplier delivery'));
-    expect(String(mirrored.status)==='Stigao',tag('Reception mirror did not start at Stigao'));
+    expect(String(mirrored.status)==='Na rampi',tag('Reception did not mirror the AI dock assignment'));
+    expect(Number(mirrored.dock)===1,tag('Reception mirror does not contain AI-assigned R1'));
     await receivingRow.click();
-    const toDock=page.locator('#yardivoReceivingModal button[data-status="Na rampi"]');
-    await toDock.waitFor({state:'visible',timeout:6000});
-    expect(await toDock.isEnabled(),tag('Reception Na rampi button disabled'));
-    if(vp.mobile)await mobileAudit(page,toDock,'Reception Na rampi');
-    await toDock.click();
-    await page.waitForTimeout(1000);
-    expect(state.deliveries[0].status==='dock',tag('Reception Na rampi did not sync supplier delivery to dock'));
     const done=page.locator('#yardivoReceivingModal button[data-status="Zaprimljeno"]');
     await done.waitFor({state:'visible',timeout:6000});
     if(vp.mobile)await mobileAudit(page,done,'Reception Zaprimljeno');
