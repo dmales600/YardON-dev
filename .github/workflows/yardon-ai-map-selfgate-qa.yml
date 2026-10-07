@@ -8,6 +8,8 @@ on:
       - "modules/operations/yardon-ai-plan-map-authority-v1.js"
       - "services/runtime/phase5-310-yardivo-map-live-delay-refresh-v1.js"
       - "self-gate/index.html"
+      - "modules/supplier/yardivo-v583-supplier-history-status-server-authority-20260923.js"
+      - "supabase/functions/yardivo-self-gate-public/index.ts"
 
 permissions:
   contents: read
@@ -29,6 +31,11 @@ jobs:
         run: |
           node --check modules/operations/yardon-ai-plan-map-authority-v1.js
           grep -q "yardivo-self-gate-public" self-gate/index.html
+          grep -q "setWallNeutral" self-gate/index.html
+          grep -q "REGISTRACIJA_SE_NE_PODUDARA" supabase/functions/yardivo-self-gate-public/index.ts
+          grep -q "VOZAC_SE_NE_PODUDARA" supabase/functions/yardivo-self-gate-public/index.ts
+          grep -q "YardOn AI dodijelio rampu" modules/supplier/yardivo-v583-supplier-history-status-server-authority-20260923.js
+          node --check modules/supplier/yardivo-v583-supplier-history-status-server-authority-20260923.js
           grep -q "plannedDock" modules/operations/yardon-ai-plan-map-authority-v1.js
           grep -q "dobavljac69" modules/operations/yardon-ai-plan-map-authority-v1.js
       - name: Install Playwright
@@ -92,17 +99,18 @@ jobs:
               await page.close();
             }
 
-            // 2) Public Self Gate page must use robust public endpoint and submit the latest-booking identifiers.
+            // 2) Public Self Gate must be blue/neutral before validation, red on wrong data and green on correct data.
             {
               const context=await browser.newContext();
-              let submitPayload=null;
+              let submitPayload=null,submitCount=0;
               await context.route('https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-self-gate-public',async route=>{
                 const req=route.request();
                 const b=JSON.parse(req.postData()||'{}');
                 if(b.action==='wall_status')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:true,location:'LOC001',locationName:'DUGOPOLJE',warehouses:['W001']})});
                 if(b.action==='wall_submit'){
-                  submitPayload=b;
-                  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,sessionToken:'qa-pass-token',warehouse:'W001',announcementId:'885280267',plannedDock:'R1'})});
+                  submitPayload=b;submitCount++;
+                  if(String(b.plate||'').toUpperCase()==='WRONG')return route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({ok:false,error:'REGISTRACIJA_SE_NE_PODUDARA',message:'Registracija vozila ne odgovara najavi.'})});
+                  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,sessionToken:'qa-pass-token',warehouse:'W001',announcementId:'885280267'})});
                 }
                 if(b.action==='status')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,pass:{state:'WAITING_GATE',supplier_name:'DOBAVLJAC1',warehouse_name:'W201',vehicle_plate:'ST123',driver_name:'DUJE',last_instruction:'Čeka se odobrenje Porte.'},events:[]})});
                 return route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({ok:false,error:'QA_UNKNOWN'})});
@@ -110,15 +118,38 @@ jobs:
               const page=await context.newPage();
               await page.goto('http://127.0.0.1:4173/self-gate/?wall=qa-wall',{waitUntil:'domcontentloaded'});
               await page.waitForSelector('#ref');
+
+              // Empty form stays neutral blue and does not hit wall_submit.
+              let cls=await page.locator('body').getAttribute('class')||'';
+              assert(!cls.includes('status-ok')&&!cls.includes('status-error'),'Self Gate must start neutral blue');
+              await page.click('#submit');
+              await page.waitForTimeout(80);
+              cls=await page.locator('body').getAttribute('class')||'';
+              assert(!cls.includes('status-ok')&&!cls.includes('status-error'),'Empty Self Gate form must stay neutral blue');
+              assert(submitCount===0,'Empty Self Gate form must not submit');
+
+              // Wrong data turns the screen red.
               await page.fill('#ref','NAJ000001');
-              await page.fill('#plate','ST-123');
+              await page.fill('#plate','WRONG');
               await page.fill('#driver','DUJE');
+              await page.click('#submit');
+              await page.waitForTimeout(100);
+              cls=await page.locator('body').getAttribute('class')||'';
+              assert(cls.includes('status-error'),'Wrong Self Gate data must turn screen red');
+              assert(/ne odgovara najavi/i.test(await page.locator('#err').textContent()),'Mismatch message missing');
+
+              // Editing returns to neutral; correct data succeeds and pass screen is green.
+              await page.fill('#plate','ST-123');
+              cls=await page.locator('body').getAttribute('class')||'';
+              assert(!cls.includes('status-ok')&&!cls.includes('status-error'),'Editing after error must return to neutral blue');
               await page.click('#submit');
               await page.waitForURL(/pass=qa-pass-token/);
               await page.waitForTimeout(250);
               assert(submitPayload?.reference==='NAJ000001','Self Gate did not send announcement reference');
               assert(submitPayload?.plate==='ST-123','Self Gate did not send plate');
               assert(submitPayload?.driver==='DUJE','Self Gate did not send driver');
+              cls=await page.locator('body').getAttribute('class')||'';
+              assert(cls.includes('status-ok'),'Correct Self Gate data must produce green success state');
               const txt=await page.textContent('body');
               assert(/ČEKA ODOBRENJE PORTE/.test(txt),'Self Gate pass state not rendered');
               await context.close();
