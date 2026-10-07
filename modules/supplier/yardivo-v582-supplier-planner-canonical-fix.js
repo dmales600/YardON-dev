@@ -12,7 +12,7 @@ function normalizeTime(v){const m=String(v??'').match(/^(\d{1,2}):(\d{2})/);retu
 function rowsFingerprint(rows){return JSON.stringify((rows||[]).map(x=>[x.id,x.client_id,x.status,x.delivery_date,x.requested_time,x.dock,x.updated_at,x.pallets,x.sku_count,x.vehicle_plate,x.driver_name,x.review_note]))}
 function ensureModal(){
  if(document.getElementById('ysrPlannerOverlay'))return;
- const o=document.createElement('div');o.id='ysrPlannerOverlay';o.innerHTML=`<div id="ysrPlanner"><div class="ysrp-head"><div><h2>YARDIVO · PRIJEDLOG TERMINA</h2><p>Upravljanje zalihama · odabir datuma, termina i rampe prema zauzeću</p></div><button class="ysrp-close" type="button" data-ysrp-close>×</button></div><div class="ysrp-body"><div class="ysrp-card"><h3>ZAHTJEV DOBAVLJAČA</h3><div id="ysrpFacts"></div></div><div class="ysrp-card"><h3>PLANIRANJE TERMINA</h3><div id="ysrpCalendar" class="ysrp-calendar"></div><div id="ysrpRecommendation" class="ysrp-recommend"></div><div class="ysrp-fields"><div class="ysrp-field"><label>TERMIN</label><select id="ysrpTime"></select></div><div class="ysrp-field"><label>RAMPA</label><select id="ysrpDock"></select></div></div><div id="ysrpCheck" class="ysrp-check">Odaberi datum za provjeru kapaciteta.</div></div></div><div class="ysrp-actions"><button class="danger" type="button" data-ysrp-reject>ODBIJ ZAHTJEV</button><button class="wanted" type="button" data-ysrp-wanted>PRIHVATI ŽELJENI DATUM</button><button class="primary" type="button" data-ysrp-send>POŠALJI PRIJEDLOG DOBAVLJAČU</button></div></div>`;
+ const o=document.createElement('div');o.id='ysrPlannerOverlay';o.innerHTML=`<div id="ysrPlanner"><div class="ysrp-head"><div><h2>YARDIVO · PRIJEDLOG TERMINA</h2><p>Upravljanje zalihama · odabir datuma i termina prema kapacitetu skladišta</p></div><button class="ysrp-close" type="button" data-ysrp-close>×</button></div><div class="ysrp-body"><div class="ysrp-card"><h3>ZAHTJEV DOBAVLJAČA</h3><div id="ysrpFacts"></div></div><div class="ysrp-card"><h3>PLANIRANJE TERMINA</h3><div id="ysrpCalendar" class="ysrp-calendar"></div><div id="ysrpRecommendation" class="ysrp-recommend"></div><div class="ysrp-fields"><div class="ysrp-field"><label>TERMIN</label><select id="ysrpTime"></select></div><select id="ysrpDock" hidden aria-hidden="true" tabindex="-1" style="display:none!important"></select></div><div id="ysrpCheck" class="ysrp-check">Odaberi datum za provjeru kapaciteta.</div></div></div><div class="ysrp-actions"><button class="danger" type="button" data-ysrp-reject>ODBIJ ZAHTJEV</button><button class="wanted" type="button" data-ysrp-wanted>PRIHVATI ŽELJENI DATUM</button><button class="primary" type="button" data-ysrp-send>POŠALJI PRIJEDLOG DOBAVLJAČU</button></div></div>`;
  document.body.appendChild(o);
  o.addEventListener('click',async e=>{
    e.stopPropagation();
@@ -32,7 +32,7 @@ function ensureModal(){
    plannerChoiceRaf=requestAnimationFrame(()=>{plannerChoiceRaf=0;checkChoice()});
  }
  o.querySelector('#ysrpTime').addEventListener('change',plannerChoiceChanged);
- o.querySelector('#ysrpDock').addEventListener('change',plannerChoiceChanged);
+ /* #ysrpDock is an internal compatibility node only. Inventory never selects a physical ramp. */
 }
 function facts(x){return `<div class="ysrp-facts"><div class="ysrp-fact"><small>DOBAVLJAČ</small><strong>${esc(x.supplier_name||x.supplier_username||'—')}</strong></div><div class="ysrp-fact"><small>SKLADIŠTE</small><strong>${esc(supplierWarehouseNameV583(x.warehouse))}</strong></div><div class="ysrp-fact"><small>PALETE</small><strong>${Number(x.pallets||0)}</strong></div><div class="ysrp-fact"><small>SKU</small><strong>${Number(x.sku_count||0)}</strong></div></div><div class="ysrp-wanted"><small>ŽELJENI DATUM DOBAVLJAČA</small><strong>${human(x.delivery_date)}</strong></div>`}
 function openPlanner(x){
@@ -47,7 +47,7 @@ function openPlanner(x){
  /* Paint modal first; calculate slots after the opening frame so opening is instant. */
  document.getElementById('ysrPlannerOverlay').classList.add('open');
  const box=document.getElementById('ysrpRecommendation');
- if(box){box.className='ysrp-recommend';box.innerHTML='<small>YARDIVO PLANER</small><strong>Provjera slobodnih termina…</strong><p>Analiza raspoloživosti rampi.</p>'}
+ if(box){box.className='ysrp-recommend';box.innerHTML='<small>YARDIVO PLANER</small><strong>Provjera slobodnih termina…</strong><p>Analiza raspoloživog kapaciteta skladišta.</p>'}
  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(plannerRow)refreshPlanner()}));
 }
 function closePlanner(){document.getElementById('ysrPlannerOverlay')?.classList.remove('open');plannerRow=null;plannerOccupancyCache=null}
@@ -123,24 +123,28 @@ function recommendation(){
     return best;
   }catch(e){console.warn('YARDIVO planner recommendation',e);return null}
 }
-function populate(rec,forceRec){const w=whConfig(),t=document.getElementById('ysrpTime'),d=document.getElementById('ysrpDock');if(!t||!d)return;const oldT=forceRec?'':t.value,oldD=forceRec?'':d.value;let start=480,end=960;try{if(w?.receptionStart&&typeof toMin==='function')start=toMin(w.receptionStart);if(w?.receptionEnd&&typeof toMin==='function')end=toMin(w.receptionEnd)}catch(_){}t.innerHTML=Array.from({length:Math.max(1,Math.ceil((end-start)/15))},(_,i)=>{const mins=start+i*15,hh=String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0');return `<option value="${hh}">${hh}</option>`}).join('');d.innerHTML=Array.from({length:Number(w?.ramps||0)},(_,i)=>`<option value="${i+1}">Rampa ${i+1}</option>`).join('');if(rec){t.value=rec.time;d.value=String(rec.dock)}else{if([...t.options].some(o=>o.value===oldT))t.value=oldT;if([...d.options].some(o=>o.value===oldD))d.value=oldD}}
-function refreshPlanner(forceRec=false){const box=document.getElementById('ysrpRecommendation'),rec=recommendation();populate(rec,forceRec);if(rec){box.className='ysrp-recommend';box.innerHTML=`<small>✓ PREPORUKA YARDIVO</small><strong>${human(plannerDate)} · ${esc(rec.time)} · Rampa ${esc(rec.dock)}</strong><p>Procjena istovara ${duration()} min. Preporuka koristi postojeću logiku zauzeća rampi i opterećenja skladišta iz Unosa najava.</p>`}else{box.className='ysrp-recommend bad';box.innerHTML=`<small>NEMA AUTOMATSKE PREPORUKE</small><strong>${human(plannerDate)}</strong><p>Za ovaj datum nema slobodnog automatskog termina ili skladište nema konfigurirane rampe.</p>`}checkChoice()}
-function checkChoice(){const time=document.getElementById('ysrpTime')?.value,dock=Number(document.getElementById('ysrpDock')?.value||0),c=document.getElementById('ysrpCheck');if(!c)return;if(!plannerDate||!time||!dock){c.className='ysrp-check bad';c.textContent='Odaberi datum, termin i rampu.';return false}let free=true;try{free=plannerFree(dock,typeof toMin==='function'?toMin(time):0,duration())}catch(_){}c.className='ysrp-check '+(free?'good':'bad');c.textContent=free?`✓ DOBAR ODABIR · Rampa ${dock} u ${time} je slobodna.`:`⚠ TERMIN JE ZAUZET · Rampa ${dock} u ${time}. Odaberi drugi termin ili YARDIVO preporuku.`;return free}
-async function sendProposal(){if(!plannerRow||!checkChoice())return;const time=document.getElementById('ysrpTime').value,dock=document.getElementById('ysrpDock').value,id=plannerRow.id;try{const actor=window.YardivoRescheduleAudit?.actorLabel?.()||'Upravljanje zalihama';await window.YardivoSupplierLiveSync.call('internal_update',{id,delivery_date:plannerDate,requested_time:time,dock:'R'+String(dock).replace(/^R/i,''),status:'proposal_sent',review_note:`Promjenu termina inicirao: ${actor}. Dobavljač treba prihvatiti ili zatražiti drugi termin.`});try{window.YardivoTermProvenance?.record?.({supplierDeliveryId:id,supplier:plannerRow.supplier_name||plannerRow.supplier_username||'',warehouse:plannerRow.warehouse||'',initiatedByType:'INVENTORY',initiatedBy:actor,approvedBy:actor,status:'PENDING_SUPPLIER',before:{date:plannerRow.delivery_date||'',time:String(plannerRow.requested_time||'').slice(0,5),dock:plannerRow.dock||''},after:{date:plannerDate,time,dock:'R'+String(dock).replace(/^R/i,'')},reason:'Promjenu termina predložilo Upravljanje zalihama',responsibility:'WAREHOUSE'})}catch(_){}closePlanner();await quietLoad(false);try{window.dispatchEvent(new CustomEvent('yardivo:supplier-request-updated',{detail:{id}}))}catch(_){}}catch(e){alert('Prijedlog nije poslan:\n'+errorText(e))}}
+function populate(rec,forceRec){const w=whConfig(),t=document.getElementById('ysrpTime'),d=document.getElementById('ysrpDock');if(!t||!d)return;const oldT=forceRec?'':t.value;let start=480,end=960;try{if(w?.receptionStart&&typeof toMin==='function')start=toMin(w.receptionStart);if(w?.receptionEnd&&typeof toMin==='function')end=toMin(w.receptionEnd)}catch(_){}t.innerHTML=Array.from({length:Math.max(1,Math.ceil((end-start)/15))},(_,i)=>{const mins=start+i*15,hh=String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0');return `<option value="${hh}">${hh}</option>`}).join('');d.innerHTML=rec?`<option value="${rec.dock}">${rec.dock}</option>`:'';d.hidden=true;d.setAttribute('aria-hidden','true');d.style.setProperty('display','none','important');if(rec)t.value=rec.time;else if([...t.options].some(o=>o.value===oldT))t.value=oldT}
+function refreshPlanner(forceRec=false){const box=document.getElementById('ysrpRecommendation'),rec=recommendation();populate(rec,forceRec);if(rec){box.className='ysrp-recommend';box.innerHTML=`<small>✓ PREPORUKA YARDIVO</small><strong>${human(plannerDate)} · ${esc(rec.time)}</strong><p>Procjena istovara ${duration()} min. Kapacitet se provjerava interno; fizičku rampu YardOn dodjeljuje tek pri dolasku.</p>`}else{box.className='ysrp-recommend bad';box.innerHTML=`<small>NEMA AUTOMATSKE PREPORUKE</small><strong>${human(plannerDate)}</strong><p>Za ovaj datum nema slobodnog termina u kapacitetu skladišta.</p>`}checkChoice()}
+function capacityDockForTime(time){const w=whConfig(),start=typeof toMin==='function'?toMin(time):0;if(!w?.ramps||!time)return 0;for(let dock=1;dock<=Number(w.ramps);dock++){try{if(window.YardivoRampConfig?.isLocked?.(String(plannerRow?.warehouse||''),dock))continue}catch(_){}if(plannerFree(dock,start,duration()))return dock}return 0}
+function checkChoice(){const time=document.getElementById('ysrpTime')?.value,c=document.getElementById('ysrpCheck');if(!c)return false;if(!plannerDate||!time){c.className='ysrp-check bad';c.textContent='Odaberi datum i termin.';return false}const capacityDock=capacityDockForTime(time),free=capacityDock>0;c.className='ysrp-check '+(free?'good':'bad');c.textContent=free?`✓ DOBAR ODABIR · Termin ${time} ima raspoloživ kapacitet.`:`⚠ TERMIN JE POPUNJEN · Odaberi drugi termin ili YARDIVO preporuku.`;return free}
+async function sendProposal(){if(!plannerRow||!checkChoice())return;const time=document.getElementById('ysrpTime').value,id=plannerRow.id;try{const actor=window.YardivoRescheduleAudit?.actorLabel?.()||'Upravljanje zalihama';await window.YardivoSupplierLiveSync.call('internal_update',{id,delivery_date:plannerDate,requested_time:time,dock:null,proposed_dock:null,planned_dock:null,status:'proposal_sent',review_note:`Promjenu termina inicirao: ${actor}. Dobavljač treba prihvatiti ili zatražiti drugi termin. Rampa se dodjeljuje pri dolasku.`});try{window.YardivoTermProvenance?.record?.({supplierDeliveryId:id,supplier:plannerRow.supplier_name||plannerRow.supplier_username||'',warehouse:plannerRow.warehouse||'',initiatedByType:'INVENTORY',initiatedBy:actor,approvedBy:actor,status:'PENDING_SUPPLIER',before:{date:plannerRow.delivery_date||'',time:String(plannerRow.requested_time||'').slice(0,5),dock:plannerRow.dock||''},after:{date:plannerDate,time,dock:''},reason:'Promjenu termina predložilo Upravljanje zalihama',responsibility:'WAREHOUSE'})}catch(_){}closePlanner();await quietLoad(false);try{window.dispatchEvent(new CustomEvent('yardivo:supplier-request-updated',{detail:{id}}))}catch(_){}}catch(e){alert('Prijedlog nije poslan:\n'+errorText(e))}}
 
 async function approveSupplierRequest(id){
   const x=lastRows.find(r=>String(r.id)===String(id));
   if(!x)return alert('Supplier najava nije pronađena.');
   if(String(x.status||'').toLowerCase()!=='pending')return alert('Samo nova Supplier najava koja čeka potvrdu može se izravno odobriti.');
-  const d=String(x.delivery_date||''),t=normalizeTime(x.requested_time),dock=String(x.dock||'').trim();
-  if(!d||!t||!dock)return alert('Najava nema potpun datum, termin ili rampu. Odaberi PREDLOŽI DRUGI TERMIN.');
-  if(!confirm(`Odobriti najavu?\n\n${x.supplier_name||x.supplier_username||'Dobavljač'}\n${human(d)} · ${t} · R${dockNumber(dock)}\n${Number(x.pallets||0)} pal. · ${Number(x.sku_count||0)} SKU`))return;
+  const d=String(x.delivery_date||''),t=normalizeTime(x.requested_time);
+  if(!d||!t)return alert('Najava nema potpun datum ili termin. Odaberi PREDLOŽI DRUGI TERMIN.');
+  if(!confirm(`Odobriti najavu?\n\n${x.supplier_name||x.supplier_username||'Dobavljač'}\n${human(d)} · ${t}\n${Number(x.pallets||0)} pal. · ${Number(x.sku_count||0)} SKU\n\nRampa se dodjeljuje tek pri dolasku.`))return;
   const actor=window.YardivoRescheduleAudit?.actorLabel?.()||String((window.currentSession||{}).username||(window.currentSession||{}).user||'Upravljanje zalihama');
   try{
     await window.YardivoSupplierLiveSync.call('internal_update',{
       id:x.id,
       status:'confirmed',
-      review_note:`Najavu i termin potvrdio: ${actor}. Najava je aktivna u Dnevnoj mapi, Tjednoj mapi i Prijamu robe.`
+      dock:null,
+      proposed_dock:null,
+      planned_dock:null,
+      review_note:`Najavu i termin potvrdio: ${actor}. Rampa se dodjeljuje tek pri dolasku.`
     });
     try{await window.YardivoSupplierLiveSync.pullInternal?.()}catch(_){}
     await quietLoad(true);
@@ -198,7 +202,7 @@ function reconcileCanonical(rows){
         supplierReviewNote:x.review_note||'',
         updatedAt:x.updated_at||new Date().toISOString()
       };
-      if(!base.date||!base.time||!base.dock)continue;
+      if(!base.date||!base.time)continue;
       if(idx>=0){
         const before=JSON.stringify(announcements[idx]);
         Object.assign(announcements[idx],base);
