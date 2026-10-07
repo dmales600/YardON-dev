@@ -3,7 +3,7 @@
 if(window.__YV_BOTTOM_MINIMAP_ASSISTANT__)return;
 window.__YV_BOTTOM_MINIMAP_ASSISTANT__=true;
 
-const ASSISTANT_PREF='ui_smart_assistant_v583';
+const AI_CFG='yardivo_auto_replan_cfg_v1';
 let mmTimer=0,aiTimer=0;
 
 function normRole(v){
@@ -21,12 +21,35 @@ function arr(){try{return Array.isArray(announcements)?announcements:[]}catch(_)
 function inc(){try{return Array.isArray(incidents)?incidents:[]}catch(_){return[]}}
 function today(){try{return window.yardivoLocalDateV583?.()||new Date().toISOString().slice(0,10)}catch(_){return new Date().toISOString().slice(0,10)}}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function assistantEnabled(){try{return localStorage.getItem(ASSISTANT_PREF)!=='off'}catch(_){return true}}
-function setAssistantEnabled(v){
-  try{localStorage.setItem(ASSISTANT_PREF,v?'on':'off')}catch(_){}
-  document.body.classList.toggle('yv-assistant-disabled',!v);
-  if(!v)document.body.classList.remove('yv-assistant-open');
+function assistantEnabled(){
+  try{
+    if(window.YardOnAIAdminV1?.assistantEnabled)return window.YardOnAIAdminV1.assistantEnabled();
+    const c=JSON.parse(localStorage.getItem(AI_CFG)||'{}')||{};
+    return c.assistantEnabled===true;
+  }catch(_){return false}
+}
+async function setAssistantEnabled(v){
+  if(role()!=='admin')return false;
+  if(window.YardOnAIAdminV1?.setAssistant)return window.YardOnAIAdminV1.setAssistant(!!v);
+  try{
+    const c=JSON.parse(localStorage.getItem(AI_CFG)||'{}')||{};
+    c.assistantEnabled=!!v;
+    localStorage.setItem(AI_CFG,JSON.stringify(c));
+    window.dispatchEvent(new CustomEvent('yardivo:ai-admin-config',{detail:{...c,reason:'assistant'}}));
+    applyAssistantAvailability();
+    return true;
+  }catch(_){return false}
+}
+function applyAssistantAvailability(){
+  const on=assistantEnabled();
+  document.body.classList.toggle('yv-assistant-disabled',!on);
+  if(!on)document.body.classList.remove('yv-assistant-open');
+  const zone=document.getElementById('yardivoAssistantZone');
+  const box=document.getElementById('yardivoSmartAssistant');
+  if(zone){zone.hidden=!on;zone.style.setProperty('display',on?'':'none',on?'':'important')}
+  if(box){box.hidden=!on;box.style.setProperty('display',on?'':'none',on?'':'important')}
   updateSettingsAssistantStatus();
+  return on;
 }
 function ids(v){
   return Array.isArray(v)?v.map(x=>String(typeof x==='object'?(x?.id||''):x||'').trim()).filter(Boolean):[];
@@ -169,7 +192,7 @@ function ensureAssistant(){
   box.querySelector('#yardivoAssistantInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAssistant()}});
 }
 function openAssistant(){
-  if(!assistantEnabled())return;
+  if(!assistantEnabled()){applyAssistantAvailability();return}
   clearTimeout(aiTimer);
   document.body.classList.add('yv-assistant-open');
   setTimeout(()=>document.getElementById('yardivoAssistantInput')?.focus?.({preventScroll:true}),20);
@@ -253,12 +276,14 @@ async function realAiAnswer(q){
   return String(d.reply).trim();
 }
 function sendAssistant(){
+  if(!assistantEnabled()){applyAssistantAvailability();return}
   const i=document.getElementById('yardivoAssistantInput');if(!i)return;
   const q=String(i.value||'').trim();if(!q)return;
   i.value='';
   ask(q);
 }
 async function ask(q){
+  if(!assistantEnabled()){applyAssistantAvailability();return}
   q=String(q||'').trim();
   if(!q)return;
   addMsg('user',q);
@@ -330,17 +355,9 @@ function answer(raw){
 
 /* ---------------- RIGHT SETTINGS TOGGLE ---------------- */
 function ensureAssistantSetting(){
-  const list=document.querySelector('#yardivoRightSettingsDrawer .yv-rs-list');
-  if(!list||list.querySelector('[data-yv-setting="assistant"]'))return;
-  const b=document.createElement('button');
-  b.type='button';b.className='yv-rs-item';b.dataset.yvSetting='assistant';
-  b.innerHTML=`<span class="yv-rs-icon">✦</span><span class="yv-rs-copy"><strong>YARDIVO SMART ASSISTANT</strong><small class="yv-rs-toggle-state" data-yv-assistant-setting-status></small></span><span class="yv-rs-arrow">›</span>`;
-  list.appendChild(b);
-  b.onclick=e=>{
-    e.preventDefault();e.stopPropagation();
-    setAssistantEnabled(!assistantEnabled());
-  };
-  updateSettingsAssistantStatus();
+  /* Global Assistant power belongs only to Admin > YARDON POSTAVKE.
+     Remove the former per-user drawer switch so no role can override Admin. */
+  document.querySelectorAll('#yardivoRightSettingsDrawer [data-yv-setting="assistant"]').forEach(x=>x.remove());
 }
 function updateSettingsAssistantStatus(){
   const on=assistantEnabled();
@@ -351,10 +368,12 @@ function updateSettingsAssistantStatus(){
 }
 
 function ensure(){
-  ensureMiniMap();ensureAssistant();ensureAssistantSetting();setAssistantEnabled(assistantEnabled());
+  ensureMiniMap();ensureAssistant();ensureAssistantSetting();applyAssistantAvailability();
 }
 window.addEventListener('yardivo:login',()=>setTimeout(()=>{ensure();renderMiniMap()},80));
-window.addEventListener('yardivo:data-synced',()=>{if(document.body.classList.contains('yv-minimap-open'))renderMiniMap()});
+window.addEventListener('yardivo:data-synced',()=>{applyAssistantAvailability();if(document.body.classList.contains('yv-minimap-open'))renderMiniMap()});
+window.addEventListener('yardivo:ai-admin-config',()=>setTimeout(applyAssistantAvailability,0));
+window.addEventListener('storage',e=>{if(e.key===AI_CFG)setTimeout(applyAssistantAvailability,0)});
 window.addEventListener('yardivo:master-data-changed',()=>{ensureAssistantSetting();if(document.body.classList.contains('yv-minimap-open'))renderMiniMap()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('yardivoMiniRampModal')?.classList.remove('open')});
 document.addEventListener('DOMContentLoaded',ensure,{once:true});
@@ -362,5 +381,5 @@ window.addEventListener('load',()=>setTimeout(ensure,300),{once:true});
 setTimeout(ensure,250);
 
 window.YardivoMiniMapV583={render:renderMiniMap,open:openMini};
-window.YardivoSmartAssistantV583={ask,answer,enabled:assistantEnabled,setEnabled:setAssistantEnabled};
+window.YardivoSmartAssistantV583={ask,answer,enabled:assistantEnabled,setEnabled:setAssistantEnabled,applyAvailability:applyAssistantAvailability};
 })();
