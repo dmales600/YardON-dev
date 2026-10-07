@@ -53,6 +53,21 @@ const I18N={
 
 let lang='hr';
 const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const esc=escapeHtml;
+const terminal=new Set(['completed','rejected','cancelled','canceled']);
+function statusKey(v){return String(v||'pending').trim().toLowerCase()}
+function statusLabel(v){
+  const s=statusKey(v);
+  return {pending:'ČEKA POTVRDU',confirmed:'POTVRĐENO',revision_requested:'VRAĆENO NA DORADU',proposal_sent:'PRIJEDLOG TERMINA',reschedule_requested:'ZAHTJEV ZA PROMJENU',cancel_requested:'ZAHTJEV ZA OTKAZIVANJE',rejected:'ODBIJENO',arrival:'U DVORIŠTU',dock:'NA RAMPI',receiving:'ZAPRIMANJE',completed:'ZAPRIMLJENO',cancelled:'OTKAZANO',canceled:'OTKAZANO'}[s]||String(v||'ČEKA POTVRDU').toUpperCase()
+}
+function statusClass(v){const s=statusKey(v);return ['completed','confirmed','arrival','dock','receiving'].includes(s)?'ok':['rejected','cancelled','canceled','cancel_requested'].includes(s)?'bad':'wait'}
+function rowByRawId(id){return loadRows().find(x=>String(x.id)===String(id)||String(x.serverId||'')===String(id))||null}
+function renderQrInto(el,url,size=300){
+  if(!el||!url)return;
+  el.innerHTML='';
+  if(!window.QRCode){el.textContent='QR modul nije učitan.';return}
+  new QRCode(el,{text:url,width:size,height:size,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M})
+}
 
 function session(){
   try{return (typeof currentSession!=='undefined'?currentSession:window.currentSession)||{}}
