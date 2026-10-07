@@ -3,6 +3,21 @@ import { createClient } from "jsr:@supabase/supabase-js@2.116.0";
 const H={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
 const J=(x:any,s=200)=>new Response(JSON.stringify(x),{status:s,headers:{...H,"Content-Type":"application/json","Cache-Control":"no-store"}});
 const db=createClient(Deno.env.get("SUPABASE_URL")??"",Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"",{auth:{persistSession:false,autoRefreshToken:false}});
+function geminiModel(){return Deno.env.get("YARDIVO_GEMINI_MODEL")||"gemini-3.5-flash-lite"}
+function geminiKey(){return Deno.env.get("GEMINI_API_KEY")||""}
+function geminiText(out:any){return (Array.isArray(out?.candidates)?out.candidates:[]).flatMap((c:any)=>Array.isArray(c?.content?.parts)?c.content.parts:[]).map((p:any)=>typeof p?.text==="string"?p.text:"").filter(Boolean).join("\n").trim()}
+async function geminiJson(instruction:string,payload:any){
+ const key=geminiKey();if(!key)throw new Error("GEMINI_NOT_CONFIGURED");
+ const model=geminiModel();
+ const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(key),{
+  method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({systemInstruction:{parts:[{text:instruction}]},contents:[{role:"user",parts:[{text:JSON.stringify(payload)}]}],generationConfig:{responseMimeType:"application/json",temperature:0.1,maxOutputTokens:800,thinkingConfig:{thinkingLevel:"minimal"}}})
+ });
+ const out=await r.json().catch(()=>({}));if(!r.ok){const detail=String(out?.error?.message||out?.error?.status||"UNKNOWN").slice(0,500);throw new Error("GEMINI_"+r.status+":"+detail)}
+ const raw=geminiText(out);if(!raw)throw new Error("GEMINI_EMPTY_RESPONSE");
+ try{return JSON.parse(raw)}catch{throw new Error("GEMINI_INVALID_JSON")}
+}
+
 
 function normRole(v:any){let r=String(v??'').trim().toLowerCase();if(r==='porta'||r==='portir')r='gate';if(r==='prijam')r='reception';return r}
 async function profile(req:Request){
@@ -57,6 +72,14 @@ function compareWaiting(a:any,b:any,now:number){
   return A.appt-B.appt;
 }
 function timingText(p:any,now:number){const appt=new Date(p.appointment_at||0).getTime();if(!Number.isFinite(appt)||appt<=0)return 'prioritet prema vremenu dolaska';const m=Math.round((now-appt)/60000);if(m===0)return 'stiglo točno na termin';if(m<0)return `stiglo ${Math.abs(m)} min ranije`;return `kasni ${m} min`}
+async function geminiDockAssignments(candidates:any[],free:number[],warehouse:string,now:number){
+ const rows=candidates.map((p:any)=>({id:String(p.id),appointment_at:p.appointment_at,checked_in_at:p.checked_in_at,parking_slot:p.parking_slot,vehicle_plate:p.vehicle_plate||"",supplier_name:p.supplier_name||"",timing:timingText(p,now)}));
+ const out=await geminiJson("Ti si YardOn AI dispatcher rampi. Poslovni prioritet već je izračunat i lista candidates sadrži samo kamione koji smiju dobiti sada slobodnu rampu. Vrati isključivo JSON {assignments:[{pass_id,ramp}]}. Svaki kandidat dodijeli najviše jednom, koristi samo ponuđene slobodne rampe, ne izmišljaj ID-eve ni rampe. Dodijeli koliko je moguće do broja slobodnih rampi.",{warehouse,free_ramps:free,candidates:rows});
+ const a=Array.isArray(out?.assignments)?out.assignments:[];const ids=new Set(rows.map((x:any)=>x.id)),ramps=new Set(free.map(Number)),usedIds=new Set<string>(),usedRamps=new Set<number>(),clean:any[]=[];
+ for(const x of a){const id=String(x?.pass_id||""),r=Number(x?.ramp);if(!ids.has(id)||!ramps.has(r)||usedIds.has(id)||usedRamps.has(r))throw new Error("GEMINI_INVALID_DOCK_ASSIGNMENT");usedIds.add(id);usedRamps.add(r);clean.push({pass_id:id,ramp:r})}
+ if(clean.length!==Math.min(rows.length,free.length))throw new Error("GEMINI_INCOMPLETE_DOCK_ASSIGNMENT");
+ return clean;
+}
 async function event(passId:string,message:string){const {error}=await db.from('yardivo_delivery_pass_events').insert({delivery_pass_id:passId,kind:'ai_dispatch',message,actor_role:'ai',actor_name:'YardOn AI'});if(error)throw error}
 async function dispatchWarehouse(warehouse:string,actor:any){
   const m=await master(),w=(m.warehouses||[]).find((x:any)=>x&&x.active!==false&&String(x.id)===warehouse);if(!w)throw new Error('Skladište nije aktivno u Master podacima.');
@@ -66,8 +89,8 @@ async function dispatchWarehouse(warehouse:string,actor:any){
   const occupied=new Set((busy||[]).map((x:any)=>dockNo(x.dock)).filter((n:number)=>n>0));const free=ramps.filter((n:number)=>!occupied.has(n));
   const {data:waiting,error:we}=await db.from('yardivo_delivery_passes').select('*').eq('warehouse',warehouse).eq('gate_decision','APPROVED').in('state',['PARKING','WAITING_DOCK']).order('checked_in_at',{ascending:true,nullsFirst:false});if(we)throw we;
   const now=Date.now(),sorted=(waiting||[]).slice().sort((a:any,b:any)=>compareWaiting(a,b,now));
-  const eligible=sorted.filter((p:any)=>priority(p,now).tier<=1);const assignments:any[]=[];
-  for(const ramp of free){const p=eligible.shift();if(!p)break;const dock='R'+ramp;const msg=`YardOn AI: ${dock} je slobodna. ${timingText(p,now)}. Krenite na ${dock}.`;
+  const eligible=sorted.filter((p:any)=>priority(p,now).tier<=1),policyCandidates=eligible.slice(0,free.length);const aiAssignments=policyCandidates.length?await geminiDockAssignments(policyCandidates,free,warehouse,now):[],assignments:any[]=[];
+  for(const choice of aiAssignments){const p=policyCandidates.find((x:any)=>String(x.id)===String(choice.pass_id));if(!p)continue;const ramp=Number(choice.ramp),dock='R'+ramp;const msg=`YardOn AI: ${dock} je slobodna. ${timingText(p,now)}. Krenite na ${dock}.`;
     const {data:updated,error:ue}=await db.from('yardivo_delivery_passes').update({dock,state:'PROCEED_DOCK',parking_slot:null,last_instruction:msg,updated_at:new Date().toISOString()}).eq('id',p.id).in('state',['PARKING','WAITING_DOCK']).select('id,announcement_id,supplier_delivery_id,warehouse,appointment_at,checked_in_at,dock,state,last_instruction').maybeSingle();if(ue)throw ue;if(!updated)continue;
     await event(String(p.id),msg);assignments.push(updated);
   }
@@ -78,7 +101,7 @@ async function dispatchWarehouse(warehouse:string,actor:any){
 Deno.serve(async(req)=>{
   if(req.method==='OPTIONS')return new Response('ok',{headers:H});if(req.method!=='POST')return J({ok:false,error:'METHOD_NOT_ALLOWED'},405);
   try{
-    const p=await profile(req),b=await req.json().catch(()=>({})),action=String(b.action||'dispatch').toLowerCase();if(action!=='dispatch')return J({ok:false,error:'UNKNOWN_ACTION'},400);
+    const p=await profile(req),b=await req.json().catch(()=>({})),action=String(b.action||'dispatch').toLowerCase();if(action==='health')return J({ok:true,provider:'gemini',geminiKeyPresent:Boolean(geminiKey()),model:geminiModel()});if(action!=='dispatch')return J({ok:false,error:'UNKNOWN_ACTION'},400);
     if(!(await aiControlEnabled()))return J({ok:true,disabled:true,reason:'AI_CONTROL_OFF',results:[]});
     const requested=String(b.warehouse||'').trim(),allowed=Array.isArray(p.warehouses)?p.warehouses.map(String):[];
     let warehouses:string[]=[];
