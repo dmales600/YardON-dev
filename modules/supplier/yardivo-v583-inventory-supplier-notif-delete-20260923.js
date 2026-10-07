@@ -3,7 +3,8 @@
 'use strict';
 if(window.__YARDIVO_INVENTORY_SUPPLIER_NOTIF_DELETE_20260923__)return;
 window.__YARDIVO_INVENTORY_SUPPLIER_NOTIF_DELETE_20260923__=true;
-let busy=false,lastSig='',loginSession=null,liveRowsCache=null;
+let busy=false,lastSig='',loginSession=null,liveRowsCache=null,pendingBaselineReady=false,loginAtMs=0;
+let knownPendingIds=new Set();
 
 function sessionSnapshot(){
   try{
@@ -20,6 +21,68 @@ function user(){
 }
 function inventory(){return role()==='inventory'}
 function notifId(id){return 'SUPREQ-'+String(id)}
+function rowId(x){return String(x?.id||x?.supplier_delivery_id||x?.supplierDeliveryId||x?.client_id||'').trim()}
+function rowTimeMs(x){
+  for(const v of [x?.created_at,x?.createdAt,x?.submitted_at,x?.submittedAt,x?.updated_at,x?.updatedAt]){
+    const t=Date.parse(String(v||''));if(Number.isFinite(t)&&t>0)return t;
+  }
+  return 0;
+}
+function supplierLabel(x){return String(x?.supplier_name||x?.supplier_username||x?.supplier||'Dobavljač').trim()||'Dobavljač'}
+function notificationFromRow(x){
+  const id=rowId(x),warehouse=String(x?.warehouse||'').trim().toUpperCase(),atRaw=x?.created_at||x?.createdAt||x?.submitted_at||x?.submittedAt||new Date().toISOString();
+  const date=String(x?.delivery_date||x?.date||'').slice(0,10),time=String(x?.requested_time||x?.time||'').slice(0,5);
+  const pallets=Number(x?.pallets||0),sku=Number(x?.sku_count||x?.skuCount||0);
+  const parts=[supplierLabel(x),date,time,warehouse,pallets>0?pallets+' pal.':'',sku>0?sku+' SKU':''].filter(Boolean);
+  return {
+    id:notifId(id),
+    event:'SUPPLIER_REQUEST',
+    type:'blue',
+    title:'NOVA NAJAVA DOBAVLJAČA',
+    body:parts.join(' · '),
+    warehouse,
+    location:String(x?.location||x?.location_id||'').trim(),
+    supplier:supplierLabel(x),
+    supplierDeliveryId:id,
+    announcementId:String(x?.announcement_id||x?.announcementId||'SUPDEL-'+id),
+    roles:['admin','manager','inventory'],
+    createdAt:String(atRaw||new Date().toISOString()),
+    at:String(atRaw||new Date().toISOString()),
+    readBy:{}
+  };
+}
+function ingestPendingRow(x,announce){
+  const id=rowId(x);if(!id||!String(x?.warehouse||'').trim())return false;
+  const n=notificationFromRow(x);
+  try{
+    if(window.YardivoNotifications?.ingest)return !!window.YardivoNotifications.ingest(n,{announce:!!announce});
+    const list=notifications().filter(v=>String(v?.id)!==String(n.id));
+    list.push(n);localStorage.setItem('yardivo_live_notifications_v1',JSON.stringify(list));
+    return true;
+  }catch(_){return false}
+}
+function reconcilePendingNotifications(rows){
+  if(!inventory()||!Array.isArray(rows))return;
+  const pending=rows.filter(x=>String(x?.status||'').toLowerCase()==='pending'&&rowId(x));
+  const nextIds=new Set(pending.map(rowId));
+  if(!pendingBaselineReady){
+    pendingBaselineReady=true;
+    const cut=loginAtMs||Date.now();
+    for(const x of pending){
+      const id=rowId(x),created=rowTimeMs(x);
+      const arrivedThisSession=!!created&&created>=cut-1500;
+      ingestPendingRow(x,arrivedThisSession);
+      knownPendingIds.add(id);
+    }
+    knownPendingIds=nextIds;
+    return;
+  }
+  for(const x of pending){
+    const id=rowId(x);
+    if(!knownPendingIds.has(id))ingestPendingRow(x,true);
+  }
+  knownPendingIds=nextIds;
+}
 function notifications(){
   try{
     const a=window.YardivoNotifications?.load?.();
@@ -70,9 +133,10 @@ async function poll(){
     const rows=window.YardivoSupplierLiveSync.internalRows?.();
     if(!Array.isArray(rows))return;
     const sig=rows.map(x=>String(x.id)+':'+String(x.status)).sort().join('|');
+    reconcilePendingNotifications(rows);
     if(sig!==lastSig){
       lastSig=sig;
-      try{window.dispatchEvent(new CustomEvent('yardivo:supplier-inbox-changed',{detail:{pending:rows.filter(x=>x.status==='pending').length}}))}catch(_){}
+      try{window.dispatchEvent(new CustomEvent('yardivo:supplier-inbox-changed',{detail:{pending:rows.filter(x=>String(x?.status||'').toLowerCase()==='pending').length}}))}catch(_){}
     }
     syncSupplierBadge();
   }catch(_){}
@@ -129,9 +193,10 @@ document.addEventListener('click',e=>{
 
 window.addEventListener('yardivo:login',e=>{
   loginSession=e?.detail?.session||window.currentSession||loginSession;
+  loginAtMs=Date.now();pendingBaselineReady=false;knownPendingIds=new Set();lastSig='';
   try{
     const rows=window.YardivoSupplierLiveSync?.internalRows?.();
-    if(Array.isArray(rows))liveRowsCache=rows;
+    if(Array.isArray(rows)){liveRowsCache=rows;reconcilePendingNotifications(rows)}
   }catch(_){}
   syncSupplierBadge();
   setTimeout(()=>{syncSupplierBadge();poll()},160);
@@ -139,12 +204,15 @@ window.addEventListener('yardivo:login',e=>{
 });
 window.addEventListener('yardivo:data-synced',()=>setTimeout(syncSupplierBadge,120));
 window.addEventListener('yardivo:supplier-internal-rows',e=>{
-  if(Array.isArray(e?.detail?.rows))liveRowsCache=e.detail.rows;
+  if(Array.isArray(e?.detail?.rows)){
+    liveRowsCache=e.detail.rows;
+    reconcilePendingNotifications(e.detail.rows);
+  }
   syncSupplierBadge();
   setTimeout(poll,0);
 });
 window.addEventListener('yardivo:supplier-request-updated',()=>setTimeout(()=>window.YardivoSupplierLiveSync?.pullInternal?.(true),80));
-window.addEventListener('yardivo:logout',()=>{loginSession=null;liveRowsCache=null;lastSig='';});
+window.addEventListener('yardivo:logout',()=>{loginSession=null;liveRowsCache=null;lastSig='';pendingBaselineReady=false;loginAtMs=0;knownPendingIds=new Set();});
 window.addEventListener('focus',poll);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
 /* SupplierLiveSync is the sole list_internal polling owner. */
