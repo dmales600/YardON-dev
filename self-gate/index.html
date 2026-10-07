@@ -85,6 +85,12 @@ async function api(action,payload={}) {
 function field(id,label,placeholder='',value='') {
   return `<label for="${id}">${label}</label><input id="${id}" autocomplete="off" placeholder="${esc(placeholder)}" value="${esc(value)}">`;
 }
+function setWallNeutral(message='') {
+  document.body.classList.remove('status-ok','status-error');
+  app.className='card';
+  const err=document.getElementById('err');
+  if(err){err.textContent=message;err.style.color=message?'#8fc7e4':''}
+}
 
 async function loadWall() {
   if(!WALL) {
@@ -102,9 +108,8 @@ async function loadWall() {
     app.innerHTML='<div class="state">SELF CHECK-IN · NE RADI</div><div>Javite se djelatniku na Porti.</div>';
     return;
   }
-  document.body.classList.remove('status-error');
-  document.body.classList.add('status-ok');
-  app.className='card green';
+  document.body.classList.remove('status-ok','status-error');
+  app.className='card';
   app.innerHTML = `
     <div class="state">YardOn SELF GATE CHECK-IN</div>
     <div class="small">${esc(d.locationName || d.warehouseName || d.location)} · skenirano na ulazu</div>
@@ -114,19 +119,28 @@ async function loadWall() {
     <div id="err" class="err"></div>
     <button id="submit">NASTAVI</button>`;
   document.getElementById('submit').onclick = submitWall;
+  ['ref','plate','driver'].forEach(id=>document.getElementById(id)?.addEventListener('input',()=>setWallNeutral()));
 }
 
 async function submitWall() {
   const btn=document.getElementById('submit'), err=document.getElementById('err');
+  const reference=document.getElementById('ref').value.trim();
+  const plate=document.getElementById('plate').value.trim();
+  const driver=document.getElementById('driver').value.trim();
   err.textContent='';
-  btn.disabled=true; btn.textContent='ŠALJEM...';
+  if(!reference&&!plate&&!driver){
+    setWallNeutral('Unesite podatke najave za Check-In.');
+    btn.disabled=false;btn.textContent='NASTAVI';
+    return;
+  }
+  btn.disabled=true; btn.textContent='PROVJERAVAM...';
   try {
-    const d = await api('wall_submit', {
-      reference:document.getElementById('ref').value.trim(),
-      plate:document.getElementById('plate').value.trim(),
-      driver:document.getElementById('driver').value.trim()
-    });
-    location.replace(location.pathname + '?pass=' + encodeURIComponent(d.sessionToken));
+    const d = await api('wall_submit', {reference,plate,driver});
+    document.body.classList.remove('status-error');
+    document.body.classList.add('status-ok');
+    app.className='card green';
+    btn.textContent='✓ PODACI SU TOČNI';
+    setTimeout(()=>location.replace(location.pathname + '?pass=' + encodeURIComponent(d.sessionToken)),250);
   } catch(e) {
     document.body.classList.remove('status-ok');
     document.body.classList.add('status-error');
