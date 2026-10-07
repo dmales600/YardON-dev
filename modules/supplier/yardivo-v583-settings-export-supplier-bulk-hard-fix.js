@@ -144,7 +144,14 @@ function organize(){
  mountSettingsGrid(shell);
  ensureQr();ensureMaster();ensureAccount();retireLegacyDuplicates();show(selected);
 }
-function schedule(ms=50){clearTimeout(reconcileTimer);reconcileTimer=setTimeout(()=>{if(settingsActive())organize()},ms)}
+function schedule(ms=50){
+ clearTimeout(reconcileTimer);
+ reconcileTimer=setTimeout(()=>{
+  /* A pending Settings reconciliation must never replace a focused Master form. */
+  if(masterEditing())return;
+  if(settingsActive())organize();
+ },ms)
+}
 
 function sectionButton(e){return e.target?.closest?.('#yardonAdminSettingsShell .yas-sidebar button[data-yas-section]')||null}
 document.addEventListener('click',e=>{
@@ -154,7 +161,12 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{if(!['Enter',' '].includes(e.key))return;const b=sectionButton(e);if(b){e.preventDefault();show(b.dataset.yasSection)}},true);
 window.addEventListener('yardivo:view-opened',e=>{if(e?.detail?.view==='settings')schedule(20)});
 window.addEventListener('yardivo:login',()=>setTimeout(organize,160));
-window.addEventListener('yardivo:master-data-changed',()=>{if(masterEditing())return;schedule(80)});
+window.addEventListener('yardivo:master-data-changed',()=>{
+ /* StableMasterV583 is the owner of the active Master editor. Re-organizing the
+    whole Settings shell here can detach its inputs between pointerdown/focus. */
+ if(selected==='master'||masterEditing())return;
+ schedule(80);
+});
 /* Operational yardivo:data-synced events must not rebuild Admin Settings. */
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(organize,220),{once:true});else setTimeout(organize,120);
 
