@@ -7,7 +7,14 @@ const norm=v=>String(v??'').trim().toLowerCase();
 const removed=v=>norm(v).includes(REMOVED);
 const dockNo=v=>{const n=Number(String(v??'').replace(/\D/g,''));return Number.isFinite(n)&&n>0?n:null};
 const role=()=>{let r=norm(window.currentSession?.app_role||window.currentSession?.role);if(r==='zalihe'||r.includes('zalih'))r='inventory';if(r==='prijam')r='reception';if(r==='voditelj'||r==='management')r='manager';return r};
-const internal=()=>['admin','manager','inventory','reception'].includes(role());
+function aiEnabled(){
+ try{
+  if(window.YardOnAIAdminV1?.aiControlEnabled)return window.YardOnAIAdminV1.aiControlEnabled();
+  const c=JSON.parse(localStorage.getItem('yardivo_auto_replan_cfg_v1')||'{}')||{};
+  return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED';
+ }catch(_){return false}
+}
+const internal=()=>aiEnabled()&&['admin','manager','inventory','reception'].includes(role());
 const rows=()=>{try{return typeof announcements!=='undefined'&&Array.isArray(announcements)?announcements:[]}catch(_){return[]}};
 const plannedNo=a=>dockNo(a?.aiPlannedDock||a?.plannedDock||a?.planned_dock);
 const actualNo=a=>dockNo(a?.dock);
@@ -126,9 +133,10 @@ function install(){injectStyle();purgeGhost();wrap('renderDailyMap','daily');wra
 
 window.addEventListener('yardivo:supplier-internal-rows',e=>scheduleFromRows(e?.detail?.rows||[]));
 window.addEventListener('yardivo:view-opened',e=>{install();if(e?.detail?.view==='dailyMap')setTimeout(()=>maybePlanVisible(true),120);if(e?.detail?.view==='overview')setTimeout(purgeGhost,0)});
-window.addEventListener('yardivo:data-synced',()=>{install();purgeGhost();setTimeout(()=>maybePlanVisible(false),80)});
+window.addEventListener('yardivo:data-synced',()=>{install();purgeGhost();if(aiEnabled())setTimeout(()=>maybePlanVisible(false),80)});
+window.addEventListener('yardivo:ai-admin-config',()=>{if(aiEnabled())setTimeout(()=>maybePlanVisible(true),80)});
 document.addEventListener('DOMContentLoaded',()=>setTimeout(install,40),{once:true});
 window.addEventListener('load',()=>{install();setTimeout(()=>maybePlanVisible(false),200)},{once:true});
 install();let tries=0;const t=setInterval(()=>{install();if(++tries>40)clearInterval(t)},500);
-window.YardOnAiPlanMapAuthorityV1={planDay,purgeGhost,applyPlan,applyInternalRows};
+window.YardOnAiPlanMapAuthorityV1={planDay,purgeGhost,applyPlan,applyInternalRows,enabled:aiEnabled};
 })();
