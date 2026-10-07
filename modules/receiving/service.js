@@ -98,6 +98,11 @@ async function dispatchWaitingYard(warehouse='',force=false){
     if(!r.ok||d?.ok===false)throw new Error(d?.error||('YARD DISPATCH HTTP '+r.status));
     const assignments=(d.results||[]).flatMap(x=>x?.assignments||[]);
     if(assignments.length){
+      try{await window.YardivoSupplierLiveSync?.pullInternal?.(true)}catch(_){}
+      try{await window.YardivoSync?.pull?.()}catch(_){}
+      try{window.renderReceiving?.()}catch(_){}
+      try{window.renderDailyMap?.()}catch(_){}
+      try{window.renderWeeklyMap?.()}catch(_){}
       try{window.dispatchEvent(new CustomEvent('yardivo:yard-ai-dispatched',{detail:{assignments,results:d.results||[]}}))}catch(_){}
       try{window.showYmsToast?.('success','YARDON AI · RAMPA DODIJELJENA',assignments.map(x=>String(x.dock||'')).filter(Boolean).join(', '),3600)}catch(_){}
     }
