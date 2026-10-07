@@ -412,12 +412,24 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{render();hardEm
 window.addEventListener('load',()=>setTimeout(()=>{render();hardEmptySupplierUi();observeFreshSupplierRows();document.getElementById('epalInitialSettings')?.remove()},260),{once:true});
 document.addEventListener('click',e=>{if(e.target.closest?.('[data-view="settings"],[data-home-target="settings"]'))setTimeout(()=>{render();document.getElementById('epalInitialSettings')?.remove()},30)},true);
 window.addEventListener('yardivo:login',()=>setTimeout(()=>{hardEmptySupplierUi();observeFreshSupplierRows();render()},80));
-window.addEventListener('yardivo:context-changed',e=>{if(e?.detail?.source==='stable-master')return;if(!document.activeElement?.closest?.('#yardivoStableMasterEditorV583')&&Date.now()>=masterEditHoldUntil)setTimeout(render,20)});
-window.addEventListener('yardivo:master-data-changed',e=>{if(e?.detail?.source==='stable-master')return;if(!document.activeElement?.closest?.('#yardivoStableMasterEditorV583')&&Date.now()>=masterEditHoldUntil)setTimeout(render,20)});
+let externalRenderTimer=0;
+function cancelExternalRender(){clearTimeout(externalRenderTimer);externalRenderTimer=0}
+function scheduleExternalRender(ms=180){
+ cancelExternalRender();
+ externalRenderTimer=setTimeout(()=>{
+  externalRenderTimer=0;
+  if(document.activeElement?.closest?.('#yardivoStableMasterEditorV583'))return;
+  if(Date.now()<masterEditHoldUntil)return;
+  render();
+ },ms);
+}
+window.addEventListener('yardivo:context-changed',e=>{if(e?.detail?.source==='stable-master')return;scheduleExternalRender(180)});
+window.addEventListener('yardivo:master-data-changed',e=>{if(e?.detail?.source==='stable-master')return;scheduleExternalRender(180)});
 
 
 /* Keep the Master form stable while the user is editing; no background redraw/flicker. */
-document.addEventListener('focusin',e=>{if(e.target?.closest?.('#yardivoStableMasterEditorV583'))holdMasterEdit(5000)},true);
+document.addEventListener('pointerdown',e=>{if(e.target?.closest?.('#yardivoStableMasterEditorV583')){cancelExternalRender();holdMasterEdit(5000)}},true);
+document.addEventListener('focusin',e=>{if(e.target?.closest?.('#yardivoStableMasterEditorV583')){cancelExternalRender();holdMasterEdit(5000)}},true);
 document.addEventListener('input',e=>{if(e.target?.closest?.('#yardivoStableMasterEditorV583')){
  if(e.target.id==='smNewWarehouse')draftWarehouseName=String(e.target.value||'');
  if(e.target.id==='smNewLocation')draftLocationName=String(e.target.value||'');
