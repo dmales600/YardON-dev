@@ -8,6 +8,7 @@ const HOME={
  gate:new Set(['homeMenu','checkin','unannounced','myYard','docks'])
 };
 function role(){let r='';try{r=String(currentSession?.role||'').toLowerCase().trim()}catch(e){};if(r==='porta')r='gate';if(r==='prijam')r='reception';if(r==='zalihe'||r==='upravljanje zalihama')r='inventory';return r}
+function aiControlEnabled(){try{const c=JSON.parse(localStorage.getItem('yardivo_auto_replan_cfg_v1')||'{}')||{};return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED'}catch(_){return false}}
 function load(){let best=[];for(const k of [KEY,LEG])try{const x=JSON.parse(localStorage.getItem(k)||'[]');if(Array.isArray(x)&&x.length>best.length)best=x}catch(e){};return best.length?best:(Array.isArray(announcements)?announcements:[])}
 function save(list){const raw=JSON.stringify(list);localStorage.setItem(KEY,raw);localStorage.setItem(LEG,raw);if(Array.isArray(announcements))announcements.splice(0,announcements.length,...list)}
 function P(a){return String(a?.plannedPlate||a?.vehiclePlate||a?.plate||a?.registration||a?.arrivalPlate||'').trim()}
@@ -24,6 +25,7 @@ function applyHome(){
    const t=card.dataset.homeTarget||'', txt=(card.textContent||'').toLowerCase();
    const alert=txt.includes('upozoren')||txt.includes('obavijest')||txt.includes('notifik');
    let ok=r==='admin'||!!HOME[r]?.has(t);
+   if(t==='aiOperations'&&!aiControlEnabled())ok=false;
    if(r==='gate'&&alert)ok=false;
    card.style.setProperty('display',ok?'':'none',ok?'':'important');
    card.classList.toggle('role-hidden',!ok);
@@ -98,6 +100,7 @@ document.addEventListener('click',e=>{
 document.getElementById('supplierPretraži')?.addEventListener('input',e=>window.renderSuppliers(e.target.value));
 ['gatePlate','gateDriver'].forEach(id=>document.getElementById(id)?.addEventListener('input',()=>{gateId=null;ready(false)},true));
 window.addEventListener('load',()=>setTimeout(applyHome,100));
-window.addEventListener('storage',e=>{if(e.key===KEY||e.key===LEG){try{renderAnnouncements?.();renderReceiving?.();renderYard?.()}catch(err){}}});
+window.addEventListener('yardivo:ai-admin-config',()=>setTimeout(applyHome,0));
+window.addEventListener('storage',e=>{if(e.key==='yardivo_auto_replan_cfg_v1')setTimeout(applyHome,0);if(e.key===KEY||e.key===LEG){try{renderAnnouncements?.();renderReceiving?.();renderYard?.()}catch(err){}}});
 window.YardivoCleanCore={load,save,role,applyHome,driverOpen,driverSave,gateFind,supplierNames};
 })();
