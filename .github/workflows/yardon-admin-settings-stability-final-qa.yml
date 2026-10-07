@@ -133,6 +133,24 @@ jobs:
             });
             await page.waitForTimeout(180);
             if(!await page.locator('#smNewLocation').isVisible()) throw new Error('Zero-state location input not visible');
+            const redrawTrace=await page.evaluate(async()=>{
+              const desc=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+              const traces=[];
+              Object.defineProperty(Element.prototype,'innerHTML',{
+                configurable:true,
+                get:desc.get,
+                set:function(v){
+                  if(this?.id==='yardivoStableMasterEditorV583')traces.push(new Error('STABLE_MASTER_REDRAW').stack||'no-stack');
+                  return desc.set.call(this,v);
+                }
+              });
+              const pulse=setInterval(()=>window.dispatchEvent(new CustomEvent('yardivo:master-data-changed',{detail:{source:'qa-background-pulse'}})),25);
+              await new Promise(r=>setTimeout(r,350));
+              clearInterval(pulse);
+              Object.defineProperty(Element.prototype,'innerHTML',desc);
+              return traces;
+            });
+            if(redrawTrace.length) throw new Error('Stable Master redrawn by background event: '+redrawTrace[0]);
             await page.evaluate(()=>{
               window.__qaMasterPulse=setInterval(()=>window.dispatchEvent(new CustomEvent('yardivo:master-data-changed',{detail:{source:'qa-background-pulse'}})),25);
             });
