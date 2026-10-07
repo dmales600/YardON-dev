@@ -290,7 +290,7 @@ async function runFlow(browser,vp){
     await context.close();
   }
 
-  // 2) Inventory sees the request and proposes dock/time through UI.
+  // 2) Inventory sees the request and proposes time only; physical dock remains unassigned.
   {
     const {context,page,errors}=await makePage(browser,'inventory',vp);
     await showView(page,'supplierRequests');
@@ -304,7 +304,7 @@ async function runFlow(browser,vp){
     await proposal.click();
     await page.waitForTimeout(700);
     expect(state.deliveries[0].status==='proposal_sent',tag('Inventory did not set proposal_sent'));
-    expect(state.deliveries[0].dock==='R1',tag('Inventory did not assign R1'));
+    expect(!state.deliveries[0].dock,tag('Inventory must not assign a physical dock before arrival'));
     expect(String(state.deliveries[0].requested_time).slice(0,5)==='10:00',tag('Inventory did not assign 10:00'));
     checkpoints.push(tag('INVENTORY_PROPOSED_SLOT'));
     if(critical(errors).length)throw new Error(tag('Inventory page errors: '+critical(errors).join(' | ')));
