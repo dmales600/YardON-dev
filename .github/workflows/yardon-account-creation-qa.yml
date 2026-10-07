@@ -1,0 +1,159 @@
+name: YardOn Account Creation QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/yardon-account-creation-qa.yml"
+      - "index.html"
+      - "modules/supplier/yardivo-admin-user-creation-redesign-v583.js"
+      - "modules/supplier/yardivo-v583-responsible-person-inventory-account-authority.js"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yardon-account-creation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  account-create:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static checks
+        run: |
+          node --check modules/supplier/yardivo-admin-user-creation-redesign-v583.js
+          node --check modules/supplier/yardivo-v583-responsible-person-inventory-account-authority.js
+          grep -q "responsible_person_id:rpId" modules/supplier/yardivo-v583-responsible-person-inventory-account-authority.js
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Browser account creation contract
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-account-http.log 2>&1 &
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const HOST='https://ldzwgdwzolbvjxyznlry.supabase.co';
+          const MASTER={
+            locations:[{id:'LOC001',name:'DUGOPOLJE',active:true}],
+            warehouses:[{id:'W001',name:'W201',location_id:'LOC001',active:true,ramps:5}],
+            suppliers:[{id:'SUP001',name:'DOBAVLJAČ1',active:true,locations:['LOC001'],warehouses:['W001'],all_locations:false,all_warehouses:false}],
+            responsible_people:[{id:'RP001',display_name:'Duje Maleš',first_name:'Duje',last_name:'Maleš',active:true,locations:['LOC001'],warehouses:['W001'],all_locations:false,all_warehouses:false,account_username:null,auth_user_id:null}],
+            smart:{enabled:false,mode:'PAUSED'}
+          };
+          const PASS='QaAccount!2026';
+
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1440,height:1050}});
+            await page.route(HOST+'/**',async route=>{
+              if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'}});
+              if(route.request().url().includes('/functions/v1/yardivo-sync'))return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({ok:true,version:7,user:{username:'qa_admin'},announcements:[],incidents:[],state:[]})});
+              return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:'{}'});
+            });
+            if(typeof page.context().routeWebSocket==='function')await page.context().routeWebSocket('wss://ldzwgdwzolbvjxyznlry.supabase.co/**',ws=>ws.close());
+
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
+            await page.waitForTimeout(1300);
+            const setup=await page.evaluate(master=>{
+              localStorage.setItem('yardivo_master_data_registry_v583',JSON.stringify(master));
+              window.currentSession={user:'qa_admin',username:'qa_admin',role:'admin',app_role:'admin',location:'ALL',locations:[],warehouses:[],all_locations:true,all_warehouses:true,serverAuthorized:true};
+              try{currentSession=window.currentSession}catch(_){}
+              window.__qaCreatePayloads=[];
+              const fakeClient={
+                functions:{invoke:async(name,{body}={})=>{
+                  if(name==='yardivo-admin-users'&&body?.action==='create'){
+                    window.__qaCreatePayloads.push(JSON.parse(JSON.stringify(body)));
+                    return {data:{ok:true,data:{auth_user_id:'QA-'+String(body.role||'ROLE').toUpperCase()}},error:null};
+                  }
+                  if(name==='yardivo-admin-users'&&body?.action==='list')return {data:{ok:true,data:[]},error:null};
+                  return {data:{ok:true,data:{}},error:null};
+                }},
+                auth:{getSession:async()=>({data:{session:null},error:null})}
+              };
+              window.YardivoAuth=window.YardivoAuth||{};
+              window.YardivoAuth.client=async()=>fakeClient;
+              window.YardivoMasterDataV583=window.YardivoMasterDataV583||{};
+              window.YardivoMasterDataV583.save=async()=>true;
+              window.YardivoMasterDataV583.flushQueue=async()=>true;
+              document.body.dataset.yardivoRole='admin';
+              document.documentElement.dataset.yardivoRole='admin';
+              document.body.classList.remove('yardivo-prelogin','yardivo-role-switching');
+              document.documentElement.classList.add('yardivo-login-ready','yardivo-welcome-complete');
+              const login=document.getElementById('loginOverlay');if(login)login.style.setProperty('display','none','important');
+              const welcome=document.getElementById('yardivoWelcomeSplash');if(welcome)welcome.style.setProperty('display','none','important');
+              const app=document.querySelector('.app-shell');if(app){app.style.setProperty('display','grid','important');app.style.setProperty('visibility','visible','important')}
+              window.dispatchEvent(new CustomEvent('yardivo:login',{detail:{session:window.currentSession}}));
+              window.YardivoAdminUserCreationV583?.refresh?.();
+              return {adminApi:!!window.YardivoAdminUserCreationV583,responsibleApi:!!window.YardivoResponsiblePeopleV583};
+            },MASTER);
+            if(!setup.adminApi||!setup.responsibleApi)throw new Error('Account creation modules not loaded '+JSON.stringify(setup));
+            await page.waitForTimeout(450);
+
+            async function open(role){
+              await page.evaluate(()=>window.YardivoAdminUserCreationV583.open());
+              await page.locator('[data-yucr-role="'+role+'"]').click();
+              await page.waitForTimeout(120);
+              if(!await page.locator('#yardivoFixedUserModal').evaluate(el=>el.classList.contains('open')))throw new Error(role+': fixed modal not open');
+            }
+            async function base(role){
+              if(role!=='supplier'&&role!=='inventory')await page.locator('#yufName').fill('QA '+role);
+              await page.locator('#yufUsername').fill('qa_'+role);
+              await page.locator('#yufPassword').fill(PASS);
+              await page.locator('#yufPassword2').fill(PASS);
+            }
+            async function scope(){
+              await page.locator('#yufLocation').selectOption('LOC001');
+              await page.waitForTimeout(30);
+              await page.locator('#yufWarehouseGrid input[value="W001"]').check();
+            }
+            async function create(){
+              await page.locator('#yufCreate').click();
+              await page.waitForTimeout(180);
+            }
+
+            await open('admin');await base('admin');await create();
+            await open('manager');await base('manager');await scope();await create();
+            await open('reception');await base('reception');await scope();await create();
+            await open('gate');await base('gate');await scope();await create();
+
+            await open('supplier');
+            await page.locator('#yufSupplierSelect').selectOption('SUP001');
+            await base('supplier');
+            await create();
+
+            await open('inventory');
+            if(!await page.locator('#yufResponsibleSelect').isVisible())throw new Error('inventory: responsible selector not visible');
+            await page.locator('#yufResponsibleSelect').selectOption('RP001');
+            await base('inventory');
+            await scope();
+            await create();
+
+            const result=await page.evaluate(()=>{
+              const d=JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}');
+              const rp=(d.responsible_people||[]).find(x=>String(x.id)==='RP001')||null;
+              return {payloads:window.__qaCreatePayloads,rp};
+            });
+            const byRole=Object.fromEntries(result.payloads.map(x=>[x.role,x]));
+            const roles=['admin','manager','reception','gate','supplier','inventory'];
+            for(const role of roles)if(!byRole[role])throw new Error('Missing create payload for '+role+': '+JSON.stringify(result.payloads));
+            if(byRole.admin.location!=='ALL'||(byRole.admin.warehouses||[]).length)throw new Error('Admin scope wrong '+JSON.stringify(byRole.admin));
+            for(const role of ['manager','reception','gate']){
+              if(byRole[role].location!=='LOC001'||JSON.stringify(byRole[role].warehouses)!==JSON.stringify(['W001']))throw new Error(role+' scope wrong '+JSON.stringify(byRole[role]));
+            }
+            if(byRole.supplier.supplier_id!=='SUP001')throw new Error('Supplier id missing '+JSON.stringify(byRole.supplier));
+            if(byRole.inventory.responsible_person_id!=='RP001')throw new Error('Inventory responsible_person_id missing '+JSON.stringify(byRole.inventory));
+            if(result.rp?.account_username!=='qa_inventory'||result.rp?.auth_user_id!=='QA-INVENTORY')throw new Error('Inventory Master link missing '+JSON.stringify(result.rp));
+            if(JSON.stringify(result.rp?.locations)!==JSON.stringify(['LOC001'])||JSON.stringify(result.rp?.warehouses)!==JSON.stringify(['W001']))throw new Error('Inventory account creation overwrote responsible person scope '+JSON.stringify(result.rp));
+
+            console.log('YARDON_ACCOUNT_CREATION_QA_PASS',JSON.stringify({roles:roles.map(r=>({role:r,payload:byRole[r]})),responsiblePerson:result.rp}));
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
