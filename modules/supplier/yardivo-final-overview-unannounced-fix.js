@@ -190,9 +190,9 @@ function render(){
     table.innerHTML=tableRows.length?tableRows.map(s=>`<tr data-master-supplier="${esc(s.name)}" style="cursor:pointer">
       <td><strong>${esc(s.name)}</strong></td>
       <td>${s.arrived}</td><td>${s.on}</td><td>${s.late}</td><td>${s.avgLate?fmtDelay(s.avgLate):'—'}</td>
-      <td>${s.incidents}</td>
+      <td>${s.avgUnload==null?'—':s.avgUnload+' min'}</td><td>${s.incidents}</td>
       <td><span class="score ${s.reliability==null?'mid':scoreClass(s.reliability)}" style="${s.reliability==null?'':`border-color:${scoreColor(s.reliability)};color:${scoreColor(s.reliability)}`}">${s.score10==null?'—':s.score10+'/10'} · ${s.reliability==null?'—':s.reliability+'%'}</span></td>
-    </tr>`).join(''):'<tr><td colspan="7"><div class="overview-empty">Nema dobavljača.</div></td></tr>';
+    </tr>`).join(''):'<tr><td colspan="8"><div class="overview-empty">Nema dobavljača.</div></td></tr>';
     table.querySelectorAll('[data-master-supplier]').forEach(tr=>tr.onclick=()=>{select.value=tr.dataset.masterSupplier;render()});
   }
   setText('overviewSupplierCount',`${tableRows.length} dobavljača`);
@@ -273,7 +273,7 @@ function render(){
         <div class="ov-master-kpi"><small>ZAPRIMLJENO</small><strong>${chosen.received}</strong></div>
         <div class="ov-master-kpi"><small>NENAJAVLJENI</small><strong>${chosen.unannounced}</strong></div>
         <div class="ov-master-kpi"><small>PROMJENE TERMINA</small><strong>${chosen.changes}</strong></div>
-        <div class="ov-master-kpi"><small>AVG ISTOVAR</small><strong>${chosen.avgUnload==null?'—':chosen.avgUnload+' min'}</strong></div>
+        <div class="ov-master-kpi"><small>PROSJEČNO VRIJEME ISKRCAJA</small><strong>${chosen.avgUnload==null?'—':chosen.avgUnload+' min'}</strong></div>
         <div class="ov-master-kpi"><small>PALETE</small><strong>${chosen.pallets}</strong></div>
       </div>
       <div class="supplier-detail-box"><h3>ZADNJIH 10 NAJAVA</h3>
