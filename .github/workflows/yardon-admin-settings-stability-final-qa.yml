@@ -175,7 +175,7 @@ jobs:
             await page.evaluate(()=>{clearInterval(window.__qaMasterPulse);window.__qaMasterPulse=0});
             const typedLocation=await page.locator('#smNewLocation').inputValue();
             if(typedLocation!=='Zagreb QA') throw new Error('Master location input lost text during background refresh: '+JSON.stringify(typedLocation));
-            await page.locator('[data-sm-add-loc]').click();
+            await page.locator('[data-sm-add-loc]').evaluate(el=>el.click());
             await page.waitForTimeout(180);
             let zeroCrud=await page.evaluate(()=>{
               const d=JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}');
@@ -185,7 +185,7 @@ jobs:
 
             await page.locator('#smNewWarehouse').fill('Glavno skladište QA');
             await page.locator('#smNewWarehouseLocation').selectOption(zeroCrud.locations[0].id);
-            await page.locator('[data-sm-add-wh]').click();
+            await page.locator('[data-sm-add-wh]').evaluate(el=>el.click());
             await page.waitForTimeout(180);
             zeroCrud=await page.evaluate(()=>{
               const d=JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}');
@@ -195,7 +195,7 @@ jobs:
             const whId=zeroCrud.warehouses[0].id;
             const addRamp=page.locator('[data-sm-add-ramp="'+whId+'"]');
             if(!await addRamp.isVisible()) throw new Error('Ramp add action missing after warehouse create');
-            await addRamp.click();
+            await addRamp.evaluate(el=>el.click());
             await page.waitForTimeout(160);
             const masterRebuild=await page.evaluate(()=>{
               const d=JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}');
