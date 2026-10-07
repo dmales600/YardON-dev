@@ -68,7 +68,9 @@ function semanticDock(v){
   const raw=String(v??'').trim().toUpperCase();
   if(!raw)return'';
   const m=raw.replace(/RAMPA/g,'').replace(/^R+/,'').trim().match(/\d+/);
-  return m?String(Number(m[0])):raw;
+  if(!m)return'';
+  const n=Number(m[0]);
+  return Number.isFinite(n)&&n>0?String(n):'';
 }
 function semanticWarehouse(v){
   const raw=String(v??'').trim().toUpperCase();
@@ -82,7 +84,12 @@ function semanticWarehouse(v){
 }
 function isNotificationNoise(n){
   if(String(n?.event||'').toUpperCase()!=='ANNOUNCEMENT_NEWS')return false;
-  if(n?.field==='dock')return semanticDock(n?.from)===semanticDock(n?.to);
+  if(n?.field==='dock'){
+    const from=semanticDock(n?.from),to=semanticDock(n?.to);
+    const rawTo=String(n?.to??'').trim().toUpperCase();
+    if(!to&&/^(?:R|RAMPA\s*)?0+$/.test(rawTo))return true;
+    return from===to;
+  }
   if(n?.field==='warehouse')return semanticWarehouse(n?.from)===semanticWarehouse(n?.to);
   return false;
 }
