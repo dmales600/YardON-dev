@@ -65,6 +65,14 @@ function appRole(){
   return r;
 }
 function yardDispatchAllowed(){return ['admin','gate','reception'].includes(appRole())}
+function aiControlEnabled(){
+  try{
+    if(window.YardOnAIAdminV1?.aiControlEnabled)return window.YardOnAIAdminV1.aiControlEnabled();
+    const c=JSON.parse(localStorage.getItem('yardivo_auto_replan_cfg_v1')||'{}')||{};
+    return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED';
+  }catch(_){return false}
+}
+function yardDispatchEnabled(){return yardDispatchAllowed()&&aiControlEnabled()}
 async function yardDispatchToken(){
   try{if(typeof window.YardivoSupplierService?.token==='function')return await window.YardivoSupplierService.token()}catch(_){}
   const direct=String(window.__yardivoSupplierAccessToken||'').trim();if(direct)return direct;
@@ -74,7 +82,7 @@ async function yardDispatchToken(){
   return s.access_token;
 }
 async function dispatchWaitingYard(warehouse='',force=false){
-  if(!yardDispatchAllowed()||yardDispatchRunning)return null;
+  if(!yardDispatchEnabled()||yardDispatchRunning)return null;
   const now=Date.now();if(!force&&now-yardDispatchLastRun<1800)return null;
   yardDispatchRunning=true;yardDispatchLastRun=now;
   try{
@@ -175,20 +183,21 @@ window.YardivoReceivingService={
   dispatchWaitingYard,
   original:()=>original
 };
-window.YardivoYardDispatch={owner:'modules/receiving/service.js',dispatch:dispatchWaitingYard,allowed:yardDispatchAllowed};
+window.YardivoYardDispatch={owner:'modules/receiving/service.js',dispatch:dispatchWaitingYard,allowed:yardDispatchEnabled,aiControlEnabled};
 window.yardivoReceivingQrEnabledForWarehouseV585=enabledFor;
 
 install();
 document.addEventListener('DOMContentLoaded',install,{once:true});
 document.addEventListener('click',e=>{
-  if(!yardDispatchAllowed())return;
+  if(!yardDispatchEnabled())return;
   if(e.target?.closest?.('button[data-approve],button[data-gate-approve],[data-yv-manual-gate-enter]'))setTimeout(()=>void dispatchWaitingYard('',true),700);
 },true);
 window.addEventListener('yardivo:login',()=>setTimeout(()=>void dispatchWaitingYard('',true),900));
+window.addEventListener('yardivo:ai-admin-config',()=>{if(aiControlEnabled())setTimeout(()=>void dispatchWaitingYard('',true),120)});
 window.addEventListener('focus',()=>void dispatchWaitingYard('',false));
 window.addEventListener('load',()=>{
   install();
   setTimeout(()=>void dispatchWaitingYard('',true),1600);
-  setInterval(()=>{if(document.visibilityState==='visible'&&yardDispatchAllowed())void dispatchWaitingYard('',false)},5000);
+  setInterval(()=>{if(document.visibilityState==='visible'&&yardDispatchEnabled())void dispatchWaitingYard('',false)},5000);
 },{once:true});
 })();
