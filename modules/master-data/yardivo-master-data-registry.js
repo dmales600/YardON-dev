@@ -150,6 +150,9 @@ function syncDom(d=load()){
  if(warn)warn.textContent='Prvo odaberi lokaciju.';
 
  document.querySelectorAll('select').forEach(sel=>{
+  /* Canonical Stable Master owns these selectors; do not infer their purpose
+     from an ID substring such as smNewWarehouseLocation. */
+  if(sel.closest('#yardivoStableMasterEditorV583'))return;
   if(!/warehouse|sklad/i.test(String(sel.id||'')+' '+String(sel.name||'')))return;
   const current=sel.value;
   const leading=[...sel.options].filter(o=>!/^W\d+$/i.test(o.value)).map(o=>`<option value="${esc(o.value)}">${esc(o.textContent)}</option>`).join('');
