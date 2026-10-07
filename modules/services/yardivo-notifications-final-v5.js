@@ -375,6 +375,10 @@ function ingest(n,{announce=true}={}){
   if(!n||!n.id)return false;
   const list=load();
   const id=String(n.id);
+  /* Silent/baseline ingest must never replay later as a "new" popup. */
+  if(!announce){
+    const s=seen();s.add(id);saveSeen(s);
+  }
   const next=[...list.filter(x=>String(x?.id)!==id),n];
   save(next);
   render();
@@ -463,6 +467,17 @@ window.addEventListener('yardivo:session-ready',e=>{
     checkNew();
   },120);
 }));
+/* Server-authoritative state writes emit this immediately in the active tab.
+   This is the fast path for every new notification: update bell + show one
+   transient right-side popup without waiting for the periodic fingerprint poll. */
+window.addEventListener('yardivo:memory-state-changed',e=>{
+  if(String(e?.detail?.key||'')!==KEY)return;
+  setTimeout(()=>{if(prelogin())return;render();checkNew()},0);
+});
+window.addEventListener('storage',e=>{
+  if(String(e?.key||'')!==KEY)return;
+  setTimeout(()=>{if(prelogin())return;render();checkNew()},0);
+});
 window.addEventListener('yardivo:logout',()=>{
   authSession=null;
   try{sessionStorage.removeItem(SEEN)}catch(_){}
