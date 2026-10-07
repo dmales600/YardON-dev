@@ -1,0 +1,107 @@
+name: YardOn Self Gate Validation QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/yardon-self-gate-validation-qa.yml"
+      - "self-gate/index.html"
+      - "modules/supplier/yardivo-v583-supplier-history-status-server-authority-20260923.js"
+      - "supabase/functions/yardivo-self-gate-public/index.ts"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yardon-self-gate-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  self-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static checks
+        run: |
+          grep -q "setWallNeutral" self-gate/index.html
+          grep -q "REGISTRACIJA_SE_NE_PODUDARA" supabase/functions/yardivo-self-gate-public/index.ts
+          grep -q "VOZAC_SE_NE_PODUDARA" supabase/functions/yardivo-self-gate-public/index.ts
+          grep -q "YardOn AI dodijelio rampu" modules/supplier/yardivo-v583-supplier-history-status-server-authority-20260923.js
+          node --check modules/supplier/yardivo-v583-supplier-history-status-server-authority-20260923.js
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Browser Self Gate QA
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-selfgate-http.log 2>&1 &
+          node <<'NODE'
+          const { chromium }=require('playwright');
+          const assert=(v,m)=>{if(!v)throw new Error(m)};
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext();
+            let submitCount=0,lastSubmit=null;
+            await context.route('https://ldzwgdwzolbvjxyznlry.supabase.co/functions/v1/yardivo-self-gate-public',async route=>{
+              const b=JSON.parse(route.request().postData()||'{}');
+              if(b.action==='wall_status')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:true,location:'LOC001',locationName:'DUGOPOLJE',warehouses:['W001']})});
+              if(b.action==='wall_submit'){
+                submitCount++;lastSubmit=b;
+                if(String(b.plate||'').toUpperCase()==='WRONG')return route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({ok:false,error:'REGISTRACIJA_SE_NE_PODUDARA',message:'Registracija vozila ne odgovara najavi.'})});
+                if(String(b.driver||'').toUpperCase()==='WRONG')return route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({ok:false,error:'VOZAC_SE_NE_PODUDARA',message:'Ime vozača ne odgovara najavi.'})});
+                return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,sessionToken:'qa-pass-token',warehouse:'W001',announcementId:'714630854'})});
+              }
+              if(b.action==='status')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,pass:{state:'WAITING_GATE',supplier_name:'dobavljač2',warehouse_name:'W201',vehicle_plate:'ST123456789',driver_name:'MARIO',last_instruction:'Čeka se odobrenje Porte.'},events:[]})});
+              return route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({ok:false,error:'QA_UNKNOWN'})});
+            });
+            const page=await context.newPage();
+            await page.goto('http://127.0.0.1:4173/self-gate/?wall=qa-wall',{waitUntil:'domcontentloaded'});
+            await page.waitForSelector('#ref');
+
+            let cls=await page.locator('body').getAttribute('class')||'';
+            assert(!cls.includes('status-ok')&&!cls.includes('status-error'),'Initial Self Gate must be blue/neutral');
+
+            await page.click('#submit');
+            await page.waitForTimeout(60);
+            cls=await page.locator('body').getAttribute('class')||'';
+            assert(!cls.includes('status-ok')&&!cls.includes('status-error'),'Empty Self Gate must remain blue/neutral');
+            assert(submitCount===0,'Empty form must not call wall_submit');
+
+            await page.fill('#ref','6W123456789');
+            await page.fill('#plate','WRONG');
+            await page.fill('#driver','MARIO');
+            await page.click('#submit');
+            await page.waitForTimeout(80);
+            cls=await page.locator('body').getAttribute('class')||'';
+            assert(cls.includes('status-error'),'Wrong plate must turn Self Gate red');
+
+            await page.fill('#plate','ST123456789');
+            cls=await page.locator('body').getAttribute('class')||'';
+            assert(!cls.includes('status-ok')&&!cls.includes('status-error'),'Editing after error must reset to blue/neutral');
+
+            await page.fill('#driver','WRONG');
+            await page.click('#submit');
+            await page.waitForTimeout(80);
+            cls=await page.locator('body').getAttribute('class')||'';
+            assert(cls.includes('status-error'),'Wrong driver must turn Self Gate red');
+
+            await page.fill('#driver','MARIO');
+            await page.click('#submit');
+            await page.waitForURL(/pass=qa-pass-token/);
+            await page.waitForTimeout(300);
+            cls=await page.locator('body').getAttribute('class')||'';
+            assert(cls.includes('status-ok'),'Correct Self Gate data must turn screen green');
+            assert(lastSubmit?.reference==='6W123456789','Reference not submitted');
+            assert(lastSubmit?.plate==='ST123456789','Plate not submitted');
+            assert(lastSubmit?.driver==='MARIO','Driver not submitted');
+            assert(/ČEKA ODOBRENJE PORTE/.test(await page.textContent('body')),'Pass status not rendered');
+
+            await browser.close();
+            console.log('YARDON_SELF_GATE_VALIDATION_QA_PASS');
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
