@@ -141,9 +141,9 @@ async function createInventoryAccount(btn){
   if(!location)return alert('Odaberi lokaciju.');if(!warehouses.length)return alert('Odaberi barem jedno skladište.');
   btn.disabled=true;const old=btn.textContent;btn.textContent='KREIRAM...';
   try{
-    const created=await invokeCreate({username,password,role:'inventory',location,warehouses});
+    const created=await invokeCreate({username,password,role:'inventory',responsible_person_id:rpId,location,warehouses});
     const fresh=readMaster();const target=fresh.responsible_people.find(x=>String(x.id)===rpId);if(!target)throw new Error('Odgovorna osoba više ne postoji u Master podacima.');
-    target.account_username=username;target.auth_user_id=String(created?.auth_user_id||'')||null;target.account_role='inventory';target.location_id=location;target.warehouses=[...warehouses];
+    target.account_username=username;target.auth_user_id=String(created?.auth_user_id||'')||null;target.account_role='inventory';
     try{await saveMaster(fresh,'inventory-account-link')}catch(saveErr){
       alert('Account je kreiran, ali veza s odgovornom osobom nije spremljena u Master Data. Nemoj kreirati novi account; prijavi ovu grešku. '+String(saveErr?.message||saveErr));return;
     }
@@ -174,5 +174,5 @@ if(typeof prevPopulate==='function'){
 // Export only the small canonical API used by other modules/tests.
 window.YardivoResponsiblePeopleV583={read:()=>people(false),active:()=>people(true),refresh:()=>{ensureSettingsSection();populateAnnouncementResponsible(true)}};
 setTimeout(()=>{ensureSettingsSection();populateAnnouncementResponsible(false)},0);
-window.YARDIVO_DEV_BUILD='20260914-dev-v5.8.3-responsible-person-inventory-account-flow';
+window.YARDIVO_DEV_BUILD='20261007-dev-v5.8.3-inventory-responsible-person-create-fix';
 })();
