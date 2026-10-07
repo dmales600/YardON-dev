@@ -29,9 +29,15 @@ function ensureStyle(){
 }
 
 function ensureQr(){try{window.YardivoQrRoleControlV586?.render?.()}catch(_){} }
+function masterEditing(){
+ const a=document.activeElement;
+ return !!a?.closest?.('#yardivoStableMasterEditorV583,#yardivoMasterFoundationV583');
+}
 function ensureMaster(){
  try{window.YardivoMasterPopupOnlyV583?.refresh?.()}catch(_){}
- try{window.YardivoStableMasterV583?.render?.(true)}catch(_){}
+ /* Never force-rebuild the Master form while Admin is typing. The stable
+    editor owns its own render guard and will refresh after explicit CRUD. */
+ try{window.YardivoStableMasterV583?.render?.()}catch(_){}
  try{window.YardivoMasterDataV583?.refresh?.()}catch(_){}
  try{window.YardivoResponsiblePersonInventoryAuthorityV583?.refresh?.()}catch(_){}
 }
@@ -148,7 +154,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{if(!['Enter',' '].includes(e.key))return;const b=sectionButton(e);if(b){e.preventDefault();show(b.dataset.yasSection)}},true);
 window.addEventListener('yardivo:view-opened',e=>{if(e?.detail?.view==='settings')schedule(20)});
 window.addEventListener('yardivo:login',()=>setTimeout(organize,160));
-window.addEventListener('yardivo:master-data-changed',()=>schedule(80));
+window.addEventListener('yardivo:master-data-changed',()=>{if(masterEditing())return;schedule(80)});
 /* Operational yardivo:data-synced events must not rebuild Admin Settings. */
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(organize,220),{once:true});else setTimeout(organize,120);
 
