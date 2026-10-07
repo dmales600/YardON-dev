@@ -6,7 +6,31 @@ const $=id=>document.getElementById(id);
 let snapshot=null,activeTab='plan',loading=false,lastWarehouse='';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const role=()=>{let r=String(window.currentSession?.role||window.currentSession?.app_role||'').toLowerCase().trim();if(r==='zalihe'||r.includes('zalih'))r='inventory';if(r==='prijam')r='reception';if(r==='voditelj'||r==='management')r='manager';return r};
-const canView=()=>['admin','manager','inventory','reception'].includes(role());
+function aiEnabled(){
+ try{
+  if(window.YardOnAIAdminV1?.aiControlEnabled)return window.YardOnAIAdminV1.aiControlEnabled();
+  const c=JSON.parse(localStorage.getItem('yardivo_auto_replan_cfg_v1')||'{}')||{};
+  return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED';
+ }catch(_){return false}
+}
+const canView=()=>aiEnabled()&&['admin','manager','inventory','reception'].includes(role());
+function applyVisibility(){
+ const visible=canView();
+ const nav=document.querySelector('.nav-btn[data-view="aiOperations"]');
+ const home=document.querySelector('[data-home-target="aiOperations"]');
+ for(const el of [nav,home])if(el){
+  el.hidden=!visible;
+  el.classList.toggle('role-hidden',!visible);
+  if(visible)el.style.removeProperty('display');else el.style.setProperty('display','none','important');
+ }
+ const view=$('aiOperations');
+ if(view&&!visible){
+  view.classList.remove('active','manager-force-active');
+  view.hidden=true;view.style.setProperty('display','none','important');
+  if(document.querySelector('.view.active')===null)try{window.openAppView?.('homeMenu')}catch(_){}
+ }else if(view&&visible){view.hidden=false;view.style.removeProperty('display')}
+ return visible;
+}
 const pad=n=>String(n).padStart(2,'0');
 function localDate(add=0){const d=new Date();d.setDate(d.getDate()+add);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
 function mins(v){const m=String(v||'').match(/^(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):NaN}
@@ -16,6 +40,7 @@ function dockNum(v){const n=Number(String(v||'').replace(/\D/g,''));return Numbe
 function warehouseName(id){return snapshot?.warehouses?.find(w=>String(w.id)===String(id))?.name||id||'—'}
 
 async function invoke(body){
+ if(!aiEnabled())throw new Error('AI upravljanje YardOnom je isključeno od strane Admina.');
  const c=await window.YardivoAuth?.client?.();
  if(!c)throw new Error('Online prijava nije spremna.');
  const {data,error}=await c.functions.invoke('yardivo-ai-operations',{body});
@@ -25,6 +50,7 @@ async function invoke(body){
 }
 
 function shell(){
+ if(!applyVisibility())return;
  const root=$('aiOperations');if(!root)return;
  if(!$('yaioDate'))$('yaioControls').innerHTML=`
    <label>DATUM<input id="yaioDate" type="date"></label>
@@ -68,7 +94,7 @@ function setTitle(){
 }
 
 async function refresh(force=false){
- if(!canView()||loading)return;
+ if(!applyVisibility()||loading)return;
  shell();
  const date=$('yaioDate')?.value||localDate(1);
  const warehouse=$('yaioWarehouse')?.value||lastWarehouse||'';
@@ -246,8 +272,10 @@ function renderDecisions(){
  '</div></section>';
 }
 
-document.addEventListener('DOMContentLoaded',()=>{shell();},{once:true});
-window.addEventListener('load',()=>{shell();if($('aiOperations')?.classList.contains('active'))void refresh(false)},{once:true});
+document.addEventListener('DOMContentLoaded',()=>{applyVisibility();shell();},{once:true});
+window.addEventListener('load',()=>{applyVisibility();shell();if($('aiOperations')?.classList.contains('active'))void refresh(false)},{once:true});
+window.addEventListener('yardivo:ai-admin-config',()=>{snapshot=null;applyVisibility();if(aiEnabled()&&$('aiOperations')?.classList.contains('active'))void refresh(true)});
+window.addEventListener('storage',e=>{if(e.key==='yardivo_auto_replan_cfg_v1'){snapshot=null;setTimeout(()=>{applyVisibility();if(aiEnabled()&&$('aiOperations')?.classList.contains('active'))void refresh(true)},10)}});
 setTimeout(shell,250);
-window.YardOnAIOperations={refresh:()=>refresh(true),render:render,recommendations};
+window.YardOnAIOperations={refresh:()=>refresh(true),render:render,recommendations,applyVisibility,enabled:aiEnabled};
 })();
