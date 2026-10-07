@@ -34,9 +34,18 @@ function role(){
   try{return norm(window.currentSession?.role||window.currentSession?.app_role||document.body.dataset.yardivoRole||'')}
   catch(_){return norm(document.body.dataset.yardivoRole||'')}
 }
+function aiControlEnabled(){
+  try{
+    if(window.YardOnAIAdminV1?.aiControlEnabled)return window.YardOnAIAdminV1.aiControlEnabled();
+    const c=JSON.parse(localStorage.getItem('yardivo_auto_replan_cfg_v1')||'{}')||{};
+    return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED';
+  }catch(_){return false}
+}
 function allowed(r,v){
+  const id=String(v||'');
+  if(id==='aiOperations'&&!aiControlEnabled())return false;
   if(r==='admin')return true;
-  return !!MATRIX[r]?.has(String(v||''));
+  return !!MATRIX[r]?.has(id);
 }
 function show(el,kind){
   const desired=kind==='nav'?'flex':'block';
@@ -117,6 +126,8 @@ function schedule(){
 window.addEventListener('yardivo:login',schedule);
 window.addEventListener('yardivo:data-synced',schedule);
 window.addEventListener('yardivo:master-data-ready',schedule);
+window.addEventListener('yardivo:ai-admin-config',schedule);
+window.addEventListener('storage',e=>{if(e.key==='yardivo_auto_replan_cfg_v1')schedule()});
 document.addEventListener('DOMContentLoaded',schedule,{once:true});
 window.addEventListener('load',schedule,{once:true});
 document.addEventListener('click',e=>{
