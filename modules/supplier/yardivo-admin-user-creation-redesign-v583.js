@@ -214,7 +214,12 @@ function openFixed(role){
     };
   }
   const supplierFields=document.getElementById('yufSupplierContactFields');if(supplierFields)supplierFields.style.display='none';
-  const scope=document.getElementById('yufScopeSection');if(scope)scope.style.display=(role==='admin'||role==='supplier')?'none':'';
+  const modal=document.getElementById('yardivoFixedUserModal');if(modal)modal.dataset.roleAdmin=role==='admin'?'1':'0';
+  const scope=document.getElementById('yufScopeSection');
+  if(scope){
+    scope.style.removeProperty('display');
+    if(role==='admin'||role==='supplier')scope.style.setProperty('display','none');
+  }
   const scopeStepTitle=document.getElementById('yufScopeStepTitle');if(scopeStepTitle)scopeStepTitle.textContent='2 · LOKACIJA I SKLADIŠTA';
   const locSel=document.getElementById('yufLocation');
   if(locSel){
