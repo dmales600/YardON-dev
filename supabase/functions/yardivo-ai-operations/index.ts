@@ -202,6 +202,23 @@ async function resolveChange(decisionId:string,approve:boolean,p:any){
   if(!rampList(whConfig).some((r:any)=>Number(r.number)===targetDock))throw new Error("Predložena rampa više nije aktivna.");
   if(log.some((z:any)=>z!==d&&String(z?.supplierDeliveryId)===id&&String(z?.status)==="APPROVED"&&String(z?.resolvedAt||"")>String(d?.at||"")))
    throw new Error("Za ovu dostavu već postoji novija odobrena promjena.");
+  const {data:passes,error:passesError}=await db.from("yardivo_delivery_passes")
+    .select("id,state,checked_in_at").eq("supplier_delivery_id",id).limit(5);
+  if(passesError)throw passesError;
+  if((passes||[]).some((row:any)=>!!row.checked_in_at&&!["COMPLETED","REJECTED","CANCELLED","CANCELED"].includes(String(row.state||"").toUpperCase())))
+    throw new Error("Kamion je već prijavljen na porti; SMART ne smije mijenjati termin aktivne dostave.");
+  const start=isoSlot(String(d.newSlot.date),String(d.newSlot.time));
+  const end=isoSlot(String(d.newSlot.date),String(d.newSlot.end||""));
+  if(!start||!end||Date.parse(end)<=Date.parse(start))throw new Error("SMART nije naveo valjano trajanje novog termina.");
+  const {data:occupied,error:occupiedError}=await db.from("yardivo_supplier_deliveries")
+    .select("id,status,planned_dock,planned_start,planned_end").eq("warehouse",wh).eq("planned_dock","R"+targetDock).neq("id",id);
+  if(occupiedError)throw occupiedError;
+  if((occupied||[]).some((row:any)=>{
+    if(["rejected","completed","cancelled","canceled"].includes(String(row.status||"").toLowerCase()))return false;
+    const a=Date.parse(String(row.planned_start||"")),b=Date.parse(String(row.planned_end||""));
+    return Number.isFinite(a)&&Number.isFinite(b)&&a<Date.parse(end)&&Date.parse(start)<b;
+  }))throw new Error("SMART termin se u međuvremenu zauzeo. Potreban je novi prijedlog.");
+
 
   const x={date:String(d?.newSlot?.date||""),planned_dock:d?.newSlot?.dock||null,planned_start:String(d?.newSlot?.time||""),planned_end:String(d?.newSlot?.end||"")};
   await updatePersistedPlan(id,x,p,"YARDON_SMART_APPROVED");
