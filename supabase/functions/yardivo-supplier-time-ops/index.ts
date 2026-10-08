@@ -83,6 +83,18 @@ async function mutateNotifications(authUserId:any,fn:(rows:any[])=>any[]){
 }
 async function notifySupplierRequest(x:any,authUserId:any){const id='SUPREQ-'+String(x.id),now=new Date().toISOString();const z={id,event:'SUPPLIER_REQUEST',type:'blue',title:'NOVA NAJAVA DOBAVLJAČA',body:`${x.supplier_name||x.supplier_username||'Dobavljač'} · ${x.delivery_date||''} ${String(x.requested_time||'').slice(0,5)} · rampa se dodjeljuje interno`,at:now,createdAt:now,roles:['admin','manager','inventory'],supplier:x.supplier_name||x.supplier_username||'',supplierDeliveryId:String(x.id),publicAnnouncementId:String(x.client_id||''),announcementId:'SUPDEL-'+String(x.id),warehouse:String(x.warehouse||''),location:String(x.location||''),readBy:{}};await mutateNotifications(authUserId,rows=>[...rows.filter(v=>String(v?.id)!==id),z])}
 async function notifyConfirmed(x:any,authUserId:any,kind='NEW'){const now=new Date().toISOString(),id=(kind==='RESCHEDULE'?'SUP-RESCHEDULED-':'SUP-CONFIRMED-')+String(x.id)+'-'+String(x.updated_at||'');const z={id,event:kind==='RESCHEDULE'?'TERM_CHANGE':'ANNOUNCEMENT_CREATED',type:'green',title:kind==='RESCHEDULE'?'PROMJENA TERMINA PRIHVAĆENA':'NOVA NAJAVA',body:`${x.supplier_name||x.supplier_username||'Dobavljač'} · ${x.delivery_date||''} ${String(x.requested_time||'').slice(0,5)} · ${String(x.warehouse||'')} · rampa TBD`,at:now,createdAt:now,roles:['admin','manager','reception','inventory'],supplier:x.supplier_name||x.supplier_username||'',supplierDeliveryId:String(x.id),publicAnnouncementId:String(x.client_id||''),announcementId:'SUPDEL-'+String(x.id),warehouse:String(x.warehouse||''),location:String(x.location||''),readBy:{}};await mutateNotifications(authUserId,rows=>[...rows.filter(v=>String(v?.id)!==id),z])}
+async function notifySupplierConfirmed(x:any,authUserId:any){
+  const id='SUPPLIER-APPROVED-'+String(x.id),now=new Date().toISOString();
+  const review=String(x.review_note||''),match=review.match(/SMART PREVIEW R(\d+)/i);
+  const provisional=match?' Predložena rampa R'+match[1]+' (može se promijeniti na dan dolaska).':' Rampa se određuje prema stanju pri dolasku.';
+  const n={id,event:'SUPPLIER_CONFIRMED',type:'green',title:'NAJAVA DOBAVLJAČA POTVRĐENA',
+    body:'Termin '+String(x.delivery_date||'')+' '+String(x.requested_time||'').slice(0,5)+' je potvrđen.'+provisional+' QR Dock bit će dostupan u statusu najave.',
+    at:now,createdAt:now,roles:['supplier'],
+    targetSupplierAuthUserId:String(x.supplier_auth_user_id||''),targetSupplierUsername:String(x.supplier_username||''),
+    supplierDeliveryId:String(x.id),publicAnnouncementId:String(x.client_id||''),
+    announcementId:'SUPDEL-'+String(x.id),warehouse:String(x.warehouse||''),location:String(x.location||''),readBy:{}};
+  await mutateNotifications(authUserId,rows=>[...rows.filter(v=>String(v?.id)!==id),n]);
+}
 async function notifyProposal(x:any,authUserId:any,reason:string){const id='TERM-PROPOSAL-'+String(x.id)+'-'+String(x.updated_at||''),now=new Date().toISOString();const z={id,event:'TERM_PROPOSAL',type:'blue',title:'ZAHTJEV ZA PROMJENU TERMINA',body:`${x.supplier_name||x.supplier_username||'Dobavljač'} · ${x.delivery_date||''} ${String(x.requested_time||'').slice(0,5)} → ${x.proposed_date||x.delivery_date||''} ${String(x.proposed_time||'').slice(0,5)}. ${reason||'YardOn predlaže rasterećeniji termin.'}`,at:now,createdAt:now,roles:['supplier'],targetSupplierAuthUserId:String(x.supplier_auth_user_id||''),targetSupplierUsername:String(x.supplier_username||''),supplierDeliveryId:String(x.id),warehouse:String(x.warehouse||''),location:String(x.location||''),readBy:{}};await mutateNotifications(authUserId,rows=>[...rows.filter(v=>String(v?.id)!==id),z])}
 function announcementPayload(x:any){return {id:'SUPDEL-'+String(x.id),supplierDeliveryId:String(x.id),supplierPortalId:String(x.client_id||''),supplierSource:'supplier_live',supplier:x.supplier_name||x.supplier_username||'Supplier',warehouse:String(x.warehouse||''),location:String(x.location||''),date:String(x.delivery_date||''),time:String(x.requested_time||'').slice(0,5),pallets:Number(x.pallets||0),sku:Number(x.sku_count||0),plannedPlate:x.vehicle_plate||'',trailerPlate:x.trailer_plate||'',plannedDriver:x.driver_name||'',driverContact:x.driver_contact||'',reference:x.delivery_note||'',supplierNote:x.note||'',dock:x.dock||'',plannedDock:x.dock||'',duration:Number(x.duration_minutes||60),status:'Najavljen',supplierApprovalStatus:x.status,updatedAt:x.updated_at}}
 async function mirrorAnnouncement(x:any,p:any){const st=String(x.status||'').toLowerCase();if(!['confirmed','arrival','dock','receiving','completed'].includes(st))return;const payload=announcementPayload(x),status={confirmed:'Najavljen',arrival:'U dvorištu',dock:'Na rampi',receiving:'Zaprimanje',completed:'Zaprimljeno'}[st]||'Najavljen';payload.status=status;const row={announcement_id:'SUPDEL-'+String(x.id),appointment_date:x.delivery_date,appointment_time:x.requested_time,supplier:x.supplier_name||x.supplier_username||null,warehouse:x.warehouse,status,created_by:'supplier:'+String(x.supplier_username||''),updated_by:p?.username||'yardivo-supplier-time-ops',payload,source_key:'yardivo_supplier_deliveries',deleted:false,updated_at:new Date().toISOString()};const {error}=await db.from('yardivo_announcements').upsert(row,{onConflict:'announcement_id'});if(error)throw error}
@@ -115,8 +127,20 @@ Deno.serve(async req=>{
         const {w,loc}=await warehouseAllowed(p,x.warehouse,x.location),slot=await validateCapacity(w,d,t,Number(x.pallets),String(x.id));
         Object.assign(patch,{location:loc,delivery_date:d,requested_time:slot.time,dock:null,dock_number:null,duration_minutes:slot.duration_minutes,slot_start:slot.slot_start,slot_end:slot.slot_end});
       }
+      if(requestedStatus==='confirmed'&&'smart_preview_ramp' in b){
+        if(r!=='inventory'&&r!=='admin')throw new Error('Samo Zalihe ili Admin mogu potvrditi SMART pregled.');
+        const {w}=await warehouseAllowed(p,x.warehouse,x.location);
+        const n=Number(b.smart_preview_ramp);
+        if(!Number.isInteger(n)||!(w.ramp_settings||[]).some((z:any)=>Number(z.number)===n&&z.active!==false))
+          throw new Error('SMART prijedlog rampe nije više aktivan.');
+        const msg='SMART PREVIEW R'+n+' · samo predviđena rampa, nije konačna dodjela.';
+        patch.review_note=[String(x.review_note||'').replace(/SMART PREVIEW R\d+[^\n]*\n?/ig,'').trim(),msg].filter(Boolean).join('\n');
+      }
       if('status' in b){if(!['pending','revision_requested','proposal_sent','confirmed','reschedule_requested','cancel_requested','arrival','dock','receiving','completed','rejected','cancelled'].includes(requestedStatus))throw new Error('Nepoznat status.');patch.status=requestedStatus;if(requestedStatus==='proposal_sent'){patch.proposed_date=('proposed_date' in b)?date(b.proposed_date):d;patch.proposed_time=('proposed_time' in b)?time(b.proposed_time):t;patch.proposed_dock=null}if(requestedStatus==='rejected'){patch.slot_start=null;patch.slot_end=null;patch.dock_number=null;patch.dock=null;patch.duration_minutes=null}}
-      const {data,error}=await db.from('yardivo_supplier_deliveries').update(patch).eq('id',x.id).select('*').single();if(error)throw error;await mirrorAnnouncement(data,p);if(requestedStatus==='confirmed'&&previous!=='confirmed')await notifyConfirmed(data,p.auth_user_id,'NEW');return J({ok:true,data});
+      const {data,error}=await db.from('yardivo_supplier_deliveries').update(patch).eq('id',x.id).select('*').single();if(error)throw error;await mirrorAnnouncement(data,p);if(requestedStatus==='confirmed'&&previous!=='confirmed'){
+        await notifyConfirmed(data,p.auth_user_id,'NEW');
+        await notifySupplierConfirmed(data,p.auth_user_id);
+      }return J({ok:true,data});
     }
 
     if(a==='internal_resolve_supplier_request'){
