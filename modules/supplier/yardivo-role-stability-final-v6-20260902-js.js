@@ -144,25 +144,45 @@ function activate(view){
 
  setChromeForView(view);
 
- /* Exactly one application view may be active at any time. */
+ /* Exactly one application view may be visible at any time.
+    Reception/Gate previously depended on legacy CSS/handlers and could leave
+    Home visible above the selected section. Make the canonical owner explicit. */
+ const strictSingleView=['reception','gate'].includes(role());
  document.querySelectorAll('.view').forEach(v=>{
    const on=v===target;
    v.classList.toggle('active',on);
-   /* Never allow Home + selected section to stack for Voditelj. */
-   if(role()==='manager'){
-     v.style.setProperty('display',on?'block':'none','important');
-     if(on)v.removeAttribute('hidden');
-   }else if(!on){
-     v.style.removeProperty('display');
+   v.setAttribute('aria-hidden',on?'false':'true');
+   if(on){
+     v.removeAttribute('hidden');
+     if(strictSingleView||role()==='manager')v.style.setProperty('display','block','important');
+     else v.style.removeProperty('display');
+   }else{
+     if(strictSingleView||role()==='manager')v.style.setProperty('display','none','important');
+     else v.style.removeProperty('display');
    }
  });
  document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
 
  if(view==='homeMenu'){
    target.style.setProperty('display','block','important');
- }else{
+ }else if(!strictSingleView){
    target.style.removeProperty('display');
  }
+
+ /* One post-paint idempotent repair absorbs late legacy repaint attempts
+    without starting a render loop. */
+ if(strictSingleView)requestAnimationFrame(()=>{
+   document.querySelectorAll('.view').forEach(v=>{
+     const on=v===target;
+     if(v.classList.contains('active')!==on)v.classList.toggle('active',on);
+     const wanted=on?'block':'none';
+     if(v.style.getPropertyValue('display')!==wanted||v.style.getPropertyPriority('display')!=='important'){
+       v.style.setProperty('display',wanted,'important');
+     }
+     v.setAttribute('aria-hidden',on?'false':'true');
+   });
+   document.body.classList.toggle('home-menu-mode',view==='homeMenu');
+ });
 
  apply();
  renderView(view);
