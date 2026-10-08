@@ -24,6 +24,64 @@ function setVolume(v){v=Math.max(0,Math.min(100,Number(v)||0));try{localStorage.
 function clean(v){return String(v||'').replace(/\s+/g,' ').trim()}
 function speechText(n){const brand=v=>clean(v).replace(/YARDIVO/g,'YardOn').replace(/Yardivo/g,'YardOn');const title=brand(n?.title||'Nova YardOn notifikacija');const body=brand(n?.body||'');return (title+(body?'. '+body:'')).slice(0,850)}
 function sig(n){return clean((n?.title||'')+'|'+(n?.body||'')).toLowerCase().slice(0,900)}
+
+const ordinalDays=['','prvog','drugog','trećeg','četvrtog','petog','šestog','sedmog','osmog','devetog','desetog','jedanaestog','dvanaestog','trinaestog','četrnaestog','petnaestog','šesnaestog','sedamnaestog','osamnaestog','devetnaestog','dvadesetog','dvadeset prvog','dvadeset drugog','dvadeset trećeg','dvadeset četvrtog','dvadeset petog','dvadeset šestog','dvadeset sedmog','dvadeset osmog','dvadeset devetog','tridesetog','trideset prvog'];
+const ordinalMonths=['','prvog','drugog','trećeg','četvrtog','petog','šestog','sedmog','osmog','devetog','desetog','jedanaestog','dvanaestog'];
+function isNewSupplierAnnouncement(n){
+ const e=String(n?.event||'').toUpperCase();
+ return e==='SUPPLIER_REQUEST'||(e==='ANNOUNCEMENT_CREATED'&&/NOVA NAJAVA/i.test(String(n?.title||'')));
+}
+function supplierSpeechText(n){
+ // Source notification stays intact: only the spoken text is abbreviated.
+ const body=clean(n?.body||'');
+ const supplier=clean(n?.supplier||body.split(/\s*[·|]\s*/)[0]||'dobavljač').slice(0,120);
+ const rawDate=String(n?.deliveryDate||n?.delivery_date||n?.appointment_date||n?.date||'');
+ const date=(rawDate.match(/\b\d{4}-(\d{2})-(\d{2})\b/)||body.match(/\b\d{4}-(\d{2})-(\d{2})\b/));
+ const rawTime=String(n?.requestedTime||n?.requested_time||n?.appointment_time||n?.time||'');
+ const time=(rawTime.match(/\b([01]\d|2[0-3]):([0-5]\d)\b/)||body.match(/\b([01]\d|2[0-3]):([0-5]\d)\b/));
+ let spoken='Nova najava dobavljača '+supplier;
+ if(date){
+  const day=Number(date[2]),month=Number(date[1]);
+  if(ordinalDays[day]&&ordinalMonths[month])spoken+=', '+ordinalDays[day]+' '+ordinalMonths[month];
+ }
+ if(time){
+  const hour=Number(time[1]),minutes=Number(time[2]);
+  spoken+=' u '+hour+' '+(hour===1?'sat':hour>=2&&hour<=4?'sata':'sati');
+  if(minutes){
+   const form=minutes===1?'minutu':minutes>=2&&minutes<=4?'minute':'minuta';
+   spoken+=' i '+minutes+' '+form;
+  }
+ }
+ return spoken+'.';
+}
+function emitVoiceQueued(n,priority,instant){
+ try{window.dispatchEvent(new CustomEvent('yardivo:voice-enqueued',{detail:{
+  id:String(n?.id||''),event:String(n?.event||''),role:role(),priority:!!priority,instant:!!instant
+ }}))}catch(_){}
+}
+function startInstantSupplierSpeech(text,n){
+ if(typeof window.SpeechSynthesisUtterance!=='function'||!window.speechSynthesis?.speak)return false;
+ try{
+  // Local browser TTS starts without waiting for authentication, Edge requests or Gemini audio generation.
+  clearQueue();stopCurrent();
+  const engine=window.speechSynthesis;
+  engine.cancel();
+  const speech=new window.SpeechSynthesisUtterance(text);
+  speech.lang='hr-HR';speech.rate=1;speech.volume=volume()/100;
+  const voices=engine.getVoices?.()||[];
+  const croatian=voices.find(v=>/^hr(?:-|$)/i.test(v.lang||''));
+  if(croatian)speech.voice=croatian;
+  speech.onerror=e=>{
+   if(['canceled','interrupted'].includes(String(e?.error||'')))return;
+   // Browser audio may be blocked; retain the remote voice as a best-effort fallback.
+   queue.unshift({n,text,ready:fetchVoiceUrl(text)});void processQueue();
+  };
+  engine.speak(speech);
+  emitVoiceQueued(n,true,true);
+  return true;
+ }catch(e){console.warn('YardOn immediate browser voice unavailable',e);return false}
+}
+
 function seen(){try{return new Set(JSON.parse(sessionStorage.getItem(SEEN)||'[]'))}catch(_){return new Set()}}
 function markSeen(id){const s=seen();s.add(String(id));try{sessionStorage.setItem(SEEN,JSON.stringify([...s].slice(-500)))}catch(_){}}
 function recentlyQueued(n){
@@ -108,23 +166,24 @@ async function processQueue(){
 
 function enqueueNotification(n,{force=false,priority=false}={}){
   if(!n||mode()!=='ai'||!allowed())return;
-  const text=speechText(n);if(!text)return;
+  const supplier=isNewSupplierAnnouncement(n);
+  const text=supplier?supplierSpeechText(n):speechText(n);
+  if(!text)return;
   const id=String(n?.id||'');
   if(!force){
     if(id&&seen().has(id))return;
     if(recentlyQueued(n))return;
     if(id)markSeen(id);
   }
+  // Supplier announcement is time-critical: native Croatian speech starts in
+  // the same event turn as the visible toast, not after an AI audio download.
+  if(supplier&&startInstantSupplierSpeech(text,n))return;
   const item={n,text,ready:fetchVoiceUrl(text)};
-  if(priority){
+  if(priority||supplier){
     clearQueue();stopCurrent();
     queue.unshift(item);
   }else queue.push(item);
-  try{
-    window.dispatchEvent(new CustomEvent('yardivo:voice-enqueued',{detail:{
-      id:String(n?.id||''),event:String(n?.event||''),role:role(),priority:!!priority
-    }}));
-  }catch(_){}
+  emitVoiceQueued(n,priority||supplier,false);
   processQueue();
 }
 function forceRead(n){enqueueNotification(n,{force:true,priority:true})}
@@ -174,7 +233,7 @@ window.addEventListener('yardivo:visible-toast',e=>{
   if(!n)return;
   const ev=String(n?.event||'').toUpperCase();
   if(role()==='inventory'&&ev==='SUPPLIER_REQUEST'){
-    forceRead(n);
+    enqueueNotification(n,{priority:true});
     return;
   }
   enqueueNotification(n);
@@ -219,6 +278,7 @@ window.YardivoAIVoiceNotifications={
   speak:enqueueNotification,
   readNow:forceRead,
   pending:()=>queue.length,
+  supplierSpeechText,
   prewarmTest,
   test:async(text=TEST)=>{
     clearQueue();stopCurrent();
