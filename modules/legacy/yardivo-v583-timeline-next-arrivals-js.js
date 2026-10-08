@@ -4,7 +4,7 @@ if(window.__YV_TIMELINE_NEXT_ARRIVALS__)return;window.__YV_TIMELINE_NEXT_ARRIVAL
 let naTimer=0,tlTimer=0;
 const q=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const arr=()=>Array.isArray(window.announcements)?window.announcements:(Array.isArray(window.deliveries)?window.deliveries:[]);
+const arr=()=>{try{if(typeof announcements!=='undefined'&&Array.isArray(announcements))return announcements}catch(_){}return Array.isArray(window.announcements)?window.announcements:(Array.isArray(window.deliveries)?window.deliveries:[])};
 function masterSupplierAllowed(a){
   const name=String(supplier(a)||'').trim().toLocaleLowerCase('hr-HR');if(!name)return false;
   try{
@@ -19,11 +19,22 @@ function supplier(a){return a?.supplierName||a?.supplier||a?.supplier_name||a?.c
 function pallets(a){const v=a?.pallets??a?.palletCount??a?.plannedPallets??a?.epal??a?.quantityPallets;return Number.isFinite(Number(v))?Number(v):null}
 function plate(a){return a?.plannedPlate||a?.plate||a?.vehiclePlate||a?.truckPlate||''}
 function warehouse(a){return a?.warehouseName||a?.warehouse||a?.warehouseCode||''}
-function dock(a){const v=a?.dock??a?.dockNo??a?.ramp??a?.rampNo??a?.assignedDock;return v?String(v):''}
+function dock(a){const v=a?.dock??a?.dockNo??a?.ramp??a?.rampNo??a?.assignedDock??a?.plannedDock??a?.aiPlannedDock??a?.planned_dock;return v?String(v):''}
 function status(a){return String(a?.status||a?.deliveryStatus||'').toLowerCase()}
 function closed(a){const s=status(a);return /completed|rejected|cancel|otkazan|zaprim|odbij|završ/.test(s)}
 function scopeAllowed(a){try{const s=window.currentSession||window.session||{};if(s?.all_warehouses||s?.allWarehouses)return true;const scope=Array.isArray(s?.warehouses)?s.warehouses:[];if(!scope.length)return true;const wid=String(a?.warehouseId||a?.warehouse_id||a?.warehouse||'');return !wid||scope.includes(wid)}catch(_){return true}}
-function todayItems(){const t=todayISO();return arr().filter(a=>masterSupplierAllowed(a)&&scopeAllowed(a)&&!closed(a)&&((a?.date||a?.deliveryDate||a?.plannedDate||a?.scheduledDate)===t)&&dt(a)).sort((x,y)=>dt(x)-dt(y))}
+function deliveryKey(a){return String(a?.supplierDeliveryId||a?.supplier_delivery_id||a?.supplierPortalId||a?.id||a?.announcement_id||[supplier(a),a?.date||a?.deliveryDate||'',a?.time||a?.deliveryTime||'',warehouse(a)].join('|'))}
+function updatedMs(a){return Date.parse(String(a?.updatedAt||a?.updated_at||a?.createdAt||a?.created_at||''))||0}
+function todayItems(){
+ const t=todayISO(),map=new Map();
+ for(const a of arr()){
+  const date=a?.date||a?.deliveryDate||a?.plannedDate||a?.scheduledDate;
+  if(!masterSupplierAllowed(a)||!scopeAllowed(a)||closed(a)||date!==t||!dt(a))continue;
+  const k=deliveryKey(a),old=map.get(k);
+  if(!old||updatedMs(a)>=updatedMs(old))map.set(k,a);
+ }
+ return [...map.values()].sort((x,y)=>dt(x)-dt(y));
+}
 function fmtTime(d){return d?`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`:'—'}
 function relative(d){const min=Math.round((d-Date.now())/60000);if(min<-15)return `kasni ${Math.abs(min)} min`;if(min<0)return 'vrijeme dolaska';if(min<60)return `za ${min} min`;const h=Math.floor(min/60),m=min%60;return `za ${h} h${m?` ${m} min`:''}`}
 function ensure(){
