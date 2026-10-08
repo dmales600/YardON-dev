@@ -12,6 +12,7 @@ on:
       - "modules/receiving/**"
       - "modules/services/yardivo-notifications-final-v5.js"
       - "modules/services/yardivo-ai-voice-notifications-v583.js"
+      - "modules/services/yardivo-gate-and-users-final-v3-20260901-js.js"
       - "styles/**"
       - "index.html"
 
@@ -128,6 +129,51 @@ jobs:
                   const toastCount=await page.locator('.y5-toast').count();
                   if(toastCount<1)errors.push('Inventory supplier request did not create side toast');
                 }
+                if(role==='reception'||role==='gate'){
+                  const target=role==='reception'?'receiving':'checkin';
+                  const navResult=await page.evaluate(async ({role,target})=>{
+                    const visible=el=>{
+                      if(!el)return false;
+                      const s=getComputedStyle(el),r=el.getBoundingClientRect();
+                      return s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0'&&r.width>0&&r.height>0;
+                    };
+                    window.YardivoRoleStableFinal?.open?.('homeMenu');
+                    await new Promise(r=>setTimeout(r,80));
+                    let homeMutations=0;
+                    const home=document.getElementById('homeMenu');
+                    const mo=new MutationObserver(ms=>{
+                      if(ms.some(m=>m.type==='attributes'&&(m.attributeName==='class'||m.attributeName==='style'||m.attributeName==='hidden')))homeMutations++;
+                    });
+                    if(role==='reception'&&home)mo.observe(home,{attributes:true,attributeFilter:['class','style','hidden']});
+                    window.dispatchEvent(new CustomEvent('yardivo:data-synced',{detail:{source:'qa-single-view'}}));
+                    await new Promise(r=>setTimeout(r,120));
+                    const homeStableBeforeOpen=role!=='reception'||(home?.classList.contains('active')&&visible(home));
+                    mo.disconnect();
+
+                    const opener=role==='gate'?window.YardivoGateCanonical?.open:window.YardivoRoleStableFinal?.open;
+                    opener?.(target);
+                    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+                    const visibleViews=[...document.querySelectorAll('.view')].filter(visible).map(v=>v.id);
+                    const activeViews=[...document.querySelectorAll('.view.active')].map(v=>v.id);
+                    return {
+                      homeStableBeforeOpen,
+                      homeMutations,
+                      homeActive:!!home?.classList.contains('active'),
+                      homeVisible:visible(home),
+                      targetActive:document.getElementById(target)?.classList.contains('active')||false,
+                      targetVisible:visible(document.getElementById(target)),
+                      activeViews,
+                      visibleViews
+                    };
+                  },{role,target});
+                  if(!navResult.homeStableBeforeOpen)errors.push(role+' home changed visibility during data sync');
+                  if(navResult.homeMutations>0)errors.push(role+' home attribute churn during data sync='+navResult.homeMutations);
+                  if(navResult.homeActive||navResult.homeVisible)errors.push(role+' home remained visible after opening '+target);
+                  if(!navResult.targetActive||!navResult.targetVisible)errors.push(role+' target '+target+' not visible/active');
+                  if(navResult.activeViews.length!==1||navResult.activeViews[0]!==target)errors.push(role+' active views='+JSON.stringify(navResult.activeViews));
+                  if(navResult.visibleViews.filter(v=>v==='homeMenu'||v===target).length!==1)errors.push(role+' Home/target stacked='+JSON.stringify(navResult.visibleViews));
+                }
+
                 const voiceReads=await page.evaluate(()=>window.__qaVoiceReads||[]);
                 const voiceEnqueued=await page.evaluate(()=>window.__qaVoiceEnqueued||[]);
                 const forecastReads=voiceReads.filter(n=>/Danas imate/i.test(String(n?.body||'')));
