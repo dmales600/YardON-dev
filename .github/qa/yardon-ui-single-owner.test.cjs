@@ -51,4 +51,12 @@ check('Overview supplier options use only Master data',()=>{
  assert(home.includes("window.YardivoAppStateV583?.master?.()"));
  assert(!home.includes("(announcements||[]).forEach"));
 });
+check('EPAL and Order Search never run Home repaint watchdogs',()=>{
+ const epal=read('modules/services/yardivo-epal-module.js');
+ const order=read('modules/services/yardivo-order-search-module.js');
+ assert(!epal.includes('setInterval(()=>'));
+ assert(!order.includes('setInterval(homeCard,3000)'));
+ assert(epal.includes('function refreshVisibleEpal()'));
+ assert(order.includes("window.addEventListener('yardivo:login'"));
+});
 console.log('YARDON_SINGLE_OWNER_QA_PASS '+passed+'/'+passed);
