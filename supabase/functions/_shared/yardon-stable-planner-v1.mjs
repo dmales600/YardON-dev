@@ -152,6 +152,9 @@ export function planStableDay(input){
     proposed:{dock:candidate.ramp,start:clock(candidate.start),end:clock(candidate.end)},
     reason:'ETA kasni '+(job.eta-job.plannedStart)+' min; sigurni slobodni termin '+clock(candidate.start)+' na R'+candidate.ramp,
     delayMinutes:delta});
+  // Prevent simultaneous proposals from offering the same free slot.
+  // Original reservation is still occupied until approval.
+  blocked.push({id:'proposed:'+job.id,ramp:candidate.ramp,start:candidate.start,end:candidate.end});
   const fixed=assigned.get(job.id);fixed.status='CHANGE_PROPOSED';fixed.reason='Change awaits Inventory approval';
  }
  for(const job of jobs){
