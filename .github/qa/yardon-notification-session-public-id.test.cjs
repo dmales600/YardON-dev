@@ -39,6 +39,9 @@ assert(action.includes('canWarehouse(p,String(delivery.warehouse'), 'enforce war
 assert(action.includes(".select('id,client_id,warehouse').eq('id',id)"),'look up exact server UUID');
 assert(!action.includes(".not('status'"),'historical lookup must include cancelled deliveries');
 assert(edge.includes("publicAnnouncementId:String(x.client_id||'')"),'new notices must preserve the server client ID');
+const timeOps=fs.readFileSync('supabase/functions/yardivo-supplier-time-ops/index.ts','utf8');
+assert((timeOps.match(/publicAnnouncementId:String\(x.client_id\|\|''\)/g)||[]).length>=2,
+ 'time-only supplier upserts and confirmations must propagate client_id too');
 
 assert(src.includes("item.publicAnnouncementId=String(hit.client_id);"),'resolved client_id must be persisted for next opening');
 // Logged-out history is recorded but never replayed as live speech.
