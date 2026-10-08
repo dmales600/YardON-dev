@@ -150,12 +150,11 @@ function render(){
   const select=document.getElementById('overviewSupplierSelect');
   if(!select)return;
 
-  const allA=arr().filter(visibleByWarehouse);
-  const allI=inc().filter(visibleByWarehouse);
-  const names=[...new Set([
-    ...allA.map(a=>a?.supplier),
-    ...allI.map(i=>i?.supplier)
-  ].filter(Boolean).map(String))].sort((a,b)=>a.localeCompare(b,'hr'));
+  const names=supplierNames();
+  const masterSet=new Set(names.map(n=>String(n).trim().toLocaleLowerCase('hr-HR')));
+  const allowedSupplier=x=>masterSet.has(String(x?.supplier||'').trim().toLocaleLowerCase('hr-HR'));
+  const allA=arr().filter(visibleByWarehouse).filter(allowedSupplier);
+  const allI=inc().filter(visibleByWarehouse).filter(allowedSupplier);
   const prev=select.value||'';
   select.innerHTML='<option value="">Svi dobavljači</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
   if(names.includes(prev))select.value=prev;
@@ -291,12 +290,10 @@ document.addEventListener('click',e=>{
 },true);
 window.addEventListener('load',()=>setTimeout(render,700));
 function currentStats(){
-  const A=arr().filter(visibleByWarehouse);
-  const I=inc().filter(visibleByWarehouse);
-  const N=[...new Set([
-    ...A.map(a=>a?.supplier),
-    ...I.map(i=>i?.supplier)
-  ].filter(Boolean).map(String))].sort((a,b)=>a.localeCompare(b,'hr'));
+  const N=supplierNames();
+  const masterSet=new Set(N.map(n=>String(n).trim().toLocaleLowerCase('hr-HR')));
+  const A=arr().filter(visibleByWarehouse).filter(a=>masterSet.has(String(a?.supplier||'').trim().toLocaleLowerCase('hr-HR')));
+  const I=inc().filter(visibleByWarehouse).filter(i=>masterSet.has(String(i?.supplier||'').trim().toLocaleLowerCase('hr-HR')));
   return N.map(n=>supplierStat(n,A,I));
 }
 window.YardivoOverviewMaster={
