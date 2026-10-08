@@ -1090,6 +1090,36 @@ function renderDailyMap(){
   renderDailyRampCapacity();
   // Vertical layout is intentionally not transformed by old horizontal zoom.
 }
+function refreshDailyMapLiveStatus(){
+  const view=document.getElementById('dailyMap');
+  if(!view?.classList.contains('active')&&!view?.classList.contains('manager-force-active'))return;
+  const date=dailyMapDateValue(),wh=dailyMapWarehouseCode();
+  const all=canonicalOperationalAnnouncements(announcements).filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date&&yardonMasterSupplierAllowed(a.supplier));
+  const byId=new Map(all.map(a=>[String(a.id),a]));
+  const statusClasses=['status-u-dolasku','status-promijenjena','status-nije-dosao','status-no-show','status-kasni','status-u-dvorištu','status-na-rampi','status-zaprimljeno','status-odbijen','yv-delay-level-1','yv-delay-level-2','yv-delay-level-3','yv-delay-level-4'];
+  document.querySelectorAll('#dailyMapBoard .dmv-booked[data-announcement-id]').forEach(el=>{
+    const a=byId.get(String(el.dataset.announcementId||''));if(!a)return;
+    const nextClasses=operationalPlanClass(a).split(/\s+/).filter(Boolean);
+    statusClasses.forEach(x=>{if(el.classList.contains(x)&&!nextClasses.includes(x))el.classList.remove(x)});
+    nextClasses.forEach(x=>{if(!el.classList.contains(x))el.classList.add(x)});
+    yardivoStableText(el.querySelector('.booking-status'),operationalPlanStatus(a).toUpperCase());
+    const delay=yardivoMapDelayLabel(a);let badge=el.querySelector('.booking-delay-detail');
+    if(delay){
+      if(!badge){badge=document.createElement('span');badge.className='booking-delay-detail';el.appendChild(badge)}
+      yardivoStableText(badge,delay);
+    }else if(badge)badge.remove();
+  });
+  const totalPal=all.reduce((s,a)=>s+Number(a.pallets||0),0);
+  const totalTrucks=all.reduce((s,a)=>s+truckCountForPallets(a.pallets),0);
+  const late=all.filter(a=>operationalPlanStatus(a)==='Kašnjenje').length;
+  const noShow=all.filter(a=>['NO-SHOW','NIJE DOŠAO'].includes(operationalPlanStatus(a))).length;
+  const received=all.filter(a=>operationalPlanStatus(a)==='Zaprimljeno').length;
+  const summaryHtml=[
+    ['NAJAVE',all.length],['PALETE',totalPal],['KAMIONI',totalTrucks],['KAŠNJENJA',late],['NO-SHOW',noShow],['ZAPRIMLJENO',received]
+  ].map(x=>`<div class="control-card"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');
+  yardivoStableHtml(document.getElementById('dailyMapSummary'),summaryHtml,'yvDailySummarySig');
+}
+window.YardivoDailyMapLiveStatus={refresh:refreshDailyMapLiveStatus};
 document.getElementById('dailyMapBoard')?.addEventListener('click',e=>{
   const block=e.target.closest('.dmv-booked[data-announcement-id],.booked[data-announcement-id]');
   if(!block)return;
