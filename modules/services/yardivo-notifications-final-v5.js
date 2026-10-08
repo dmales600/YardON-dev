@@ -281,8 +281,10 @@ function markAll(){
 function syncBadges(){
   const n=prelogin()?0:unreadCount();
   [document.getElementById('notifCount'),document.getElementById('opsAlertBadge')].filter(Boolean).forEach(b=>{
-    b.textContent=String(n);
-    b.style.setProperty('display',n>0?'inline-flex':'none','important');
+    const value=String(n),display=n>0?'inline-flex':'none';
+    if(b.textContent!==value)b.textContent=value;
+    if(b.style.getPropertyValue('display')!==display||b.style.getPropertyPriority('display')!=='important')
+      b.style.setProperty('display',display,'important');
   });
   return n;
 }
