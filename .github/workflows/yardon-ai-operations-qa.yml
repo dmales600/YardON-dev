@@ -228,7 +228,17 @@ jobs:
                 window.YardivoSmartAssistantV583?.applyAvailability?.();
               });
               await page.waitForTimeout(120);
-              if(!(await page.locator('.nav-btn[data-view="smartReplanning"]').isVisible()))throw new Error('SMART menu must remain visible while engine is paused');
+              if(!(await page.locator('.nav-btn[data-view="smartReplanning"]').isVisible())){
+                const debug=await page.evaluate(()=>{
+                  const el=document.querySelector('.nav-btn[data-view="smartReplanning"]');
+                  return {exists:!!el,role:window.currentSession?.role,body:document.body.className,
+                    html:document.documentElement.className,classes:el?.className,
+                    style:el?.getAttribute('style'),computed:el?getComputedStyle(el).display:'missing',
+                    parent:el?.parentElement?.getAttribute('style'),
+                    matrix:window.YardivoRoleVisibility?.allowed?.('smartReplanning')};
+                });
+                throw new Error('SMART menu must remain visible while engine is paused: '+JSON.stringify(debug));
+              }
               if(!(await page.locator('[data-home-target="smartReplanning"]').isVisible()))throw new Error('SMART history must remain accessible while paused');
               if(await page.locator('#yardivoAssistantZone').isVisible())throw new Error('Assistant hover zone must hide when Admin Assistant is OFF');
               if(await page.locator('#yardivoSmartAssistant').isVisible())throw new Error('Assistant panel must hide when Admin Assistant is OFF');
