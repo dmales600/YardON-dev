@@ -68,6 +68,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Browser QA
         run: |
+          printf '<!doctype html><html><body>QA EMPTY</body></html>' > qa-ai-empty.html
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-ai-http.log 2>&1 &
           node <<'NODE'
           const { chromium } = require('playwright');
@@ -224,7 +225,7 @@ jobs:
             }
             {
               const page=await browser.newPage({viewport:{width:1200,height:800}});
-              await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded'});
+              await page.goto('http://127.0.0.1:4173/qa-ai-empty.html',{waitUntil:'domcontentloaded'});
               const now=new Date(),today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
               await page.setContent(`<!doctype html><html><body>
                 <div id="yardivoTodayTimelineZone"></div>
