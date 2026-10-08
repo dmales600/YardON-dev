@@ -42,7 +42,7 @@ function saveCfg(c){
 }
 function logs(){try{const a=JSON.parse(localStorage.getItem(LOG_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
 function saveLogs(a){localStorage.setItem(LOG_KEY,JSON.stringify(a.slice(-1000)))}
-function A(){try{return Array.isArray(announcements)?announcements:[]}catch(e){return[]}}
+function A(){try{return window.YardivoPlanningMasterAnnouncements?.()||[]}catch(e){return[]}}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function min(t){try{return toMin(t)}catch(e){const x=String(t||'').split(':').map(Number);return (x[0]||0)*60+(x[1]||0)}}
 function hh(m){try{return hhmm(m)}catch(e){return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}}
