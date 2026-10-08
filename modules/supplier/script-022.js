@@ -931,11 +931,11 @@ function renderDailyRampCapacity(){
   const ramps=Math.max(0,Number(sourceW.ramps)||0);
   const receptionStart=sourceW.receptionStart||sourceW.reception_from||'';
   const receptionEnd=sourceW.receptionEnd||sourceW.reception_to||'';
-  if(!ramps){host.innerHTML='<div class="ramp-supplier-empty">Nema konfiguriranih rampi za odabrano skladište.</div>';return}
+  if(!ramps){yardivoStableHtml(host,'<div class="ramp-supplier-empty">Nema konfiguriranih rampi za odabrano skladište.</div>','yvRampCapacitySig');return}
   const totalMinutes=(receptionStart&&receptionEnd)?Math.max(1,toMin(receptionEnd)-toMin(receptionStart)):null;
-  const data=announcements.filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date);
+  const data=canonicalOperationalAnnouncements(announcements).filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date);
 
-  host.innerHTML=Array.from({length:ramps},(_,idx)=>{
+  const rampHtml=Array.from({length:ramps},(_,idx)=>{
     const dock=idx+1;
     const items=data.filter(a=>Number(a.dock)===dock).sort((a,b)=>String(a.time).localeCompare(String(b.time)));
     const usedMinutes=items.reduce((s,a)=>s+Number(a.duration||0),0);
@@ -967,6 +967,7 @@ function renderDailyRampCapacity(){
       </div>
     </div>`;
   }).join('');
+  yardivoStableHtml(host,rampHtml,'yvRampCapacitySig');
 }
 
 function operationalAnnouncementStage(a){
