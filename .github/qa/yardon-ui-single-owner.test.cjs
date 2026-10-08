@@ -4,34 +4,46 @@ const fs=require('node:fs');
 const read=p=>fs.readFileSync(p,'utf8');
 let passed=0;
 function check(name,fn){fn();passed++;console.log('PASS '+name)}
-check('No AI Operations static navigation or Home card',()=>{
+check('Exactly one SMART menu card and navigation item, no AI Operations page',()=>{
  const h=read('index.html');
- assert(!h.includes('<button class="nav-btn" data-view="aiOperations"'));
- assert(!h.includes('<button class="home-menu-card" data-home-target="aiOperations"'));
- assert(h.includes('id="aiOperations" hidden'));
+ assert.equal((h.match(/data-view="smartReplanning"/g)||[]).length,1);
+ assert.equal((h.match(/data-home-target="smartReplanning"/g)||[]).length,1);
+ assert.equal((h.match(/id="smartReplanning"/g)||[]).length,1);
+ assert(!h.includes('id="aiOperations"'));
+ assert(!h.includes('data-view="aiOperations"'));
+ assert(!h.includes('src="modules/services/yardivo-smart-replanning-v1.js'));
+ assert(!h.includes('src="modules/ai/yardon-ai-operations-v1.js'));
 });
-check('Legacy manager mutation hardlock is not loaded',()=>{
+check('Legacy manager hardlock remains unloaded',()=>{
  assert(!read('index.html').includes('<script id="yardivo-manager-single-view-hard-lock-v5"'));
 });
-check('Both retired sections hidden before first paint',()=>{
- const head=read('index.html').slice(0,5000);
- const css=read('styles/yardon-navigation-single-owner.css');
- assert(head.includes('href="styles/yardon-navigation-single-owner.css'));
- for(const selector of ['#aiOperations','#smartReplanning','[data-view="smartReplanning"]','[data-home-target="aiOperations"]'])
-   assert(css.includes(selector),selector+' pre-paint stylesheet missing');
+check('SMART visible to Admin, Inventory and Reception, not to Gate or Supplier',()=>{
+ const role=read('modules/auth/role-visibility.js');
+ const nav=read('styles/yardon-navigation-single-owner.css');
+ assert(role.includes("inventory:new Set(['smartReplanning'"));
+ assert(role.includes("reception:new Set(['smartReplanning'"));
+ assert(role.includes("if(id==='aiOperations')return false;"));
+ assert(!nav.includes('#smartReplanning'));
+ assert(nav.includes('#aiOperations'));
 });
-check('Only Smart engine remains; no menu auto insertion',()=>{
- const smart=read('modules/services/yardivo-smart-replanning-v1.js');
- const maps=read('modules/services/yardivo-v583-maps-header-smart-master-final-js.js');
- assert(smart.includes('window.YardivoSmartReplanning={scanNow'));
- assert(smart.includes('setInterval(()=>'));
- assert(!smart.includes('insertAdjacentHTML('));
- assert(!maps.includes('insertAdjacentHTML('));
+check('SMART single controller owns server planning, proposal popup and activity',()=>{
+ const smart=read('modules/smart/yardon-smart-center-v1.js');
+ assert(smart.includes("function maybePopup()"));
+ assert(smart.includes("role()!=='inventory'"));
+ assert(smart.includes("action:'smart_activity'"));
+ assert(smart.includes("approve_change"));
+ assert(smart.includes("reject_change"));
+ assert(smart.includes("function backgroundSmart()"));
+ assert(smart.includes("window.YardivoSmartReplanning={scanNow"));
+ assert(!smart.includes("document.querySelector('.nav-btn[data-view=\"aiOperations\"]')"));
 });
-check('Duplicate AI Operations panel is disabled, backend code preserved',()=>{
- const ai=read('modules/ai/yardon-ai-operations-v1.js');
- assert(ai.includes('return false;')&&ai.includes("document.querySelector('.nav-btn[data-view=\"aiOperations\"]')?.remove()"));
- assert(ai.includes('functions.invoke('));
+check('Server enforces Inventory approvals, warehouse scope, audit and freshness',()=>{
+ const server=read('supabase/functions/yardivo-ai-operations/index.ts');
+ assert(server.includes('String(p.role||"")!=="inventory"'));
+ assert(server.includes('action==="smart_activity"'));
+ assert(server.includes('allowedWarehouses(p,await master())'));
+ assert(server.includes('actualDock!==expectedDock'));
+ assert(server.includes('d.resolvedBy='));
 });
 check('Manager navbar has one idempotent menu owner',()=>{
  const manager=read('modules/supplier/yardivo-manager-final-authority-v4.js');
