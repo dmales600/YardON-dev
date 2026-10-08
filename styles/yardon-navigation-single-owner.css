@@ -1,11 +1,7 @@
-/* Canonical first-paint visibility: YARDIVO SMART stays an engine,
-   not a separate navigation page. AI Operations UI is retired. */
+/* Only the retired AI Operations route is hidden. YARD ON SMART is the sole interface. */
 [data-view="aiOperations"],
 [data-home-target="aiOperations"],
-[data-view="smartReplanning"],
-[data-home-target="smartReplanning"],
-#aiOperations,
-#smartReplanning {
+#aiOperations {
   display: none !important;
   visibility: hidden !important;
 }
