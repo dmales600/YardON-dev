@@ -47,7 +47,7 @@ jobs:
           node-version: "22"
       - name: Syntax check AI Operations
         run: |
-          node --check modules/ai/yardon-ai-operations-v1.js
+          node --check modules/smart/yardon-smart-center-v1.js
           node --check modules/legacy/yardivo-v583-timeline-next-arrivals-js.js
           node --check modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
           node --check modules/receiving/service.js
@@ -63,14 +63,15 @@ jobs:
           grep -q "yardivoAiAssistantToggle" modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
           grep -q "yardivoAiControlToggle" modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
           ! grep -q '<button class="nav-btn" data-view="aiOperations"' index.html
-          grep -q 'id="aiOperations"' index.html
-          grep -q 'yardon-ai-operations-v1.js' index.html
+          grep -q 'id="smartReplanning"' index.html
+          ! grep -q 'id="aiOperations"' index.html
+          grep -q 'yardon-smart-center-v1.js' index.html
       - name: Frontend stability regression
         run: |
           node --check modules/supplier/script-022.js
           node --check modules/master-data/script-024.js
           node --check modules/master-data/yardivo-master-data-registry.js
-          node --check modules/ai/yardon-ai-operations-v1.js
+          node --check modules/smart/yardon-smart-center-v1.js
           node .github/qa/yardon-frontend-stability.test.cjs
           node .github/qa/yardon-ui-single-owner.test.cjs
           node .github/qa/yardon-active-manifest.test.cjs
@@ -157,20 +158,22 @@ jobs:
             const browser=await chromium.launch({headless:true});
             // Duplicate AI screens are retired; SMART continues working in background.
             // Verify that repeated syncs cannot repaint navigation or home-menu cards.
-            for(const role of ['inventory','reception','manager']){
+            for(const role of ['admin','inventory','reception','manager']){
               const context=await browser.newContext({viewport:{width:1440,height:1000}});
               const page=await context.newPage();
               const errors=await prepare(page,role);
               await page.waitForTimeout(500);
-              const state=await page.evaluate(async()=>{
-                const items=['aiOperations','smartReplanning'];
-                const hidden=items.every(id=>!
-                  document.querySelector('.nav-btn[data-view="'+id+'"]')&&
-                  !document.querySelector('[data-home-target="'+id+'"]'));
-                const shellHidden=items.every(id=>{
-                  const el=document.getElementById(id);
-                  return !el||getComputedStyle(el).display==='none';
-                });
+              const state=await page.evaluate(async role=>{
+                const retired=!document.getElementById('aiOperations')&&
+                  !document.querySelector('.nav-btn[data-view="aiOperations"]')&&
+                  !document.querySelector('[data-home-target="aiOperations"]');
+                const showSmart=['admin','inventory','reception'].includes(role);
+                const nav=document.querySelector('.nav-btn[data-view="smartReplanning"]');
+                const card=document.querySelector('[data-home-target="smartReplanning"]');
+                const smartVisibility=!!nav&&!!card&&
+                  (getComputedStyle(nav).display!=='none')===showSmart&&
+                  (getComputedStyle(card).display!=='none')===showSmart;
+                const singleView=document.querySelectorAll('#smartReplanning').length===1;
                 // Allow first authorization reconciliation to complete before measuring
                 // repeated background syncs (do not count legitimate initial menu setup).
                 window.dispatchEvent(new CustomEvent('yardivo:data-synced'));
@@ -194,9 +197,9 @@ jobs:
                 }
                 await new Promise(resolve=>setTimeout(resolve,700));
                 watchers.forEach(w=>w.disconnect());
-                return {hidden,shellHidden,changed,top:Object.entries(names).sort((a,b)=>b[1]-a[1]).slice(0,15),transitions};
-              });
-              if(!state.hidden||!state.shellHidden)throw new Error(role+' duplicate AI/SMART section was displayed');
+                return {retired,smartVisibility,singleView,changed,top:Object.entries(names).sort((a,b)=>b[1]-a[1]).slice(0,15),transitions};
+              },role);
+              if(!state.retired||!state.smartVisibility||!state.singleView)throw new Error(role+' SMART visibility/retired AI Operations conflict '+JSON.stringify(state));
               if(state.changed>0)throw new Error(role+' menu flickered on repeated syncs: '+state.changed+' DOM mutations '+JSON.stringify(state.top)+' transitions '+JSON.stringify(state.transitions));
               if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
               await context.close();
@@ -208,6 +211,7 @@ jobs:
               const navVisible=await page.locator('.nav-btn[data-view="aiOperations"]').isVisible();
               const homeVisible=await page.locator('[data-home-target="aiOperations"]').isVisible();
               if(navVisible||homeVisible)throw new Error(role+' must not see AI Operations');
+              if(await page.locator('.nav-btn[data-view="smartReplanning"]').isVisible())throw new Error(role+' must not see SMART');
               if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
               await context.close();
             }
@@ -219,13 +223,13 @@ jobs:
               await page.evaluate(()=>{
                 localStorage.setItem('yardivo_auto_replan_cfg_v1',JSON.stringify({enabled:false,mode:'PAUSED',assistantEnabled:false}));
                 window.dispatchEvent(new CustomEvent('yardivo:ai-admin-config',{detail:{enabled:false,mode:'PAUSED',assistantEnabled:false}}));
-                window.YardOnAIOperations?.applyVisibility?.();
+                window.YardOnSmartCenter?.refresh?.();
                 window.YardivoSmartOperationalVisibilityV583?.apply?.();
                 window.YardivoSmartAssistantV583?.applyAvailability?.();
               });
               await page.waitForTimeout(120);
-              if(await page.locator('.nav-btn[data-view="aiOperations"]').isVisible())throw new Error('AI Operations nav must hide when Admin AI control is OFF');
-              if(await page.locator('[data-home-target="aiOperations"]').isVisible())throw new Error('AI Operations home card must hide when Admin AI control is OFF');
+              if(!(await page.locator('.nav-btn[data-view="smartReplanning"]').isVisible()))throw new Error('SMART menu must remain visible while engine is paused');
+              if(!(await page.locator('[data-home-target="smartReplanning"]').isVisible()))throw new Error('SMART history must remain accessible while paused');
               if(await page.locator('#yardivoAssistantZone').isVisible())throw new Error('Assistant hover zone must hide when Admin Assistant is OFF');
               if(await page.locator('#yardivoSmartAssistant').isVisible())throw new Error('Assistant panel must hide when Admin Assistant is OFF');
               const state=await page.evaluate(async()=>({
