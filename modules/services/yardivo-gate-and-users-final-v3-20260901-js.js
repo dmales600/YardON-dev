@@ -53,8 +53,22 @@ function enterGateView(view){
   if(!gate()||!GATE_ALLOWED.has(view))return false;
   syncGate();
   try{
-    const ok=window.openAppView?.(view);
-    if(ok===false)return false;
+    if(window.YardivoRoleStableFinal?.open){
+      const ok=window.YardivoRoleStableFinal.open(view);
+      if(ok===false)return false;
+    }else{
+      const ok=window.openAppView?.(view);
+      if(ok===false)return false;
+      /* Fallback must still publish the canonical view transition. */
+      document.querySelectorAll('.view').forEach(v=>{
+        const on=v.id===view;
+        v.classList.toggle('active',on);
+        v.style.setProperty('display',on?'block':'none','important');
+        v.setAttribute('aria-hidden',on?'false':'true');
+      });
+      document.body.classList.toggle('home-menu-mode',view==='homeMenu');
+      try{window.dispatchEvent(new CustomEvent('yardivo:view-opened',{detail:{view,role:'gate'}}))}catch(_){}
+    }
   }catch(e){
     console.error('YARDIVO Gate navigation',e);
     return false;
