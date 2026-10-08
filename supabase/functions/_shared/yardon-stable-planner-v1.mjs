@@ -38,7 +38,12 @@ export function minuteOf(value,date='',zone=DEFAULT_ZONE){
 export const clock=m=>Number.isInteger(m)&&m>=0&&m<DAY?pad(Math.floor(m/60))+':'+pad(m%60):'';
 const round15=n=>Math.ceil(n/15)*15;
 const rampNumber=x=>{const m=String(x??'').match(/^(?:R)?(\d+)$/i);return m?Number(m[1]):null};
-const normalDate=x=>/^\d{4}-\d{2}-\d{2}$/.test(String(x||''))?String(x):'';
+const normalDate=x=>{
+ const text=String(x||'');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(text))return '';
+ const d=new Date(text+'T12:00:00Z');
+ return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===text?text:'';
+};
 const overlaps=(a,b)=>a.start<b.end&&b.start<a.end;
 function normalizeRamp(r,warehouse,zone){
  const number=rampNumber(r?.number??r?.id);
