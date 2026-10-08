@@ -222,11 +222,21 @@ async function stablePreview(p:any,b:any,weekly:boolean){
  if(warehouse&&!selected.length)throw new Error("Nemate pravo pristupa tom skladištu.");
  if(!selected.length)return {startDate:start,endDate:end,days:[],mode:"STABLE_PREVIEW",readOnly:true};
  const whIds=selected.map((w:any)=>String(w.id));
- const deliveriesQ=await db.from("yardivo_supplier_deliveries")
-  .select("id,supplier_username,supplier_name,warehouse,delivery_date,requested_time,pallets,duration_minutes,status,planned_dock,planned_start,planned_end")
-  .gte("delivery_date",start).lte("delivery_date",end).in("warehouse",whIds);
- if(deliveriesQ.error)throw deliveriesQ.error;
- const deliveries=(deliveriesQ.data||[]).filter((d:any)=>
+ // Never silently truncate a busy 7-day schedule at PostgREST's default
+ // row limit; incomplete data could produce a false "free dock" recommendation.
+ const deliveryRows:any[]=[];
+ for(let offset=0;offset<10000;offset+=500){
+  const q=await db.from("yardivo_supplier_deliveries")
+   .select("id,supplier_username,supplier_name,warehouse,delivery_date,requested_time,pallets,duration_minutes,status,planned_dock,planned_start,planned_end")
+   .gte("delivery_date",start).lte("delivery_date",end).in("warehouse",whIds)
+   .order("delivery_date",{ascending:true}).order("id",{ascending:true})
+   .range(offset,offset+499);
+  if(q.error)throw q.error;
+  deliveryRows.push(...(q.data||[]));
+  if((q.data||[]).length<500)break;
+  if(offset+500>=10000)throw new Error("Plan ima previše dostava za siguran izračun; ne prikazuj nepotpun raspored.");
+ }
+ const deliveries=deliveryRows.filter((d:any)=>
   !!canonicalSupplier(d.supplier_name||d.supplier_username,directory));
  const ids=deliveries.map((d:any)=>String(d.id));
  let checked=new Set<string>();
