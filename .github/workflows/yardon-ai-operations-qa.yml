@@ -204,6 +204,44 @@ jobs:
               if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
               await context.close();
             }
+            // End-to-end user experience: only Zalihe receives the approval modal.
+            for(const testRole of ['inventory','reception']){
+              const context=await browser.newContext({viewport:{width:1440,height:1000}});
+              const page=await context.newPage();
+              const errors=await prepare(page,testRole);
+              await page.evaluate(()=>{
+                const pending={id:'QA-SMART-PENDING-1',supplier:'QA Dobavljač',warehouse:'W001',
+                  at:new Date().toISOString(),status:'PENDING_INVENTORY',
+                  reason:'R1 je zauzeta; SMART predlaže R2 zbog preklapanja termina.',
+                  old:{date:'2026-10-09',time:'09:00',dock:1},
+                  newSlot:{date:'2026-10-09',time:'09:30',end:'10:00',dock:2}};
+                window.__qaSmartActions=[];
+                const mockClient={functions:{invoke:async(_name,options)=>{
+                  const action=options?.body?.action||'';
+                  window.__qaSmartActions.push(action);
+                  if(action==='approve_change'||action==='reject_change'){
+                    pending.status=action==='approve_change'?'APPROVED':'REJECTED';
+                    return {data:{ok:true,data:{decision:pending}},error:null};
+                  }
+                  if(action==='smart_activity')return {data:{ok:true,data:{events:[pending]}},error:null};
+                  return {data:{ok:true,data:{date:'2026-10-09',warehouses:[],plan:[],passes:[],decisions:[],summary:{}}},error:null};
+                }}};
+                window.YardivoAuth=window.YardivoAuth||{};
+                window.YardivoAuth.client=async()=>mockClient;
+              });
+              await page.evaluate(()=>window.YardOnSmartCenter.refresh());
+              if(testRole==='inventory'){
+                await page.locator('#yardonSmartPopup [data-smart-popup="approve"]').waitFor({timeout:5000});
+                const text=await page.locator('#yardonSmartPopup').innerText();
+                if(!/R1|R2/.test(text)||!/R1 je zauzeta/.test(text))throw new Error('SMART popup missing reason or old/new ramp');
+                await page.locator('#yardonSmartPopup [data-smart-popup="approve"]').click();
+                await page.waitForFunction(()=>window.__qaSmartActions.includes('approve_change'));
+              }else if(await page.locator('#yardonSmartPopup').count()){
+                throw new Error('Reception must not receive approval popup');
+              }
+              if(errors.length)throw new Error(testRole+' SMART popup page errors: '+errors.join(' | '));
+              await context.close();
+            }
             for(const role of ['gate','supplier']){
               const context=await browser.newContext({viewport:{width:1280,height:900}});
               const page=await context.newPage();
