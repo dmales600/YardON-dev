@@ -321,6 +321,8 @@ function renderDecisions(){
 let popupSeen=new Set();
 function maybePopup(){
  if(role()!=='inventory'||!aiEnabled()||document.getElementById('yardonSmartPopup'))return;
+ const login=document.getElementById('loginOverlay');
+ if(login&&login.getAttribute('aria-hidden')!=='true'&&getComputedStyle(login).display!=='none')return;
  const next=activityEvents.find(x=>x.status==='PENDING_INVENTORY'&&!popupSeen.has(String(x.id)));
  if(!next)return;
  lastPopup=String(next.id);popupSeen.add(lastPopup);
