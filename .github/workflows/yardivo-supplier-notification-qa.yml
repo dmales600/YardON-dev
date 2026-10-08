@@ -34,6 +34,11 @@ jobs:
           node --check modules/services/yardivo-notifications-final-v5.js
           node --check modules/supplier/yardivo-v583-inventory-supplier-notif-delete-20260923.js
           node .github/qa/yardon-notification-session-public-id.test.cjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check supplier Edge Function
+        run: deno check supabase/functions/yardivo-supplier-deliveries/index.ts
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
