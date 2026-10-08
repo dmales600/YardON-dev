@@ -10,7 +10,7 @@ try{
   if(!document.getElementById('yardon-ai-plan-map-authority-v1')){
     const s=document.createElement('script');
     s.id='yardon-ai-plan-map-authority-v1';
-    s.src='modules/operations/yardon-ai-plan-map-authority-v1.js?v=20260930-1';
+    s.src='modules/operations/yardon-ai-plan-map-authority-v1.js?v=20261008-1';
     (document.head||document.documentElement).appendChild(s);
   }
 }catch(_){}
