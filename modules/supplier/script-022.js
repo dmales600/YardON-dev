@@ -1392,7 +1392,7 @@ function renderAnnouncementDetail(){
   const a=announcements.find(x=>x.id===currentAnnouncementDetailId);if(!a)return;
   const status=operationalPlanStatus(a);
   const delay=operationalDelayText(a);
-  const arrival=firstPhysicalArrivalDateTime(a);const actual=(a.actualDate&&a.actualTime)?`${a.actualDate} ${a.actualTime}`:(arrival?arrival.toLocaleString('hr-HR'):'—');
+  const arrival=firstPhysicalArrivalDateTime(a);const actual=(a.actualDate&&a.actualTime)?`${a.actualDate} ${a.actualTime}`:(arrival?arrival.toLocaleString('hr-HR'):'—');const gateTime=a.gateCheckedAt||a.yardArrivalAt||a.gateEnteredAt||a.enteredAt||a.actualArrivalAt||a.arrivalAt||'';const gateDate=gateTime?new Date(gateTime):null;const gateActual=gateDate&&!isNaN(gateDate.getTime())?gateDate.toLocaleString('hr-HR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):actual;
   const no=announcementNumber(a);
 
   document.getElementById('announcementDetailHero').innerHTML=`
@@ -1413,7 +1413,7 @@ function renderAnnouncementDetail(){
       <div class="announcement-detail-kpi"><small>ODGOVORNA OSOBA</small><strong>${a.responsible||'—'}</strong></div>
       <div class="announcement-detail-kpi"><small>KAMIONA</small><strong>${truckCountForPallets(a.pallets)}</strong></div>
       <div class="announcement-detail-kpi"><small>TRAJANJE</small><strong>${a.duration||0} min</strong></div>
-      <div class="announcement-detail-kpi"><small>STVARNI DOLAZAK</small><strong>${actual}</strong></div>
+      <div class="announcement-detail-kpi"><small>STVARNI DOLAZAK</small><strong>${gateActual}</strong></div><div class="announcement-detail-kpi"><small>EVIDENTIRANO NA PORTI</small><strong>${gateTime?gateActual:"Još nije evidentirano"}</strong></div>
     </div>
 
     <div class="announcement-detail-driver">
