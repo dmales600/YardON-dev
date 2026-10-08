@@ -27,6 +27,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check Edge Function integration
+        run: deno check supabase/functions/yardivo-ai-operations/index.ts
       - name: Check planner syntax
         run: node --check supabase/functions/_shared/yardon-stable-planner-v1.mjs
       - name: Run stable weekly scheduling scenarios
