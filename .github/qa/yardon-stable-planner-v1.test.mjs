@@ -129,3 +129,8 @@ test('two delayed trucks never receive the same proposed ramp slot',()=>{
   assert(!(a.ramp===b.ramp&&a.start<b.end&&b.start<a.end),'Two proposed slots conflict');
  }
 });
+
+test('invalid calendar dates cannot silently become another delivery day',()=>{
+ assert.throws(()=>planStableDay({date:'2026-02-30',ramps:ramps(),deliveries:[]}),/INVALID_PLANNING_DATE/);
+ assert.throws(()=>planSevenDays({startDate:'2026-13-01',warehouses:[]}),/INVALID_PLANNING_DATE/);
+});
