@@ -276,13 +276,6 @@
       "category": "supplier"
     },
     {
-      "id": "yardivo-total-operational-wipe-v2-20260901-js",
-      "path": "modules/services/yardivo-total-operational-wipe-v2-20260901-js.js",
-      "bytes": 8253,
-      "sha256": "949f5ca69d9e5ae3b1d31adba38ad7cd3fd9de55992747d8f9ee877770b9bfb8",
-      "category": "services"
-    },
-    {
       "id": "yardivo-overview-reset-empty-fix-v1-20260901-js",
       "path": "modules/analytics/yardivo-overview-reset-empty-fix-v1-20260901-js.js",
       "bytes": 5255,
@@ -1045,13 +1038,6 @@
       "phase": 2
     },
     {
-      "id": "yardivo-factory-zero-ui-v583",
-      "path": "modules/supplier/phase2-207-yardivo-factory-zero-ui-v583.js",
-      "bytes": 3954,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
       "id": "yardivo-v583-ramp-role-guard-final",
       "path": "modules/master-data/phase2-229-yardivo-v583-ramp-role-guard-final.js",
       "bytes": 3586,
@@ -1119,13 +1105,6 @@
       "path": "modules/notifications/phase2-296-yardivo-v583-unified-ai-sound-settings-js.js",
       "bytes": 4066,
       "category": "notifications",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-manager-single-view-hard-lock-v5",
-      "path": "modules/supplier/phase2-309-yardivo-manager-single-view-hard-lock-v5.js",
-      "bytes": 3131,
-      "category": "supplier",
       "phase": 2
     },
     {
