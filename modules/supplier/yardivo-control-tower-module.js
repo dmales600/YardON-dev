@@ -16,6 +16,23 @@ function admin(){return role()==='admin'}
 function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function anns(){try{return Array.isArray(announcements)?announcements:[]}catch(e){return []}}
 function incs(){try{return Array.isArray(incidents)?incidents:[]}catch(e){return []}}
+function supplierDirectory(){
+ try{
+  const m=window.YardivoAppStateV583?.master?.()||JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}')||{};
+  const alias=new Map();
+  (Array.isArray(m.suppliers)?m.suppliers:[]).filter(x=>x&&x.active!==false).forEach(x=>{
+    const name=String(x.name||'').trim();if(!name)return;
+    [x.name,x.username,x.id,x.code,x.supplier_code].forEach(v=>{const k=String(v||'').trim().toLocaleLowerCase('hr-HR');if(k)alias.set(k,name)});
+  });
+  return alias;
+ }catch(_){return new Map()}
+}
+function canonicalSupplier(raw){
+ const v=String(raw||'').trim();if(!v)return'';
+ const dir=supplierDirectory();
+ if(!dir.size)return'';
+ return dir.get(v.toLocaleLowerCase('hr-HR'))||'';
+}
 function whLoc(w){try{const m=JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}');return String((m.warehouses||[]).find(x=>x&&x.active!==false&&String(x.id)===String(w))?.location_id||'')}catch(_){return ''}}
 function activeLoc(){try{return String(currentSession?.location||'')}catch(e){return ''}}
 function selectedWh(){
@@ -85,14 +102,14 @@ function timelineHtml(a){
 
 function supplierScores(){
  const wh=selectedWh(),as=scopeA(),ins=incs().filter(i=>matchesWarehouse(i,wh)&&(!activeLoc()||activeLoc()==='ALL'||!i.warehouse||whLoc(i.warehouse)===activeLoc()));
- const suppliers=new Set(as.map(a=>a.supplier).filter(Boolean));
+ const suppliers=new Set(as.map(a=>canonicalSupplier(a.supplier)).filter(Boolean));
  const rows=[];
  suppliers.forEach(name=>{
-   const data=as.filter(a=>a.supplier===name),completed=data.filter(isDone);
+   const data=as.filter(a=>canonicalSupplier(a.supplier)===name),completed=data.filter(isDone);
    const lateCount=data.filter(a=>metrics(a).late>settings().lateTolerance).length;
    const noShow=data.filter(a=>String(a.status||'').toLowerCase().includes('no-show')||String(a.status||'').toLowerCase().includes('no show')).length;
    const unann=data.filter(a=>a.arrivalType==='UNANNOUNCED').length;
-   const incidentCount=ins.filter(i=>i.supplier===name).length;
+   const incidentCount=ins.filter(i=>canonicalSupplier(i.supplier)===name).length;
    const dwellVals=completed.map(a=>metrics(a).dwell).filter(v=>v!=null);
    const avgDwell=dwellVals.length?Math.round(dwellVals.reduce((x,y)=>x+y,0)/dwellVals.length):0;
    const detention=data.filter(a=>metrics(a).level==='bad').length;
