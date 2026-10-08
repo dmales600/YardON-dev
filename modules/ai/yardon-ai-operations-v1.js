@@ -277,13 +277,13 @@ function renderParking(){
 function renderDecisions(){
  const ds=(snapshot.decisions||[]).slice().sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
  const canDecide=['admin','inventory','manager'].includes(role());
- return '<section class="yaio-card"><div class="yaio-card-head"><div><h3>AI ODLUKE I REPLAN</h3><small>Početna dodjela rampe je automatska. Svaka kasnija AI promjena čeka odobrenje i prikazuje razlog.</small></div><span class="yaio-pill">'+ds.length+'</span></div><div class="yaio-decisions">'+
+ return '<section class="yaio-card"><div class="yaio-card-head"><div><h3>AI ODLUKE I REPLAN</h3><small>Zabilježene odluke za odabrani datum: vrijeme, izvršitelj, prethodno i novo stanje te odobrenje. Prijedlog nije isto što i izvršena promjena.</small></div><span class="yaio-pill">'+ds.length+'</span></div><div class="yaio-decisions">'+
  (ds.length?ds.map(x=>{
    const before=x.old?[x.old.date,x.old.time,x.old.dock?'R'+x.old.dock:''].filter(Boolean).join(' '):'—';
    const after=x.newSlot?[x.newSlot.date,x.newSlot.time,x.newSlot.dock?'R'+x.newSlot.dock:''].filter(Boolean).join(' '):'—';
    const pending=String(x.status||'')==='PENDING_INVENTORY';
    const actions=pending&&canDecide?'<div class="yaio-decision-actions"><button class="primary" type="button" data-yaio-decision-action="approve" data-yaio-decision-id="'+esc(x.id||'')+'">ODOBRI</button><button class="secondary" type="button" data-yaio-decision-action="reject" data-yaio-decision-id="'+esc(x.id||'')+'">ODBIJ</button></div>':'';
-   return '<div class="yaio-decision"><div><strong>'+esc(x.supplier||'Dobavljač')+'</strong><br><small>'+esc(x.problemType||x.status||'AI')+'</small></div><div><strong>'+esc(before)+' → '+esc(after)+'</strong><br><small>'+esc(x.reason||'')+'</small></div><div><span class="yaio-pill '+(['NO_SAFE_SLOT','REJECTED'].includes(x.status)?'bad':['PENDING_INVENTORY','PENDING_SUPPLIER'].includes(x.status)?'warn':'ok')+'">'+esc(x.status||'PRIJEDLOG')+'</span>'+actions+'</div></div>';
+   return '<div class="yaio-decision"><div><strong>'+esc(x.supplier||'Dobavljač')+'</strong><br><small>'+esc(x.problemType||x.status||'AI')+'</small><br><small>'+esc(x.at?new Date(x.at).toLocaleString('hr-HR'):'Vrijeme nije zabilježeno')+' · '+esc(x.actor||'Sustav')+'</small></div><div><strong>'+esc(before)+' → '+esc(after)+'</strong><br><small>'+esc(x.reason||'')+'</small></div><div><span class="yaio-pill '+(['NO_SAFE_SLOT','REJECTED'].includes(x.status)?'bad':['PENDING_INVENTORY','PENDING_SUPPLIER'].includes(x.status)?'warn':'ok')+'">'+esc(x.status||'PRIJEDLOG')+'</span>'+actions+'</div></div>';
  }).join(''):'<div class="yaio-empty">Nema spremljenih AI odluka za ovaj datum.</div>')+
  '</div></section>';
 }
