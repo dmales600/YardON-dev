@@ -172,7 +172,8 @@ function enqueueNotification(n,{force=false,priority=false}={}){
   const id=String(n?.id||'');
   if(!force){
     if(id&&seen().has(id))return;
-    if(recentlyQueued(n))return;
+    // Distinct canonical IDs represent distinct alerts even if their text matches.
+    if(!id&&recentlyQueued(n))return;
     if(id)markSeen(id);
   }
   // All active-session notifications start local Croatian speech immediately.
