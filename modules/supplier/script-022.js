@@ -836,7 +836,7 @@ function capacityBand(pct){
 function renderDailyTotalCapacity(){
   const date=dailyMapDateValue();
   const wh=dailyMapWarehouseCode();
-  const data=announcements.filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date);
+  const data=canonicalOperationalAnnouncements(announcements).filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date);
   const used=data.reduce((s,a)=>s+Number(a.pallets||0),0);
   let total=null;
   try{
@@ -885,7 +885,7 @@ function openDailyRampDetail(dock){
   selectedDailyRamp=Number(dock);
   renderDailyRampCapacity();
   const date=dailyMapDateValue(),wh=dailyMapWarehouseCode();
-  const items=announcements.filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date&&Number(a.dock)===selectedDailyRamp)
+  const items=canonicalOperationalAnnouncements(announcements).filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date&&Number(a.dock)===selectedDailyRamp)
     .sort((a,b)=>String(a.time).localeCompare(String(b.time)));
   const panel=document.getElementById('dailyRampDetailPanel');
   const list=document.getElementById('dailyRampDetailList');
@@ -954,6 +954,38 @@ function renderDailyRampCapacity(){
   }).join('');
 }
 
+function operationalAnnouncementStage(a){
+  const s=String(a?.status||'').toLocaleLowerCase('hr-HR');
+  const supplierState=String(a?.supplierApprovalStatus||'').toLowerCase();
+  if(s.includes('odbij')||supplierState==='rejected')return 90;
+  if(s.includes('zaprimljeno')||s.includes('završ')||supplierState==='completed')return 80;
+  if(s.includes('zaprimanje')||s.includes('rampi')||s.includes('dock')||s.includes('istovar')||supplierState==='dock'||supplierState==='receiving')return 70;
+  if(hasPhysicallyArrived(a)||supplierState==='arrival')return 60;
+  if(s.includes('no-show')||s.includes('nije došao')||s.includes('nije dosao'))return 50;
+  return 10;
+}
+function operationalAnnouncementUpdatedAt(a){
+  const vals=[a?.statusUpdatedAt,a?.updatedAt,a?.updated_at,a?.checkinAt,a?.arrivalRecordedAt,a?.createdAt];
+  let best=0;
+  for(const v of vals){const t=Date.parse(String(v||''));if(Number.isFinite(t)&&t>best)best=t}
+  return best;
+}
+function canonicalOperationalAnnouncements(source){
+  const list=Array.isArray(source)?source:[];
+  const map=new Map();
+  for(const a of list){
+    if(!a)continue;
+    const deliveryId=String(a.supplierDeliveryId||'').trim();
+    const key=deliveryId?'delivery:'+deliveryId:'announcement:'+String(a.id||'');
+    const prev=map.get(key);
+    if(!prev){map.set(key,a);continue}
+    const ar=operationalAnnouncementStage(a),pr=operationalAnnouncementStage(prev);
+    if(ar>pr||(ar===pr&&operationalAnnouncementUpdatedAt(a)>=operationalAnnouncementUpdatedAt(prev)))map.set(key,a);
+  }
+  return [...map.values()];
+}
+window.YardivoCanonicalOperationalAnnouncements=canonicalOperationalAnnouncements;
+
 function yardonMasterSupplierAllowed(name){
   const n=String(name||'').trim().toLocaleLowerCase('hr-HR');if(!n)return false;
   try{
@@ -984,7 +1016,7 @@ function renderDailyMap(){
   const whBadge=document.getElementById('dailyMapWarehouse');
   if(whBadge)whBadge.textContent=whLabel(wh).toUpperCase();
 
-  const all=announcements.filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date&&yardonMasterSupplierAllowed(a.supplier));
+  const all=canonicalOperationalAnnouncements(announcements).filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date&&yardonMasterSupplierAllowed(a.supplier));
   const totalPal=all.reduce((s,a)=>s+Number(a.pallets||0),0);
   const totalTrucks=all.reduce((s,a)=>s+truckCountForPallets(a.pallets),0);
   const late=all.filter(a=>operationalPlanStatus(a)==='Kašnjenje').length;
@@ -2858,7 +2890,10 @@ function plannedArrivalDateTime(a){
   return Number.isNaN(d.getTime())?null:d;
 }
 function firstPhysicalArrivalDateTime(a){
-  const candidates=[a.firstArrivalAt,a.yardArrivalAt,a.dockArrivalAt,a.receivedAt];
+  const candidates=[
+    a.firstArrivalAt,a.checkinAt,a.arrivalRecordedAt,a.gateCheckedAt,a.gateInAt,
+    a.gateEnteredAt,a.enteredAt,a.yardArrivalAt,a.dockArrivalAt,a.dockAt,a.receivedAt
+  ];
   for(const v of candidates){
     if(v){
       const d=new Date(v);
@@ -2900,10 +2935,15 @@ function latenessLabel(a,now=new Date()){
 }
 
 function hasPhysicallyArrived(a){
-  const s=String(a.status||'').toLowerCase();
+  const s=String(a.status||'').toLocaleLowerCase('hr-HR');
+  const supplierState=String(a.supplierApprovalStatus||'').toLowerCase();
   return !!(
-    a.actualDate || a.actualTime || a.yardArrivalAt || a.dockArrivalAt || a.receivedAt ||
-    s.includes('dvori') || s.includes('rampi') || s.includes('zaprim') || s.includes('završ')
+    firstPhysicalArrivalDateTime(a) ||
+    a.actualDate || a.actualTime ||
+    ['arrival','dock','receiving','completed'].includes(supplierState) ||
+    s.includes('stigao') || s.includes('stigla') || s.includes('čeka') || s.includes('ceka') ||
+    s.includes('dvori') || s.includes('pozvan na rampu') || s.includes('rampi') ||
+    s.includes('dock') || s.includes('istovar') || s.includes('zaprim') || s.includes('završ')
   );
 }
 function isAfter14NoShow(a,now=new Date()){
@@ -2964,10 +3004,14 @@ function operationalPlanStatus(a){
   if(a.hadLateReschedule||a.rescheduledAfterNoShow)return 'Promijenjena nakon NO-SHOW';
   if(isAfter14NoShow(a))return 'NIJE DOŠAO';
   if(isNoShow(a))return 'NO-SHOW';
-  if(!actualDateTime(a)){
-    const plan=new Date(`${a.date}T${a.time}:00`);
-    const mins=Math.floor((new Date()-plan)/60000);
-    if(mins>=LATE_GRACE_MINUTES)return 'Kašnjenje';
+  /* Never mark a physically arrived truck as actively late. Gate/check-in/status
+     evidence is authoritative even when legacy actualDate/actualTime is empty. */
+  if(!hasPhysicallyArrived(a)){
+    const plan=plannedArrivalDateTime(a);
+    if(plan){
+      const mins=Math.floor((new Date()-plan)/60000);
+      if(mins>=LATE_GRACE_MINUTES)return 'Kašnjenje';
+    }
   }
   return normalizedPlanStatus(a);
 }
@@ -3033,11 +3077,11 @@ function yardivoMapDelayLabel(a){
 }
 
 function normalizedPlanStatus(a){
-  const s=String(a.status||'U dolasku').toLowerCase();
+  const s=String(a.status||'U dolasku').toLocaleLowerCase('hr-HR');
   if(s.includes('odbij'))return 'Odbijen';
-  if(s.includes('zaprim')||s.includes('završ')||s.includes('izasao')||s.includes('izašao'))return 'Zaprimljeno';
-  if(s.includes('dvori'))return 'U dvorištu';
-  if(s.includes('rampi')||s.includes('dock'))return 'Na rampi';
+  if(s.includes('zaprimljeno')||s.includes('završ')||s.includes('izasao')||s.includes('izašao')||s.includes('completed'))return 'Zaprimljeno';
+  if(s.includes('zaprimanje')||s.includes('rampi')||s.includes('dock')||s.includes('istovar'))return 'Na rampi';
+  if(s.includes('stigao')||s.includes('stigla')||s.includes('čeka')||s.includes('ceka')||s.includes('dvori')||s.includes('pozvan na rampu')||s==='arrival')return 'U dvorištu';
   return 'U dolasku';
 }
 function statusClassForPlan(a){
