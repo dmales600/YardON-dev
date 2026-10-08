@@ -58,4 +58,22 @@ check('Reception and Gate navigation use one canonical visibility authority',()=
  assert(reception.includes("window.YardivoRoleVisibility?.owner!=='modules/auth/role-visibility.js'"));
  assert(reception.includes('HIDDEN_VIEWS.forEach(id=>{'));
 });
+check('Dock planning rejects stale non-Master supplier bookings',()=>{
+ const source=extract(script,'function yardonPlanningAnnouncements(){','window.YardivoPlanningMasterAnnouncements=yardonPlanningAnnouncements;');
+ const ctx={announcements:[{supplier:'Dobavljač 244',id:244},{supplier:'dobavljač2',id:2}],
+ canonicalOperationalAnnouncements:rows=>rows,
+ yardonMasterSupplierAllowed:name=>name==='dobavljač2'};
+ vm.runInNewContext(source+';globalThis.getPlanningRows=yardonPlanningAnnouncements;',ctx);
+ const rows=ctx.getPlanningRows();
+ assert.equal(rows.length,1);
+ assert.equal(rows[0].id,2);
+ for(const name of ['isSlobodna','slotWarehouseLoad','rampDayLoad']){
+   const source=extract(script,'function '+name+'(',name==='isSlobodna'?'let currentAnnouncementRecommendation':name==='slotWarehouseLoad'?'function rampDayLoad(':'function recommendSlot(');
+   assert(source.includes('yardonPlanningAnnouncements()'),name+' uses raw announcements');
+ }
+});
+check('Smart AI consumes the same canonical planning rows',()=>{
+ const smart=read('modules/services/yardivo-smart-replanning-v1.js');
+ assert(smart.includes("function A(){try{return window.YardivoPlanningMasterAnnouncements?.()||[]}"));
+});
 console.log('YARDON_FRONTEND_STABILITY_PASS '+tests+'/'+tests);
