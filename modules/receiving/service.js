@@ -81,6 +81,33 @@ async function yardDispatchToken(){
   if(!s?.access_token)throw new Error('ONLINE PRIJAVA NIJE AKTIVNA.');
   return s.access_token;
 }
+function applyDispatchAssignments(assignments){
+  if(!Array.isArray(assignments)||!assignments.length)return false;
+  let changed=false;
+  try{
+    const list=Array.isArray(window.announcements)?window.announcements:(typeof announcements!=='undefined'&&Array.isArray(announcements)?announcements:[]);
+    for(const x of assignments){
+      const ramp=Number(String(x?.dock||'').replace(/\D/g,''));if(!ramp)continue;
+      const aid=String(x?.announcement_id||'').trim(),sid=String(x?.supplier_delivery_id||'').trim();
+      const a=list.find(row=>{
+        const rid=String(row?.id||''),rsid=String(row?.supplierDeliveryId||'');
+        return (sid&&rsid===sid)||(aid&&(rid===aid||('SUPDEL-'+rsid)===aid));
+      });
+      if(!a)continue;
+      a.dock=ramp;
+      a.dock_number=ramp;
+      a.actualDock='R'+ramp;
+      a.aiAssignedDock='R'+ramp;
+      a.aiAssignedAt=new Date().toISOString();
+      if(!['Zaprimljeno','Odbijen'].includes(String(a.status||'')))a.status='U dvorištu';
+      changed=true;
+    }
+    if(changed&&typeof window.saveAnnouncements==='function')window.saveAnnouncements();
+    else if(changed&&typeof saveAnnouncements==='function')saveAnnouncements();
+  }catch(_){}
+  return changed;
+}
+
 async function dispatchWaitingYard(warehouse='',force=false){
   if(!yardDispatchEnabled()||yardDispatchRunning)return null;
   const now=Date.now();if(!force&&now-yardDispatchLastRun<1800)return null;
@@ -98,8 +125,10 @@ async function dispatchWaitingYard(warehouse='',force=false){
     if(!r.ok||d?.ok===false)throw new Error(d?.error||('YARD DISPATCH HTTP '+r.status));
     const assignments=(d.results||[]).flatMap(x=>x?.assignments||[]);
     if(assignments.length){
+      applyDispatchAssignments(assignments);
       try{await window.YardivoSupplierLiveSync?.pullInternal?.(true)}catch(_){}
       try{await window.YardivoSync?.pull?.()}catch(_){}
+      applyDispatchAssignments(assignments);
       try{window.renderReceiving?.()}catch(_){}
       try{window.renderDailyMap?.()}catch(_){}
       try{window.renderWeeklyMap?.()}catch(_){}
