@@ -32,22 +32,18 @@ function reject(id){
 }
 function enforceRoles(){
  try{
+  /* Compatibility only: canonical role/menu visibility is owned by
+     modules/auth/role-visibility.js. Never repaint menu visibility here. */
   if(window.YardivoUnannounced){window.YardivoUnannounced.approve=approve;window.YardivoUnannounced.reject=reject}
   document.querySelectorAll('[data-view="yard"],[data-home-target="yard"],#yard').forEach(x=>x.remove());
-  const r=role();
-  const my=document.querySelector('[data-view="myYard"]');
-  const managerMy=r==='manager'||r==='management'
-    ? window.yardivoManagerSectionAllowed?.('myYard')===true
-    : false;
-  if(my && (managerMy||['admin','inventory','reception','gate'].includes(r)))my.classList.remove('role-hidden');
-  const home=document.querySelector('[data-home-target="myYard"]');
-  if(home && (managerMy||['admin','inventory','reception','gate'].includes(r)))home.style.display='';
  }catch(e){}
 }
 const oldApply=window.applyRoleAccess;
 window.applyRoleAccess=function(){try{oldApply?.apply(this,arguments)}catch(e){};enforceRoles()};
-window.addEventListener('load',()=>setTimeout(enforceRoles,500));
-document.addEventListener('click',e=>{if(e.target.closest('[data-view="unannounced"],[data-view="myYard"],[data-home-target]'))setTimeout(enforceRoles,20)},true);
-setInterval(enforceRoles,2500);
+window.addEventListener('yardivo:login',()=>setTimeout(enforceRoles,0));
+window.addEventListener('load',()=>setTimeout(enforceRoles,120));
+document.addEventListener('click',e=>{if(e.target.closest('[data-view="unannounced"]'))setTimeout(enforceRoles,0)},true);
+/* No periodic watchdog: it used to fight canonical role visibility every 2.5 s
+   and was a visible source of home/menu flicker. */
 window.YardivoQAWorkflow={approveUnannounced:approve,rejectUnannounced:reject,enforceRoles};
 })();
