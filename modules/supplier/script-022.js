@@ -794,6 +794,21 @@ function weeklyWarehouseFilter(a){
 }
 
 // ===== DNEVNA MAPA =====
+function yardivoUiFingerprint(value){
+  const s=String(value??'');let h=2166136261;
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
+  return String(h>>>0);
+}
+function yardivoStableHtml(el,html,key='yvStableHtml'){
+  if(!el)return false;
+  const sig=yardivoUiFingerprint(html);
+  if(el.dataset[key]===sig)return false;
+  el.innerHTML=html;el.dataset[key]=sig;return true;
+}
+function yardivoStableText(el,value){
+  if(!el)return false;const s=String(value??'');
+  if(el.textContent===s)return false;el.textContent=s;return true;
+}
 let dailyMapZoom=1;
 function dailyMapDateValue(){
   return document.getElementById('dailyMapDate')?.value||window.yardivoLocalDateV583();
@@ -1011,10 +1026,10 @@ function renderDailyMap(){
   const heading=document.getElementById('dailyMapHeading');
   if(heading){
     const d=new Date(date+'T12:00:00');
-    heading.textContent=`${d.toLocaleDateString('hr-HR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}`.toUpperCase();
+    yardivoStableText(heading,`${d.toLocaleDateString('hr-HR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}`.toUpperCase());
   }
   const whBadge=document.getElementById('dailyMapWarehouse');
-  if(whBadge)whBadge.textContent=whLabel(wh).toUpperCase();
+  yardivoStableText(whBadge,whLabel(wh).toUpperCase());
 
   const all=canonicalOperationalAnnouncements(announcements).filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date&&yardonMasterSupplierAllowed(a.supplier));
   const totalPal=all.reduce((s,a)=>s+Number(a.pallets||0),0);
@@ -1025,14 +1040,15 @@ function renderDailyMap(){
 
   renderDailyTotalCapacity();
   const summary=document.getElementById('dailyMapSummary');
-  if(summary)summary.innerHTML=[
+  const summaryHtml=[
     ['NAJAVE',all.length],['PALETE',totalPal],['KAMIONI',totalTrucks],['KAŠNJENJA',late],['NO-SHOW',noShow],['ZAPRIMLJENO',received]
   ].map(x=>`<div class="control-card"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');
+  yardivoStableHtml(summary,summaryHtml,'yvDailySummarySig');
 
   if(typeof dayInfo==='function'){
     const info=dayInfo(date);
     if(info.closed){
-      host.innerHTML=`<div class="overview-empty"><strong>PRIJAM NE RADI</strong><br>${info.name}</div>`;
+      yardivoStableHtml(host,`<div class="overview-empty"><strong>PRIJAM NE RADI</strong><br>${info.name}</div>`,'yvDailyMapSig');
       renderDailyRampCapacity(); return;
     }
   }
@@ -1069,7 +1085,7 @@ function renderDailyMap(){
       }else out+=`<div class="dmv-cell" data-move-date="${date}" data-move-warehouse="${wh}" data-move-dock="${dock}" data-move-time="${label}"></div>`;
     }
   }
-  host.innerHTML=out+'</div>';
+  yardivoStableHtml(host,out+'</div>','yvDailyMapSig');
   renderDailyRampCapacity();
   // Vertical layout is intentionally not transformed by old horizontal zoom.
 }
