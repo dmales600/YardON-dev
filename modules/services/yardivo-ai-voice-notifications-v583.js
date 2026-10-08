@@ -59,13 +59,13 @@ function emitVoiceQueued(n,priority,instant){
   id:String(n?.id||''),event:String(n?.event||''),role:role(),priority:!!priority,instant:!!instant
  }}))}catch(_){}
 }
-function startInstantSupplierSpeech(text,n){
+function startInstantSpeech(text,n,priority=false){
  if(typeof window.SpeechSynthesisUtterance!=='function'||!window.speechSynthesis?.speak)return false;
  try{
-  // Local browser TTS starts without waiting for authentication, Edge requests or Gemini audio generation.
-  clearQueue();stopCurrent();
+  // Native speech is the fast path for EVERY live notification.
+  // Browser speechSynthesis queues messages itself; don't cancel earlier live
+  // announcements when another notification arrives a moment later.
   const engine=window.speechSynthesis;
-  engine.cancel();
   const speech=new window.SpeechSynthesisUtterance(text);
   speech.lang='hr-HR';speech.rate=1;speech.volume=volume()/100;
   const voices=engine.getVoices?.()||[];
@@ -73,11 +73,11 @@ function startInstantSupplierSpeech(text,n){
   if(croatian)speech.voice=croatian;
   speech.onerror=e=>{
    if(['canceled','interrupted'].includes(String(e?.error||'')))return;
-   // Browser audio may be blocked; retain the remote voice as a best-effort fallback.
-   queue.unshift({n,text,ready:fetchVoiceUrl(text)});void processQueue();
+   // Only a failed local utterance falls back to network-generated voice.
+   queue.push({n,text,ready:fetchVoiceUrl(text)});void processQueue();
   };
   engine.speak(speech);
-  emitVoiceQueued(n,true,true);
+  emitVoiceQueued(n,priority,true);
   return true;
  }catch(e){console.warn('YardOn immediate browser voice unavailable',e);return false}
 }
@@ -175,9 +175,8 @@ function enqueueNotification(n,{force=false,priority=false}={}){
     if(recentlyQueued(n))return;
     if(id)markSeen(id);
   }
-  // Supplier announcement is time-critical: native Croatian speech starts in
-  // the same event turn as the visible toast, not after an AI audio download.
-  if(supplier&&startInstantSupplierSpeech(text,n))return;
+  // All active-session notifications start local Croatian speech immediately.
+  if(startInstantSpeech(text,n,priority||supplier))return;
   const item={n,text,ready:fetchVoiceUrl(text)};
   if(priority||supplier){
     clearQueue();stopCurrent();
@@ -209,18 +208,21 @@ function clickedNotification(el){
 }
 
 function observeVisibleToasts(){
+  // The canonical notification center raises yardivo:visible-toast directly;
+  // observing its DOM toast too would duplicate speech. Only noncanonical live
+  // toasts with an explicit event are candidates for the legacy fallback.
   if(document.documentElement.dataset.yvVoiceToastObserverFinal==='1')return;
   document.documentElement.dataset.yvVoiceToastObserverFinal='1';
   const obs=new MutationObserver(muts=>{
     for(const m of muts)for(const node of m.addedNodes){
       if(!(node instanceof Element))continue;
       const candidates=[];
-      if(node.matches?.('.y-live-toast,.y5-toast,.yms-toast'))candidates.push(node);
-      node.querySelectorAll?.('.y-live-toast,.y5-toast,.yms-toast').forEach(x=>candidates.push(x));
+      if(node.matches?.('.y-live-toast,.yms-toast'))candidates.push(node);
+      node.querySelectorAll?.('.y-live-toast,.yms-toast').forEach(x=>candidates.push(x));
       for(const el of candidates)requestAnimationFrame(()=>{
         if(!el.isConnected)return;
         const cs=getComputedStyle(el);if(cs.display==='none'||cs.visibility==='hidden'||Number(cs.opacity)===0)return;
-        const n=notificationFromToast(el);if(n)enqueueNotification(n);
+        const n=notificationFromToast(el);if(n&&role()&&window.currentSession&&!document.body.classList.contains('yardivo-prelogin'))enqueueNotification(n);
       });
     }
   });
@@ -232,21 +234,11 @@ window.addEventListener('yardivo:visible-toast',e=>{
   const n=e?.detail?.notification;
   if(!n)return;
   const ev=String(n?.event||'').toUpperCase();
-  if(role()==='inventory'&&ev==='SUPPLIER_REQUEST'){
-    enqueueNotification(n,{priority:true});
-    return;
-  }
-  enqueueNotification(n);
+  enqueueNotification(n,{priority:role()==='inventory'&&ev==='SUPPLIER_REQUEST'});
 });
 
-/* Clicking any notification intentionally reads it again, even if already seen/read. */
-document.addEventListener('click',e=>{
-  const t=e.target;if(!(t instanceof Element))return;
-  if(t.closest('.y-live-toast-close,.y5-reader-close'))return;
-  const n=clickedNotification(t);
-  if(n)forceRead(n);
-},true);
-
+/* Opening old notifications is visual only. Voice never replays past items
+   automatically after login or through notification history clicks. */
 function prewarmTest(){
   if(mode()!=='ai'||!allowed())return;
   prepareText(TEST);
@@ -254,7 +246,7 @@ function prewarmTest(){
 function setMode(v){
   v=v==='ai'?'ai':'off';
   try{localStorage.setItem(MODE_KEY,v);localStorage.setItem(LEGACY_KEY,'off')}catch(_){}
-  if(v!=='ai'){clearQueue();stopCurrent()}
+  if(v!=='ai'){clearQueue();stopCurrent();try{window.speechSynthesis?.cancel?.()}catch(_){}}
   else prewarmTest();
 }
 window.addEventListener('load',()=>{
@@ -267,6 +259,7 @@ window.addEventListener('load',()=>{
 window.addEventListener('yardivo:login',()=>{
   clearQueue();
   stopCurrent();
+  try{window.speechSynthesis?.cancel?.()}catch(_){}
   tokenCache='';
   tokenCachedAt=0;
 });
