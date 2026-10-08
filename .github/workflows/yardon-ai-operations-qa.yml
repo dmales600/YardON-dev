@@ -173,7 +173,12 @@ jobs:
                 const nodes=[document.querySelector('.nav'),document.getElementById('homeMenuGrid')].filter(Boolean);
                 let changed=0;const names={};
                 const watchers=nodes.map(node=>{
-                  const watcher=new MutationObserver(ms=>{changed+=ms.length;ms.forEach(m=>{const k=(m.target?.dataset?.view||m.target?.dataset?.homeTarget||m.target?.id||m.target?.className||'?')+':'+m.attributeName;names[k]=(names[k]||0)+1})});
+                  const watcher=new MutationObserver(ms=>{const menuChanges=ms.filter(m=>{
+                      const el=m.target;
+                      if(m.type==='childList')return el?.id==='homeMenuGrid'||el?.classList?.contains('nav');
+                      return el?.matches?.('.nav-btn,.home-menu-card');
+                    });
+                    changed+=menuChanges.length;menuChanges.forEach(m=>{const k=(m.target?.dataset?.view||m.target?.dataset?.homeTarget||m.target?.id||m.target?.className||'?')+':'+m.attributeName;names[k]=(names[k]||0)+1})});
                   watcher.observe(node,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
                   return watcher;
                 });
