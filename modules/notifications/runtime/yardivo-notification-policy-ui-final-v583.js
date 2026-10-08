@@ -9,19 +9,11 @@ function norm(r){
  return r;
 }
 function apply(){
- const r=norm(window.currentSession?.role);
- const bell=document.getElementById('notifBell');
- const nav=document.querySelector('[data-view="operations"]');
- const home=document.querySelector('[data-home-target="operations"]');
- let show=['admin','inventory','reception'].includes(r);
- if(r==='manager')show=window.yardivoManagerSectionAllowed?.('operations')===true;
- const authenticated=!!(window.currentSession?.user||window.currentSession?.username||window.currentSession?.authUserId);
- /* Header bell visibility/placement is owned by YardivoHeaderBellFinalV583. */
- [nav,home].filter(Boolean).forEach(el=>{
-   el.style.setProperty('display',show?'flex':'none','important');
-   el.classList.toggle('role-hidden',!show);
- });
+ // One role/nav owner prevents display:flex vs display:block fights each sync.
+ // RoleVisibility owns buttons/cards; notification center owns badge counts.
+ return true;
 }
+
 window.addEventListener('yardivo:login',()=>setTimeout(apply,60));
 window.addEventListener('yardivo:data-synced',()=>setTimeout(apply,60));
 window.addEventListener('load',()=>setTimeout(apply,900));
