@@ -68,7 +68,19 @@ function renderPlanner(){
   const host=document.getElementById('planner');if(host)host.innerHTML=html;
 }
 function renderCards(){const host=document.getElementById('truckCards');if(!host)return;host.innerHTML=trucks.map(t=>`<div class="card"><h3>${t.plate}</h3><span class="badge ${cls(t.status)}">${t.status}</span><div class="meta">Prijevoznik: ${t.carrier}<br>Dobavljač: ${t.supplier||'-'}<br>Prikolica: ${t.trailer||'-'}<br>Yard: ${t.location||'-'}<br>Dock: ${t.dock||'-'}<br>U sustavu: ${mins(t.entered)} min</div></div>`).join('')}
-function renderSuppliers(q=''){const term=String(q||'').toLowerCase().trim();const data=suppliers.filter(s=>s.toLowerCase().includes(term));document.getElementById('supplierCount').textContent=`${data.length} / ${suppliers.length} dobavljača`;document.getElementById('supplierGrid').innerHTML=data.map(s=>{const idx=suppliers.indexOf(s),cnt=announcements.filter(a=>a.supplier===s).length,inc=incidents.filter(i=>i.supplier===s).length;return `<div class="card supplier-click-card supplier-card" role="button" tabindex="0" data-supplier-index="${idx}" data-supplier-name="${s.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"><h3>${s}</h3><div class="meta">Dobavljač #${String(idx+1).padStart(3,'0')}<br>Status: <span style="color:var(--green)">AKTIVAN</span><br>Najave: <strong>${cnt}</strong> · Incidenti: <strong>${inc}</strong></div><button type="button" class="supplier-info-btn" tabindex="-1">INFO I POVIJEST</button></div>`}).join('')}
+function yardonRefreshMasterSupplierList(){
+  // Master Data is the sole supplier catalog; never resurrect legacy 1..262 seed names.
+  let m=null;
+  try{m=window.YardivoMasterDataV583?.all?.()}catch(_){}
+  if(!m||!Array.isArray(m.suppliers)){
+    try{m=JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'null')}catch(_){}
+  }
+  const names=(Array.isArray(m?.suppliers)?m.suppliers:[])
+    .filter(x=>x&&x.active!==false&&String(x.name||'').trim())
+    .map(x=>String(x.name).trim());
+  suppliers.splice(0,suppliers.length,...new Set(names));
+}
+function renderSuppliers(q=''){yardonRefreshMasterSupplierList();const term=String(q||'').toLowerCase().trim();const data=suppliers.filter(s=>s.toLowerCase().includes(term));document.getElementById('supplierCount').textContent=`${data.length} / ${suppliers.length} dobavljača`;document.getElementById('supplierGrid').innerHTML=data.map(s=>{const idx=suppliers.indexOf(s),cnt=announcements.filter(a=>a.supplier===s).length,inc=incidents.filter(i=>i.supplier===s).length;return `<div class="card supplier-click-card supplier-card" role="button" tabindex="0" data-supplier-index="${idx}" data-supplier-name="${s.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"><h3>${s}</h3><div class="meta">Dobavljač #${String(idx+1).padStart(3,'0')}<br>Status: <span style="color:var(--green)">AKTIVAN</span><br>Najave: <strong>${cnt}</strong> · Incidenti: <strong>${inc}</strong></div><button type="button" class="supplier-info-btn" tabindex="-1">INFO I POVIJEST</button></div>`}).join('')}
 
 // FIX KLIK DOBAVLJAČA - event delegation na stvarni supplierGrid
 document.getElementById('supplierGrid')?.addEventListener('click',function(e){
@@ -86,7 +98,7 @@ document.getElementById('supplierGrid')?.addEventListener('keydown',function(e){
   if(Number.isInteger(idx)&&suppliers[idx])openSupplierProfile(suppliers[idx]);
 });
 
-function populateSuppliers(){const el=document.getElementById('supplierSelect');if(!el)return;el.innerHTML='<option value="">Odaberi dobavljača...</option>'+suppliers.map(s=>`<option value="${s.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}">${s}</option>`).join('')}
+function populateSuppliers(){yardonRefreshMasterSupplierList();const el=document.getElementById('supplierSelect');if(!el)return;el.innerHTML='<option value="">Odaberi dobavljača...</option>'+suppliers.map(s=>`<option value="${s.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}">${s}</option>`).join('')}
 
 function truckHistoryRecords(){
   const byPlate=new Map();
@@ -1962,15 +1974,32 @@ function renderReceiving(){
     </div>`;
   }).join('');
   if(host.innerHTML===nextHtml)return;
-  host.innerHTML=nextHtml;
-  host.querySelectorAll('[data-receiving-announcement-id]').forEach(row=>{
+  // Reconcile row-by-row to avoid blinking the entire Receiving view on each sync.
+  const bindRow=row=>{
     const open=()=>{
       const id=Number(row.dataset.receivingAnnouncementId);
       if(Number.isFinite(id)&&typeof openAnnouncementDetail==='function')openAnnouncementDetail(id,'receiving');
     };
     row.addEventListener('click',e=>{if(e.target.closest('button,a,input,select,textarea'))return;open()});
     row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}});
-  });
+  };
+  const draft=document.createElement('div');
+  draft.innerHTML=nextHtml;
+  const incoming=[...draft.children],current=[...host.children];
+  const sameOrder=incoming.length===current.length&&incoming.every((row,i)=>
+    row.dataset.receivingAnnouncementId&&
+    row.dataset.receivingAnnouncementId===current[i]?.dataset?.receivingAnnouncementId);
+  if(sameOrder){
+    incoming.forEach((row,i)=>{
+      if(current[i].outerHTML!==row.outerHTML){
+        bindRow(row);
+        current[i].replaceWith(row);
+      }
+    });
+  }else{
+    host.replaceChildren(...incoming);
+    incoming.forEach(bindRow);
+  }
 }
 
 function animateYardTruckToDock(a){
