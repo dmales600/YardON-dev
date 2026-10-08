@@ -97,7 +97,7 @@ check('single canonical Reception confirmation across both Supabase emitters',()
  const supplierDeliveries=read('supabase/functions/yardivo-supplier-deliveries/index.ts');
  for(const source of [supplier,supplierDeliveries]){
   assert(source.includes("'SUP-CONFIRMED-'+String(x.id)"));
-  const i=source.indexOf('async function notifyConfirmed(');
+  const i=source.indexOf(source===supplier?'async function notifyConfirmed(':'async function notifyConfirmedToReception(');
   const j=source.indexOf('async function ',i+18);
   const block=source.slice(i,j<0?i+2100:j);
   assert(block.includes("kind==='NEW'&&String(v?.supplierDeliveryId||'')===String(x.id)"));
