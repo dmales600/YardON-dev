@@ -170,6 +170,10 @@ jobs:
                   const el=document.getElementById(id);
                   return !el||getComputedStyle(el).display==='none';
                 });
+                // Allow first authorization reconciliation to complete before measuring
+                // repeated background syncs (do not count legitimate initial menu setup).
+                window.dispatchEvent(new CustomEvent('yardivo:data-synced'));
+                await new Promise(resolve=>setTimeout(resolve,650));
                 const nodes=[document.querySelector('.nav'),document.getElementById('homeMenuGrid')].filter(Boolean);
                 let changed=0;const names={};
                 const watchers=nodes.map(node=>{
