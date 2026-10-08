@@ -45,12 +45,12 @@ function moveSmartIntoMaster(){
 function smartOn(){const m=readMaster(), c=cfg(), s={...c,...(m.smart||{})};return s.enabled===true&&String(s.mode||'').toUpperCase()!=='PAUSED'}
 function canSeeSmart(){const r=role();if(['admin','inventory','reception'].includes(r))return true;if(r==='manager')return window.yardivoManagerSectionAllowed?.('smartReplanning')===true;return false}
 function syncSmartNav(){
- const on=smartOn(),allowed=canSeeSmart();let nav=document.querySelector('.nav-btn[data-view="smartReplanning"]');
- if(on&&allowed&&!nav){const anchor=document.querySelector('.nav-btn[data-view="liveYard"]')||document.querySelector('.nav-btn[data-view="controlTower"]');if(anchor){anchor.insertAdjacentHTML('afterend','<button class="nav-btn" data-view="smartReplanning"><span>⚡</span> YARDIVO SMART</button>');nav=document.querySelector('.nav-btn[data-view="smartReplanning"]')}}
- if(nav){nav.hidden=!(on&&allowed);nav.classList.toggle('role-hidden',!(on&&allowed));nav.style.setProperty('display',on&&allowed?'':'none',on&&allowed?'':'important')}
- if(!on){const view=$('smartReplanning');if(view){view.classList.remove('active');view.style.setProperty('display','none','important')}}
- try{window.YardivoSmartReplanning?.applyState?.()}catch(_){}
+ // SMART controls remain in Master Settings; never create or reveal a separate section.
+ document.querySelector('.nav-btn[data-view="smartReplanning"]')?.remove();
+ const view=$('smartReplanning');
+ if(view&&!view.classList.contains('active'))view.remove();
 }
+
 async function persistSmartParamsFromPanel(){
  if(smartSaving)return;const p=$('yardivoSmartEngineSettingsV583');if(!p)return;smartSaving=true;
  try{
