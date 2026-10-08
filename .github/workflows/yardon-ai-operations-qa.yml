@@ -8,6 +8,7 @@ on:
       - "index.html"
       - "styles/yardon-ai-operations-v1.css"
       - "modules/ai/yardon-ai-operations-v1.js"
+      - "modules/legacy/yardivo-v583-timeline-next-arrivals-js.js"
       - "modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js"
       - "modules/receiving/service.js"
       - "modules/operations/yardon-ai-plan-map-authority-v1.js"
@@ -43,12 +44,17 @@ jobs:
       - name: Syntax check AI Operations
         run: |
           node --check modules/ai/yardon-ai-operations-v1.js
+          node --check modules/legacy/yardivo-v583-timeline-next-arrivals-js.js
           node --check modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
           node --check modules/receiving/service.js
           node --check modules/operations/yardon-ai-plan-map-authority-v1.js
           test -s styles/yardon-ai-operations-v1.css
           grep -q "AI_CONTROL_OFF" supabase/functions/yardivo-yard-dispatch/index.ts
           grep -q "AI_CONTROL_OFF" supabase/functions/yardivo-ai-operations/index.ts
+          grep -q "GEMINI_FALLBACK" supabase/functions/yardivo-ai-operations/index.ts
+          grep -q "dedupeNormalized" supabase/functions/yardivo-ai-operations/index.ts
+          grep -q "PENDING_INVENTORY" supabase/functions/yardivo-ai-operations/index.ts
+          grep -q "AI_RAMP_CHANGE_REQUEST" supabase/functions/yardivo-ai-operations/index.ts
           grep -q "ASSISTANT_DISABLED_BY_ADMIN" supabase/functions/yardivo-ai/index.ts
           grep -q "yardivoAiAssistantToggle" modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
           grep -q "yardivoAiControlToggle" modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
@@ -156,6 +162,10 @@ jobs:
               await page.evaluate(()=>document.querySelector('[data-yaio-tab="decisions"]')?.click());
               await page.waitForTimeout(80);
               if(!await page.getByText('R2 je zauzeta dulje od plana.',{exact:true}).isVisible())throw new Error(role+' AI decision missing');
+              if(['inventory','manager'].includes(role)){
+                if(await page.locator('[data-yaio-decision-action="approve"]').count()<1)throw new Error(role+' AI approve action missing');
+                if(await page.locator('[data-yaio-decision-action="reject"]').count()<1)throw new Error(role+' AI reject action missing');
+              }
               if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
               await context.close();
             }
@@ -212,6 +222,34 @@ jobs:
               if(errors.length)throw new Error('Admin settings page errors: '+errors.join(' | '));
               await context.close();
             }
+            {
+              const page=await browser.newPage({viewport:{width:1200,height:800}});
+              const now=new Date(),today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+              await page.setContent(`<!doctype html><html><body>
+                <div id="yardivoTodayTimelineZone"></div>
+                <script>
+                  window.currentSession={role:'inventory',app_role:'inventory',warehouses:['W001']};
+                  window.yardivoLocalDateV583=()=>'${today}';
+                  window.yardivoCanonicalWarehouseV583=()=> 'W001';
+                  let announcements=[
+                    {id:'A-LATE',supplierDeliveryId:'DEL-1',supplier:'dobavljač2',date:'${today}',time:'06:00',warehouse:'W001',pallets:15,status:'Kašnjenje',plannedDock:'R1',updatedAt:'${today}T07:00:00'},
+                    {id:'A-LATE-DUP',supplierDeliveryId:'DEL-1',supplier:'dobavljač2',date:'${today}',time:'06:00',warehouse:'W001',pallets:15,status:'Stigao',plannedDock:'R1',updatedAt:'${today}T07:05:00'}
+                  ];
+                  localStorage.setItem('yardivo_master_data_registry_v583',JSON.stringify({suppliers:[{name:'dobavljač2',active:true}]}));
+                </script>
+              </body></html>`);
+              await page.addScriptTag({path:'modules/legacy/yardivo-v583-timeline-next-arrivals-js.js'});
+              await page.waitForTimeout(80);
+              const state=await page.evaluate(()=>({
+                summary:document.querySelector('#yardivoTodayTimeline .yv-tl-summary b')?.textContent||'',
+                text:document.querySelector('#yardivoTodayTimeline')?.textContent||''
+              }));
+              if(!/^1 dolazaka danas/.test(state.summary))throw new Error('Today Timeline must count one deduplicated late arrival, got: '+state.summary);
+              if(!/dobavljač2/i.test(state.text))throw new Error('Today Timeline missing dobavljač2');
+              if(!/R1/.test(state.text))throw new Error('Today Timeline missing AI planned R1');
+              await page.close();
+            }
+
             await browser.close();
             console.log('YARDON_AI_OPERATIONS_QA_PASS');
           })().catch(e=>{console.error(e);process.exit(1)});
