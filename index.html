@@ -8,6 +8,13 @@ Designed & Developed by YardOn
 <!-- YardOn BUILD 20260908-dev-v1.0-maps-fullscreen-day-drilldown -->
 <html lang="hr">
 <head>
+<style id="yardon-canonical-hidden-operational-panels">
+/* Hide legacy duplicate operational pages before first paint.
+   The YARDIVO SMART engine and Master controls remain enabled. */
+[data-view="aiOperations"],[data-home-target="aiOperations"],
+[data-view="smartReplanning"],[data-home-target="smartReplanning"],
+#aiOperations,#smartReplanning{display:none!important;visibility:hidden!important}
+</style>
 <script id="yardivo-canonical-warehouse-helper-v583" src="./modules/master-data/runtime/phase5-001-yardivo-canonical-warehouse-helper-v583.js"></script>
 <meta content="20260912-dev-v1.0-master-runtime-sync-final" name="yardivo-build"/>
 <link href="./favicon-32.png?v=3" rel="icon" sizes="32x32" type="image/png"/>
@@ -192,7 +199,7 @@ Designed & Developed by YardOn
 <button class="nav-btn" data-view="homeMenu"><span>⌂</span> Početni izbornik</button>
 <button class="nav-btn active" data-view="dashboard"><span>▦</span> Nadzorna ploča</button>
 <button class="nav-btn" data-view="controlTower"><span>◉</span> Control Tower <b class="nav-badge" id="ctCriticalBadge" style="display:none">0</b></button>
-<button class="nav-btn" data-view="aiOperations"><span>✦</span> AI Operations</button>
+
 <button class="nav-btn" data-view="checkin"><span>▤</span> Prijava dolaska</button>
 <button class="nav-btn" data-view="docks"><span>▥</span> Rampe</button>
 <button class="nav-btn" data-view="suppliers"><span>◉</span> Dobavljači</button>
@@ -280,12 +287,7 @@ Designed & Developed by YardOn
 <p>Najavi dobavljača, palete, SKU, rampu, termin i vozača.</p>
 <small>OTVORI →</small>
 </button>
-<button class="home-menu-card" data-home-target="aiOperations" type="button">
-<span class="icon">✦</span>
-<h3>AI Operations</h3>
-<p>Predplan rampi, live prebacivanja, parking queue i AI preporuke.</p>
-<small>OTVORI →</small>
-</button>
+
 <button class="home-menu-card" data-home-target="dailyMap" type="button">
 <span class="icon">▤</span>
 <h3>Dnevna mapa</h3>
@@ -1292,7 +1294,7 @@ AUTOMATSKA PREPORUKA</small>
 </div>
 </div>
 </section>
-<section class="view" id="aiOperations">
+<section class="view" id="aiOperations" hidden aria-hidden="true" style="display:none!important">
 <div class="yaio-head">
 <div>
 <h1>✦ AI OPERATIONS</h1>
@@ -2318,7 +2320,7 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-analytics-v1" src="modules/supplier/yardivo-analytics-v1.js?v=20260925"></script>
 
 
-<script id="yardivo-manager-single-view-hard-lock-v5" src="modules/supplier/phase2-309-yardivo-manager-single-view-hard-lock-v5.js"></script>
+<!-- Retired: manager final authority v4 now owns single-view rendering. -->
 
 
 
