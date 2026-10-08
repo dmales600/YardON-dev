@@ -21,30 +21,19 @@ function canSee(){
  return false;
 }
 function apply(){
- const on=enabled(),visible=on&&canSee();
+ const on=enabled();
  document.documentElement.classList.toggle('yardivo-smart-on',on);
  document.documentElement.classList.toggle('yardivo-smart-off',!on);
+ // The SMART service stays enabled, but its former navigation page is retired.
  const nav=document.querySelector('.nav-btn[data-view="smartReplanning"]');
- if(nav){
-   nav.hidden=!visible;
-   nav.classList.toggle('role-hidden',!visible);
-   nav.style.setProperty('display',visible?'':'none',visible?'':'important');
- }
+ if(nav)nav.remove();
  const view=document.getElementById('smartReplanning');
- if(view&&!visible){
-   view.classList.remove('active');
-   view.hidden=true;
-   view.style.setProperty('display','none','important');
-   if(document.querySelector('.view.active')===null){
-     try{window.openAppView?.('homeMenu')}catch(_){}
-   }
- }else if(view&&visible){
-   view.hidden=false;
-   view.style.removeProperty('display');
+ if(view){
+   if(view.classList.contains('active'))window.YardivoRoleStableFinal?.open?.('homeMenu');
+   view.remove();
  }
- /* Settings control remains available so SMART can be enabled in the future.
-    Supplier slot recommendation is independent and is intentionally untouched. */
 }
+
 ['yardivo:login','yardivo:data-synced','yardivo:master-data-changed','yardivo:smart-system-state']
  .forEach(ev=>window.addEventListener(ev,()=>setTimeout(apply,30)));
 window.addEventListener('storage',e=>{if(e.key===MASTER||e.key===CFG)setTimeout(apply,10)});
