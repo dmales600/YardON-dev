@@ -159,7 +159,7 @@ function mirrorInternal(x){
       supplierNote:x.note||'',
       // Supplier/Gate store "R1"; operational maps use numeric dock 1.
       // Never leave a string "R1" in numeric comparisons/occupancy logic.
-      dock:(()=>{const d=String(x.dock||'').trim();return /^R?\\d+$/i.test(d)?Number(d.replace(/^R/i,'')):0})(),
+      dock:(()=>{const d=String(x.dock||'').trim();return /^R?[0-9]+$/i.test(d)?Number(d.replace(/^R/i,'')):0})(),
       status:internalStatus,
       supplierApprovalStatus:x.status,
       supplierReviewNote:x.review_note||'',
