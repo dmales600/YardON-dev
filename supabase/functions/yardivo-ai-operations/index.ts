@@ -217,6 +217,7 @@ Deno.serve(async(req:Request)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:CORS});if(req.method!=="POST")return J({ok:false,error:"Method not allowed"},405);
  try{const p=await profile(req),b=await req.json().catch(()=>({})),action=String(b.action||"snapshot").toLowerCase();if(action==="health")return J({ok:true,provider:"gemini",geminiKeyPresent:Boolean(geminiKey()),model:geminiModel()});
   if(action==="smart_activity"){
+    if(!["admin","inventory","reception"].includes(String(p.role)))throw new Error("Nema ovlasti za YARD ON SMART povijest.");
     const m=await master(),allowed=new Set(allowedWarehouses(p,m).map((w:any)=>String(w.id)));
     const data=await readState("yardivo_ai_operations_plan_log_v1",[]);
     const events=(Array.isArray(data)?data:[]).filter((x:any)=>allowed.has(String(x?.warehouse||"")))
