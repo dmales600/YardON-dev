@@ -954,6 +954,18 @@ function renderDailyRampCapacity(){
   }).join('');
 }
 
+function yardonMasterSupplierAllowed(name){
+  const n=String(name||'').trim().toLocaleLowerCase('hr-HR');if(!n)return false;
+  try{
+    const d=window.YardivoAppStateV583?.master?.()||JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}')||{};
+    const rows=Array.isArray(d.suppliers)?d.suppliers:[];
+    return rows.some(x=>{
+      if(!x||x.active===false)return false;
+      return [x.name,x.id,x.supplier_code,x.code].some(v=>String(v||'').trim().toLocaleLowerCase('hr-HR')===n);
+    });
+  }catch(_){return false}
+}
+
 function renderDailyMap(){
   const host=document.getElementById('dailyMapBoard');if(!host)return;
   const date=dailyMapDateValue();
@@ -972,7 +984,7 @@ function renderDailyMap(){
   const whBadge=document.getElementById('dailyMapWarehouse');
   if(whBadge)whBadge.textContent=whLabel(wh).toUpperCase();
 
-  const all=announcements.filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date);
+  const all=announcements.filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date&&yardonMasterSupplierAllowed(a.supplier));
   const totalPal=all.reduce((s,a)=>s+Number(a.pallets||0),0);
   const totalTrucks=all.reduce((s,a)=>s+truckCountForPallets(a.pallets),0);
   const late=all.filter(a=>operationalPlanStatus(a)==='Kašnjenje').length;
@@ -1815,6 +1827,7 @@ function receivingFilteredData(){
   const status=document.getElementById('receivingStatusFilter')?.value||'ALL';
   return announcements
     .filter(a=>a.date===date&&(a.warehouse||yardivoCanonicalWarehouseV583())===wh)
+    .filter(a=>yardonMasterSupplierAllowed(a.supplier))
     .filter(a=>{
       const hay=[a.supplier,a.plannedPlate,a.plannedDriver,a.arrivalPlate,a.arrivalDriver,a.time].map(v=>String(v||'').toLowerCase()).join(' ');
       return !q||hay.includes(q);
@@ -1843,12 +1856,13 @@ function renderReceiving(){
   }
   if(!data.length){host.innerHTML='<div class="receiving-empty">Nema najava za odabrani datum, skladište i filter.</div>';return}
   host.innerHTML=data.map(a=>{
-    const meta=receivingStatusMeta(a),st=receivingStatus(a);
-    return `<div class="receiving-row ${st==='Odbijen'?'status-odbijen':st==='NIJE DOŠAO'?'status-nije-dosao':''}" data-receiving-announcement-id="${a.id}" role="button" tabindex="0" title="Klikni za detalje najave" style="--receiving-color:${meta.color}">
+    const meta=receivingStatusMeta(a),st=receivingStatus(a),lateText=latenessLabel(a),isLate=!!lateText;
+    const lateStyle=isLate?'background:linear-gradient(90deg,rgba(113,19,28,.58),rgba(62,13,20,.34));border-color:#d84e5d;box-shadow:inset 5px 0 0 #ff5a67;':'';
+    return `<div class="receiving-row ${isLate?'status-kasni ':''}${st==='Odbijen'?'status-odbijen':st==='NIJE DOŠAO'?'status-nije-dosao':''}" data-receiving-announcement-id="${a.id}" role="button" tabindex="0" title="Klikni za detalje najave" style="--receiving-color:${meta.color};${lateStyle}">
       <div class="receiving-supplier">
         <strong>${a.supplier}</strong>
         <span class="receiving-status-pill" style="color:${meta.color}">${meta.label}</span>
-        ${latenessLabel(a)?`<span class="${hasPhysicallyArrived(a)?'arrived-late-badge':'live-late-badge'}">${latenessLabel(a)}</span>`:''}
+        ${lateText?`<span class="${hasPhysicallyArrived(a)?'arrived-late-badge':'live-late-badge'}">${lateText}</span>`:''}
         ${a.orderNumber?`<div class="receiving-order-number">Po narudžbi br. <strong>${a.orderNumber}</strong></div>`:''}
       </div>
       <div class="receiving-cell"><small>TERMIN</small><strong>${a.time||'—'}</strong></div>
@@ -1860,6 +1874,14 @@ function renderReceiving(){
       </div>
     </div>`;
   }).join('');
+  host.querySelectorAll('[data-receiving-announcement-id]').forEach(row=>{
+    const open=()=>{
+      const id=Number(row.dataset.receivingAnnouncementId);
+      if(Number.isFinite(id)&&typeof openAnnouncementDetail==='function')openAnnouncementDetail(id,'receiving');
+    };
+    row.addEventListener('click',e=>{if(e.target.closest('button,a,input,select,textarea'))return;open()});
+    row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}});
+  });
 }
 
 function animateYardTruckToDock(a){
