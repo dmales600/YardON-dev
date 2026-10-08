@@ -54,11 +54,14 @@ async function removeSupplierRequestNotification(id:any,authUserId:any){
   await mutateNotifications(authUserId,rows=>rows.filter(v=>String(v?.id)!==nid&&String(v?.supplierDeliveryId||'')!==String(id)));
 }
 async function notifyConfirmedToReception(x:any,authUserId:any,kind='NEW'){
-  const id=(kind==='RESCHEDULE'?'SUP-RESCHEDULED-':'SUP-CONFIRMED-')+String(x.id)+'-'+String(x.updated_at||'');
+  const id=(kind==='RESCHEDULE'?'SUP-RESCHEDULED-'+String(x.id)+'-'+String(x.updated_at||''):'SUP-CONFIRMED-'+String(x.id));
   const title=kind==='RESCHEDULE'?'PROMJENA TERMINA PRIHVAĆENA':'NOVA NAJAVA';
   const body=`${x.supplier_name||x.supplier_username||"Dobavljač"} · ${x.delivery_date||""} ${String(x.requested_time||"").slice(0,5)} · ${String(x.warehouse||"")}${x.dock?" · "+x.dock:""}`;
   const n={id,event:kind==='RESCHEDULE'?'TERM_CHANGE':'ANNOUNCEMENT_CREATED',type:'green',title,body,at:new Date().toISOString(),createdAt:new Date().toISOString(),roles:['admin','manager','reception'],supplier:x.supplier_name||x.supplier_username||'',supplierDeliveryId:String(x.id),publicAnnouncementId:String(x.client_id||''),announcementId:'SUPDEL-'+String(x.id),warehouse:String(x.warehouse||''),location:String(x.location||''),readBy:{}};
-  await mutateNotifications(authUserId,rows=>[...rows.filter(v=>String(v?.id)!==id),n]);
+  await mutateNotifications(authUserId,rows=>[...rows.filter(v=>String(v?.id)!==id&&!(
+    kind==='NEW'&&String(v?.supplierDeliveryId||'')===String(x.id)&&
+    String(v?.event||'').toUpperCase()==='ANNOUNCEMENT_CREATED'
+  )),n]);
 }
 async function notifySmartProposalToSupplier(x:any,authUserId:any,reason:string){
   const id='TERM-PROPOSAL-'+String(x.id)+'-'+String(x.updated_at||'');
