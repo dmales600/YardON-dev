@@ -147,18 +147,21 @@ function setVisible(el,shown,display){
  if(el.style.getPropertyValue('visibility')!==visibility)
   el.style.setProperty('visibility',visibility,'important');
 }
+function setRoleClass(el,name,enabled){
+ if(el.classList.contains(name)!==enabled)el.classList.toggle(name,enabled);
+}
 function syncMenu(active=String(document.body.dataset.managerView||'homeMenu')){
  if(!isManager())return;
  document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{
    const id=String(b.dataset.view||''),allowed=managerViewAllowed(id);
    setVisible(b,allowed,'flex');
-   b.classList.toggle('role-hidden',!allowed);
-   b.classList.toggle('active',allowed&&id===active);
+   setRoleClass(b,'role-hidden',!allowed);
+   setRoleClass(b,'active',allowed&&id===active);
  });
  document.querySelectorAll('#homeMenuGrid [data-home-target]').forEach(c=>{
    const id=String(c.dataset.homeTarget||''),allowed=managerViewAllowed(id)&&id!=='homeMenu';
    setVisible(c,allowed,'block');
-   c.classList.toggle('role-hidden',!allowed);
+   setRoleClass(c,'role-hidden',!allowed);
  });
 }
 function forceView(raw){
