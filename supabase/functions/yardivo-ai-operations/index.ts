@@ -49,6 +49,25 @@ async function geminiPlanOrder(rows:any[],w:any){
  if(ids.length!==input.length||new Set(ids).size!==ids.length||ids.some((id:string)=>!valid.has(id)))throw new Error("GEMINI_INVALID_PLAN_ORDER");
  return ids;
 }
+
+function fallbackPlanOrder(rows:any[]){
+ return rows.slice().sort((a:any,b:any)=>String(a.time||"").localeCompare(String(b.time||""))||String(a.id||"").localeCompare(String(b.id||""))).map((x:any)=>String(x.id));
+}
+function dedupeNormalized(rows:any[]){
+ const out=new Map<string,any>();
+ const score=(x:any)=>{
+  const st=String(x?.status||"").toLowerCase();
+  const rank=["receiving","dock","arrival","confirmed","pending"].includes(st)?5:["stigao","na rampi","zaprimanje"].some(k=>st.includes(k))?4:1;
+  return rank*1e15+(Date.parse(String(x?.updated_at||""))||0);
+ };
+ for(const x of rows){
+  const key=String(x?.supplier_delivery_id||x?.id||"");
+  if(!key)continue;
+  const prev=out.get(key);
+  if(!prev||score(x)>=score(prev))out.set(key,x);
+ }
+ return [...out.values()];
+}
 function planWarehouse(rows:any[],w:any,aiOrderIds:string[]=[]){
  const ramps=rampList(w),tracks=new Map<number,{r:any,next:number,jobs:number}>();for(const r of ramps)tracks.set(r.number,{r,next:mins(r.from),jobs:0});const planned:any[]=[];
  const rank=new Map(aiOrderIds.map((id:string,i:number)=>[String(id),i]));for(const a of rows.slice().sort((x,y)=>(rank.get(String(x.id))??999999)-(rank.get(String(y.id))??999999)||String(x.time).localeCompare(String(y.time))||String(x.id).localeCompare(String(y.id)))){
@@ -63,24 +82,110 @@ function planWarehouse(rows:any[],w:any,aiOrderIds:string[]=[]){
 function planSummary(plan:any[],warehouses:any[]){const total=plan.length,assigned=plan.filter(x=>x.planned_dock).length,waiting=plan.filter(x=>x.parking_risk&&x.plan_issue==="WAIT_EXPECTED").length,noCapacity=plan.filter(x=>x.plan_issue==="NO_CAPACITY"||x.plan_issue==="NO_ACTIVE_RAMPS").length;let used=0,open=0;for(const w of warehouses){for(const r of rampList(w)){const a=mins(r.from),b=mins(r.to);if(Number.isFinite(a)&&Number.isFinite(b)&&b>a)open+=b-a}}for(const x of plan)if(x.planned_dock)used+=Number(x.duration_minutes||0);return {total,assigned,waiting,no_capacity:noCapacity,utilization_pct:open?Math.min(100,Math.round(used/open*100)):0}}
 async function readState(key:string,fallback:any){const {data,error}=await db.from("yardivo_app_state").select("value_json").eq("key",key).eq("deleted",false).maybeSingle();if(error)throw error;return parseJson(data?.value_json,fallback)}
 async function writeState(key:string,value:any,actor:string){const {data,error}=await db.from("yardivo_app_state").select("key").eq("key",key).eq("deleted",false).maybeSingle();if(error)throw error;const patch={value_json:JSON.stringify(value),updated_at:new Date().toISOString(),updated_by:actor,client_id:"yardivo-ai-operations",deleted:false};const q=data?.key?await db.from("yardivo_app_state").update(patch).eq("key",key):await db.from("yardivo_app_state").insert({key,...patch});if(q.error)throw q.error}
+async function updatePersistedPlan(id:string,x:any,p:any,source:string){
+ const nextDock=x.planned_dock?`R${x.planned_dock}`:null;
+ const nextStart=x.planned_dock&&x.planned_start?isoSlot(x.date,x.planned_start):null;
+ const nextEnd=x.planned_dock&&x.planned_end?isoSlot(x.date,x.planned_end):null;
+ const now=new Date().toISOString();
+ const {error:ue}=await db.from("yardivo_supplier_deliveries").update({planned_dock:nextDock,planned_start:nextStart,planned_end:nextEnd,planning_source:source,planned_at:now}).eq("id",id);if(ue)throw ue;
+ const {data:annRows,error:ar}=await db.from("yardivo_announcements").select("announcement_id,payload").eq("deleted",false).contains("payload",{supplierDeliveryId:id});if(ar)throw ar;
+ for(const a of annRows||[]){
+  const pay={...(a?.payload&&typeof a.payload==="object"?a.payload:{}),plannedDock:x.planned_dock||null,aiPlannedDock:nextDock,aiPlannedStart:x.planned_start||null,aiPlannedEnd:x.planned_end||null,aiPlanUpdatedAt:now,aiPlanSource:source};
+  const {error:ae}=await db.from("yardivo_announcements").update({payload:pay,updated_by:"ai-operations:"+String(p.username||p.role||"system"),updated_at:now}).eq("announcement_id",a.announcement_id).eq("deleted",false);if(ae)throw ae;
+ }
+ return {nextDock,nextStart,nextEnd,now};
+}
+function sameDecision(a:any,b:any){
+ return String(a?.supplierDeliveryId||"")===String(b?.supplierDeliveryId||"")
+  &&String(a?.status||"")==="PENDING_INVENTORY"
+  &&String(a?.old?.dock||"")===String(b?.old?.dock||"")
+  &&String(a?.old?.time||"")===String(b?.old?.time||"")
+  &&String(a?.newSlot?.dock||"")===String(b?.newSlot?.dock||"")
+  &&String(a?.newSlot?.time||"")===String(b?.newSlot?.time||"");
+}
+function changeReason(x:any,oldDock:any,oldStart:any,nextDock:any,nextStart:any){
+ const parts=[];
+ if(String(oldDock||"")!==String(nextDock||""))parts.push(`AI predlaže promjenu rampe ${oldDock||"R-"} → ${nextDock||"R-"} zbog novog rasporeda kapaciteta i konflikata oko termina.`);
+ if(String(oldStart||"")!==String(nextStart||""))parts.push(`Planirani početak bi se pomaknuo s ${oldStart?new Date(oldStart).toISOString().slice(11,16):x.time} na ${x.planned_start||x.time}.`);
+ if(Number(x.shift_minutes||0)>0)parts.push(`Očekivano čekanje prema novom planu je oko ${Number(x.shift_minutes)} min.`);
+ if(!parts.length)parts.push("AI je pronašao sigurniji operativni raspored.");
+ parts.push("Promjena se NE primjenjuje automatski; čeka potvrdu Zaliha/Admina.");
+ return parts.join(" ");
+}
 async function persistPlan(plan:any[],p:any){
  const ids=uniq(plan.map(x=>x.supplier_delivery_id).filter(Boolean));if(!ids.length)return [];
- const {data:rows,error}=await db.from("yardivo_supplier_deliveries").select("id,status,planned_dock,planned_start,planned_end").in("id",ids);if(error)throw error;const map=new Map((rows||[]).map((x:any)=>[String(x.id),x])),now=new Date().toISOString(),changes:any[]=[];
- for(const x of plan){const id=String(x.supplier_delivery_id||"");if(!id)continue;const old:any=map.get(id);if(!old||["rejected","completed","cancelled","canceled"].includes(String(old.status||"").toLowerCase()))continue;const nextDock=x.planned_dock?`R${x.planned_dock}`:null,nextStart=x.planned_dock&&x.planned_start?isoSlot(x.date,x.planned_start):null,nextEnd=x.planned_dock&&x.planned_end?isoSlot(x.date,x.planned_end):null;const oldDock=String(old.planned_dock||"")||null,oldStart=old.planned_start?new Date(old.planned_start).toISOString():null;if(oldDock===nextDock&&oldStart===nextStart)continue;
-  const {error:ue}=await db.from("yardivo_supplier_deliveries").update({planned_dock:nextDock,planned_start:nextStart,planned_end:nextEnd,planning_source:"AI_OPERATIONS",planned_at:now}).eq("id",id);if(ue)throw ue;
-  const pay={...(x.payload||{}),plannedDock:x.planned_dock||null,aiPlannedDock:nextDock,aiPlannedStart:x.planned_start||null,aiPlannedEnd:x.planned_end||null,aiPlanUpdatedAt:now,aiPlanSource:"AI_OPERATIONS"};const {error:ae}=await db.from("yardivo_announcements").update({payload:pay,updated_by:"ai-operations:"+String(p.username||p.role||"system"),updated_at:now}).eq("announcement_id",x.id).eq("deleted",false);if(ae)throw ae;
-  changes.push({id:`AI-PLAN-${x.id}-${Date.now()}-${changes.length}`,at:now,supplier:x.supplier,announcementId:x.id,supplierDeliveryId:id,warehouse:x.warehouse,problemType:x.planned_dock?"AI_PLAN_ASSIGNMENT":"AI_PLAN_NO_CAPACITY",old:{date:x.date,time:x.time,dock:dockNum(old.planned_dock)},newSlot:{date:x.date,time:x.planned_start||x.time,dock:x.planned_dock||null},reason:x.planned_dock?`AI Operations je planirao R${x.planned_dock} za ${x.planned_start} prema terminu, trajanju i raspoloživom kapacitetu rampi.`:"AI Operations trenutno nema siguran kapacitet za dodjelu rampe.",status:x.planned_dock?"AI_PLANNED":"NO_SAFE_SLOT",actor:String(p.username||p.role||"system")});
+ const {data:rows,error}=await db.from("yardivo_supplier_deliveries").select("id,status,planned_dock,planned_start,planned_end").in("id",ids);if(error)throw error;
+ const map=new Map((rows||[]).map((x:any)=>[String(x.id),x])),now=new Date().toISOString(),changes:any[]=[];
+ let log=await readState("yardivo_ai_operations_plan_log_v1",[]);if(!Array.isArray(log))log=[];
+ for(const x of plan){
+  const id=String(x.supplier_delivery_id||"");if(!id)continue;
+  const old:any=map.get(id);if(!old||["rejected","completed","cancelled","canceled"].includes(String(old.status||"").toLowerCase()))continue;
+  const nextDock=x.planned_dock?`R${x.planned_dock}`:null,nextStart=x.planned_dock&&x.planned_start?isoSlot(x.date,x.planned_start):null;
+  const oldDock=String(old.planned_dock||"")||null,oldStart=old.planned_start?new Date(old.planned_start).toISOString():null;
+  if(oldDock===nextDock&&oldStart===nextStart)continue;
+
+  const alreadyPlanned=!!(oldDock||oldStart);
+  if(alreadyPlanned){
+   const req={
+    id:`AI-CHANGE-${x.id}-${Date.now()}-${changes.length}`,at:now,supplier:x.supplier,announcementId:x.id,supplierDeliveryId:id,warehouse:x.warehouse,
+    problemType:String(oldDock||"")!==String(nextDock||"")?"AI_RAMP_CHANGE_REQUEST":"AI_TIME_CHANGE_REQUEST",
+    old:{date:x.date,time:oldStart?oldStart.slice(11,16):x.time,dock:dockNum(oldDock)},
+    newSlot:{date:x.date,time:x.planned_start||x.time,end:x.planned_end||"",dock:x.planned_dock||null},
+    reason:changeReason(x,oldDock,oldStart,nextDock,nextStart),status:"PENDING_INVENTORY",actor:"YardOn AI"
+   };
+   if(!log.some((z:any)=>sameDecision(z,req))){log.push(req);changes.push(req)}
+   continue;
+  }
+
+  if(!x.planned_dock){
+   const noSlot={id:`AI-PLAN-${x.id}-${Date.now()}-${changes.length}`,at:now,supplier:x.supplier,announcementId:x.id,supplierDeliveryId:id,warehouse:x.warehouse,problemType:"AI_PLAN_NO_CAPACITY",old:{date:x.date,time:x.time,dock:null},newSlot:{date:x.date,time:x.time,dock:null},reason:"AI Operations trenutno nema siguran kapacitet za početnu dodjelu rampe.",status:"NO_SAFE_SLOT",actor:"YardOn AI"};
+   const duplicate=log.some((z:any)=>String(z?.supplierDeliveryId||"")===id&&String(z?.status||"")==="NO_SAFE_SLOT"&&String(z?.old?.date||"")===String(x.date));
+   if(!duplicate){log.push(noSlot);changes.push(noSlot)}
+   continue;
+  }
+
+  await updatePersistedPlan(id,x,p,"AI_OPERATIONS");
+  const assigned={id:`AI-PLAN-${x.id}-${Date.now()}-${changes.length}`,at:now,supplier:x.supplier,announcementId:x.id,supplierDeliveryId:id,warehouse:x.warehouse,problemType:"AI_PLAN_ASSIGNMENT",old:{date:x.date,time:x.time,dock:null},newSlot:{date:x.date,time:x.planned_start||x.time,end:x.planned_end||"",dock:x.planned_dock||null},reason:`YardOn AI je početno planirao R${x.planned_dock} za ${x.planned_start} prema terminu, trajanju i raspoloživom kapacitetu rampi.`,status:"AI_PLANNED",actor:"YardOn AI"};
+  log.push(assigned);changes.push(assigned);
  }
- if(changes.length){let log=await readState("yardivo_ai_operations_plan_log_v1",[]);if(!Array.isArray(log))log=[];log=[...log,...changes];if(log.length>500)log=log.slice(-500);await writeState("yardivo_ai_operations_plan_log_v1",log,String(p.username||"yardivo-ai-operations"))}
+ if(log.length>500)log=log.slice(-500);
+ if(changes.length)await writeState("yardivo_ai_operations_plan_log_v1",log,String(p.username||"yardivo-ai-operations"));
  return changes;
+}
+async function resolveChange(decisionId:string,approve:boolean,p:any){
+ if(!["admin","inventory","manager"].includes(String(p.role||"")))throw new Error("Samo Admin, Zalihe ili Manager mogu odlučiti o AI promjeni.");
+ let log=await readState("yardivo_ai_operations_plan_log_v1",[]);if(!Array.isArray(log))log=[];
+ const i=log.findIndex((x:any)=>String(x?.id||"")===String(decisionId||""));if(i<0)throw new Error("AI zahtjev nije pronađen.");
+ const d=log[i];if(String(d?.status||"")!=="PENDING_INVENTORY")throw new Error("AI zahtjev je već riješen.");
+ if(approve){
+  const id=String(d?.supplierDeliveryId||"");if(!id)throw new Error("Nedostaje delivery ID.");
+  const {data:delivery,error}=await db.from("yardivo_supplier_deliveries").select("id,status").eq("id",id).maybeSingle();if(error)throw error;
+  if(!delivery||["rejected","completed","cancelled","canceled"].includes(String(delivery.status||"").toLowerCase()))throw new Error("Dostava više nije aktivna.");
+  const x={date:String(d?.newSlot?.date||""),planned_dock:d?.newSlot?.dock||null,planned_start:String(d?.newSlot?.time||""),planned_end:String(d?.newSlot?.end||"")};
+  await updatePersistedPlan(id,x,p,"AI_OPERATIONS_APPROVED");
+  d.status="APPROVED";d.resolvedAt=new Date().toISOString();d.resolvedBy=String(p.username||p.role||"");
+ }else{
+  d.status="REJECTED";d.resolvedAt=new Date().toISOString();d.resolvedBy=String(p.username||p.role||"");
+ }
+ log[i]=d;await writeState("yardivo_ai_operations_plan_log_v1",log,String(p.username||"yardivo-ai-operations"));
+ return d;
 }
 
 Deno.serve(async(req:Request)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:CORS});if(req.method!=="POST")return J({ok:false,error:"Method not allowed"},405);
  try{const p=await profile(req),b=await req.json().catch(()=>({})),action=String(b.action||"snapshot").toLowerCase();if(action==="health")return J({ok:true,provider:"gemini",geminiKeyPresent:Boolean(geminiKey()),model:geminiModel()});
   const aiCfg=await readState("yardivo_auto_replan_cfg_v1",{enabled:false,mode:"PAUSED"});
-  if(aiCfg?.enabled!==true||String(aiCfg?.mode||"").toUpperCase()==="PAUSED")return J({ok:false,error:"AI upravljanje YardOnom je isključeno od strane Admina.",code:"AI_CONTROL_OFF"},403);if(!["snapshot","plan_day"].includes(action))return J({ok:false,error:"Nepoznata akcija."},400);const date=safeDate(b.date||new Date().toISOString().slice(0,10)),m=await master(),allowed=allowedWarehouses(p,m),requested=String(b.warehouse||"").trim(),selected=requested?allowed.filter((w:any)=>String(w.id)===requested):allowed;if(requested&&!selected.length)throw new Error("Skladište nije dodijeljeno ovom accountu.");const whIds=selected.map((w:any)=>String(w.id));if(!whIds.length)return J({ok:true,data:{date,warehouses:[],plan:[],passes:[],decisions:[],summary:{total:0,assigned:0,waiting:0,no_capacity:0,utilization_pct:0},generated_at:new Date().toISOString()}});
-  const aq=await db.from("yardivo_announcements").select("announcement_id,appointment_date,appointment_time,supplier,warehouse,status,payload,updated_at").eq("appointment_date",date).eq("deleted",false).in("warehouse",whIds).order("appointment_time",{ascending:true});if(aq.error)throw aq.error;const normalized=(aq.data||[]).map(normalizeAnnouncement),fullPlan:any[]=[],warehouseOut:any[]=[];for(const w of selected){const group=normalized.filter((x:any)=>x.warehouse===String(w.id)),aiOrder=group.length?await geminiPlanOrder(group,w):[],pp=planWarehouse(group,w,aiOrder);fullPlan.push(...pp.planned);warehouseOut.push({id:String(w.id),name:String(w.name||w.id),location_id:String(w.location_id||""),reception_from:String(w.reception_from||""),reception_to:String(w.reception_to||""),ramps:pp.ramps})}
+  if(aiCfg?.enabled!==true||String(aiCfg?.mode||"").toUpperCase()==="PAUSED")return J({ok:false,error:"AI upravljanje YardOnom je isključeno od strane Admina.",code:"AI_CONTROL_OFF"},403);
+  if(["approve_change","reject_change"].includes(action)){const d=await resolveChange(String(b.decision_id||""),action==="approve_change",p);return J({ok:true,data:{decision:d}})}
+  if(!["snapshot","plan_day"].includes(action))return J({ok:false,error:"Nepoznata akcija."},400);
+  const date=safeDate(b.date||new Date().toISOString().slice(0,10)),m=await master(),allowed=allowedWarehouses(p,m),requested=String(b.warehouse||"").trim(),selected=requested?allowed.filter((w:any)=>String(w.id)===requested):allowed;if(requested&&!selected.length)throw new Error("Skladište nije dodijeljeno ovom accountu.");const whIds=selected.map((w:any)=>String(w.id));if(!whIds.length)return J({ok:true,data:{date,warehouses:[],plan:[],passes:[],decisions:[],summary:{total:0,assigned:0,waiting:0,no_capacity:0,utilization_pct:0},generated_at:new Date().toISOString()}});
+  const aq=await db.from("yardivo_announcements").select("announcement_id,appointment_date,appointment_time,supplier,warehouse,status,payload,updated_at").eq("appointment_date",date).eq("deleted",false).in("warehouse",whIds).order("appointment_time",{ascending:true});if(aq.error)throw aq.error;
+  const normalized=dedupeNormalized((aq.data||[]).map(normalizeAnnouncement)),fullPlan:any[]=[],warehouseOut:any[]=[];
+  for(const w of selected){
+   const group=normalized.filter((x:any)=>x.warehouse===String(w.id));let aiOrder:string[]=[];
+   if(group.length){try{aiOrder=await geminiPlanOrder(group,w)}catch(e){console.warn("GEMINI_FALLBACK",e);aiOrder=fallbackPlanOrder(group)}}
+   const pp=planWarehouse(group,w,aiOrder);fullPlan.push(...pp.planned);warehouseOut.push({id:String(w.id),name:String(w.name||w.id),location_id:String(w.location_id||""),reception_from:String(w.reception_from||""),reception_to:String(w.reception_to||""),ramps:pp.ramps});
+  }
   const changes=await persistPlan(fullPlan,p);
   const from=date+"T00:00:00.000Z",to=new Date(new Date(from).getTime()+86400000).toISOString(),pq=await db.from("yardivo_delivery_passes").select("id,announcement_id,supplier_delivery_id,warehouse,supplier_name,appointment_at,dock,parking_slot,driver_name,driver_phone,vehicle_plate,state,gate_decision,last_instruction,checked_in_at,completed_at,updated_at").in("warehouse",whIds).gte("appointment_at",from).lt("appointment_at",to).order("appointment_at",{ascending:true});if(pq.error)throw pq.error;const passes=pq.data||[];
   let decisions:any[]=[];for(const key of ["yardivo_auto_replan_log_v1","yardivo_ai_operations_plan_log_v1"]){try{const z=await readState(key,[]);if(Array.isArray(z))decisions.push(...z)}catch{}}decisions=decisions.filter((x:any)=>String(x?.old?.date||x?.newSlot?.date||x?.at||"").slice(0,10)===date).sort((a:any,b:any)=>String(a.at||"").localeCompare(String(b.at||""))).slice(-200);
