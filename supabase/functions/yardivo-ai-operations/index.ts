@@ -300,6 +300,33 @@ Deno.serve(async(req:Request)=>{
     const preview=await previewSupplierRequest(p,String(b.delivery_id||""));
     return J({ok:true,data:preview});
   }
+  if(action==="record_request_review"){
+    if(!["admin","inventory"].includes(String(p.role)))throw new Error("Nema ovlasti za SMART odluku.");
+    const id=String(b.delivery_id||""),decision=String(b.decision||"");
+    if(!["confirmed","rejected"].includes(decision))throw new Error("Neispravna SMART odluka.");
+    const q=await db.from("yardivo_supplier_deliveries")
+      .select("id,supplier_name,supplier_username,warehouse,delivery_date,requested_time,status,review_note")
+      .eq("id",id).maybeSingle();
+    if(q.error)throw q.error;if(!q.data)throw new Error("Najava nije pronađena.");
+    if(String(q.data.status||"").toLowerCase()!==decision)throw new Error("Stanje najave ne odgovara SMART odluci.");
+    const accessible=allowedWarehouses(p,await master());
+    if(!accessible.some((w:any)=>String(w.id)===String(q.data.warehouse)))throw new Error("Nemate pristup skladištu.");
+    let log=await readState("yardivo_ai_operations_plan_log_v1",[]);
+    if(!Array.isArray(log))log=[];
+    const recordId="SMART-REQUEST-"+id+"-"+decision;
+    if(!log.some((x:any)=>String(x?.id)===recordId)){
+      const now=new Date().toISOString(),note=String(q.data.review_note||"");
+      const m=note.match(/SMART PREVIEW R(\d+)/i);
+      log.push({id:recordId,at:now,warehouse:String(q.data.warehouse),supplier:String(q.data.supplier_name||q.data.supplier_username||""),
+        supplierDeliveryId:id,status:decision==="confirmed"?"APPROVED":"REJECTED",problemType:"SUPPLIER_REQUEST_REVIEW",
+        actor:"YARD ON SMART",resolvedBy:String(p.username||p.role),resolvedRole:String(p.role),resolvedAt:now,
+        reason:decision==="confirmed"?"Zalihe su pregledale Dnevnu mapu i potvrdile zahtjev. Predviđena rampa može se promijeniti.":note.slice(0,350),
+        old:{date:String(q.data.delivery_date||""),time:String(q.data.requested_time||"").slice(0,5)},
+        newSlot:{date:String(q.data.delivery_date||""),time:String(q.data.requested_time||"").slice(0,5),dock:m?Number(m[1]):null}});
+      await writeState("yardivo_ai_operations_plan_log_v1",log.slice(-500),String(p.username||"YARDON_SMART"));
+    }
+    return J({ok:true,data:{id:recordId}});
+  }
   if(action==="smart_activity"){
     if(!["admin","inventory","reception"].includes(String(p.role)))throw new Error("Nema ovlasti za YARD ON SMART povijest.");
     const m=await master(),allowed=new Set(allowedWarehouses(p,m).map((w:any)=>String(w.id)));
