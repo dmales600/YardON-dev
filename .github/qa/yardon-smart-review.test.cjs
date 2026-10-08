@@ -75,4 +75,23 @@ check('SMART history records approvals, rejections and alternate proposals',()=>
  for(const marker of ['action==="record_request_review"','decision==="proposal_sent"',"problemType:\"SUPPLIER_REQUEST_REVIEW\"","await writeState(\"yardivo_ai_operations_plan_log_v1\""])
  assert(back.includes(marker),'missing '+marker);
 });
+check('Supplier confirmation private bell filtering permits only matching account',()=>{
+ const vm=require('node:vm'),notifications=read('modules/services/yardivo-notifications-final-v5.js');
+ const start=notifications.indexOf('function eventAllowedForRole(n,r){');
+ const end=notifications.indexOf('function assignedWarehouses(){',start);
+ assert(start>=0&&end>start);
+ const ctx={session:{authUserId:'sup-123',username:'supplier-one',role:'supplier'},
+   notificationSectionAllowed:()=>true,
+   sessionSnapshot(){return this.session}};
+ vm.runInNewContext(notifications.slice(start,end)+';globalThis.check=eventAllowedForRole;',ctx);
+ const own={targetSupplierAuthUserId:'sup-123',targetSupplierUsername:'supplier-one',event:'SUPPLIER_CONFIRMED'};
+ assert.equal(ctx.check(own,'supplier'),true);
+ assert.equal(ctx.check(own,'reception'),false);
+ assert.equal(ctx.check(own,'inventory'),false);
+ assert.equal(ctx.check(own,'admin'),false);
+ ctx.session={authUserId:'sup-456',username:'supplier-two',role:'supplier'};
+ assert.equal(ctx.check(own,'supplier'),false,'other suppliers must never see private notices');
+ assert.equal(ctx.check({event:'ANNOUNCEMENT_CREATED'},'supplier'),false);
+ assert(notifications.includes("if(r==='supplier')return true;"),'targeted supplier must bypass warehouse UI filtering');
+});
 console.log('YARDON_SMART_REQUEST_REVIEW_STATIC_QA_PASS '+passed+'/'+passed);
