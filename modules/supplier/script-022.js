@@ -1360,7 +1360,11 @@ function announcementStatusColor(a){
   return '#126fc9';
 }
 window.openAnnouncementDetail=function(id,returnView){
-  const a=announcements.find(x=>x.id===Number(id));if(!a)return;
+  const raw=announcements.find(x=>String(x.id)===String(id)||x.id===Number(id));if(!raw)return;
+  const deliveryId=String(raw.supplierDeliveryId||'').trim();
+  const a=deliveryId
+    ? (canonicalOperationalAnnouncements(announcements).find(x=>String(x.supplierDeliveryId||'')===deliveryId)||raw)
+    : raw;
   currentAnnouncementDetailId=a.id;
   announcementDetailReturnView=returnView||document.querySelector('.view.active')?.id||'dailyMap';
 
@@ -1376,7 +1380,7 @@ function renderAnnouncementDetail(){
   const a=announcements.find(x=>x.id===currentAnnouncementDetailId);if(!a)return;
   const status=operationalPlanStatus(a);
   const delay=operationalDelayText(a);
-  const actual=(a.actualDate&&a.actualTime)?`${a.actualDate} ${a.actualTime}`:'—';
+  const arrival=firstPhysicalArrivalDateTime(a);const actual=(a.actualDate&&a.actualTime)?`${a.actualDate} ${a.actualTime}`:(arrival?arrival.toLocaleString('hr-HR'):'—');
   const no=announcementNumber(a);
 
   document.getElementById('announcementDetailHero').innerHTML=`
@@ -1904,7 +1908,7 @@ function receivingFilteredData(){
   const date=receivingDateValue(),wh=receivingWarehouseValue();
   const q=(document.getElementById('receivingSearch')?.value||'').toLowerCase().trim();
   const status=document.getElementById('receivingStatusFilter')?.value||'ALL';
-  return announcements
+  return canonicalOperationalAnnouncements(announcements)
     .filter(a=>a.date===date&&(a.warehouse||yardivoCanonicalWarehouseV583())===wh)
     .filter(a=>yardonMasterSupplierAllowed(a.supplier))
     .filter(a=>{
@@ -1918,7 +1922,7 @@ function renderReceiving(){
   syncAllAnnouncementIdentities();
   const host=document.getElementById('receivingList');if(!host)return;
   const data=receivingFilteredData();
-  const allForDay=announcements.filter(a=>a.date===receivingDateValue()&&(a.warehouse||yardivoCanonicalWarehouseV583())===receivingWarehouseValue());
+  const allForDay=canonicalOperationalAnnouncements(announcements).filter(a=>a.date===receivingDateValue()&&(a.warehouse||yardivoCanonicalWarehouseV583())===receivingWarehouseValue());
   const counts={'U dolasku':0,'U dvorištu':0,'Na rampi':0,'Zaprimljeno':0,'Odbijen':0};
   allForDay.forEach(a=>counts[receivingStatus(a)]++);
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&el.textContent!==String(v))el.textContent=String(v)};
