@@ -1,0 +1,16 @@
+/* Single SMART approval popup and audit timeline; no independent second page. */
+#yardonSmartPopup{position:fixed;inset:0;z-index:20000;background:rgba(9,17,28,.68);display:flex;align-items:center;justify-content:center;padding:16px}
+#yardonSmartPopup[hidden]{display:none!important}
+#yardonSmartPopup .ys-modal{max-width:650px;width:100%;background:var(--card-bg,#fff);color:var(--text,#192638);border-radius:16px;padding:24px;box-shadow:0 25px 75px #0005;max-height:90vh;overflow:auto}
+#yardonSmartPopup .ys-modal h2{margin:0 0 10px}
+#yardonSmartPopup .ys-modal .ys-reason{padding:12px 14px;background:var(--surface,#f3f6f9);border-radius:10px;margin:12px 0}
+#yardonSmartPopup .ys-slots{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+#yardonSmartPopup .ys-slots>div{border:1px solid #a9b4c0;border-radius:10px;padding:12px}
+#yardonSmartPopup .ys-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;margin-top:18px}
+#yardonSmartPopup button{cursor:pointer;padding:9px 15px;border-radius:9px}
+#yardonSmartActivity{margin:12px 0}
+#yardonSmartActivity .ys-activity-list{max-height:320px;overflow:auto}
+#yardonSmartActivity .ys-event{display:flex;gap:12px;justify-content:space-between;border-bottom:1px solid #c3ccd3;padding:8px 0}
+#yardonSmartActivity .ys-event small{opacity:.7}
+#yardonSmartEngineStatus{padding:8px 0;font-weight:600}
+@media(max-width:600px){#yardonSmartPopup .ys-slots{grid-template-columns:1fr}}
