@@ -80,9 +80,8 @@ check('Supplier confirmation private bell filtering permits only matching accoun
  const start=notifications.indexOf('function eventAllowedForRole(n,r){');
  const end=notifications.indexOf('function assignedWarehouses(){',start);
  assert(start>=0&&end>start);
- const ctx={session:{authUserId:'sup-123',username:'supplier-one',role:'supplier'},
-   notificationSectionAllowed:()=>true,
-   sessionSnapshot(){return this.session}};
+ const ctx={session:{authUserId:'sup-123',username:'supplier-one',role:'supplier'},notificationSectionAllowed:()=>true};
+ ctx.sessionSnapshot=()=>ctx.session;
  vm.runInNewContext(notifications.slice(start,end)+';globalThis.check=eventAllowedForRole;',ctx);
  const own={targetSupplierAuthUserId:'sup-123',targetSupplierUsername:'supplier-one',event:'SUPPLIER_CONFIRMED'};
  assert.equal(ctx.check(own,'supplier'),true);
