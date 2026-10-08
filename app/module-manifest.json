@@ -1644,8 +1644,7 @@
     "files": [
       "styles/yardon-navigation-single-owner.css",
       "styles/yardivo-runtime.css",
-      "styles/yardon-supplier-modern-v1.css",
-      "styles/yardon-ai-operations-v1.css"
+      "styles/yardon-supplier-modern-v1.css"
     ]
   },
   "groups": {
