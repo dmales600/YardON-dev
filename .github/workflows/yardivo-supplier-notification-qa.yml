@@ -2,6 +2,7 @@ name: YardOn Supplier notification regression QA
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     paths:
       - ".github/workflows/yardivo-supplier-notification-qa.yml"
@@ -26,6 +27,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Instant supplier voice syntax and unit QA
+        run: |
+          node --check modules/services/yardivo-ai-voice-notifications-v583.js
+          node .github/qa/yardon-instant-supplier-voice.test.cjs
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
