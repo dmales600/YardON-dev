@@ -46,19 +46,21 @@ function paintUnannounced(){
   dedupeUnannouncedUi();
   const n=pendingCount();
   document.querySelectorAll('#unannouncedNavBadge').forEach((b,i)=>{
-    if(i>0){b.style.setProperty('display','none','important');return}
-    b.textContent=n?String(n):'';
-    if(n>0){
-      b.style.removeProperty('display');
-      b.style.removeProperty('visibility');
-      b.style.removeProperty('opacity');
-    }else{
-      b.style.setProperty('display','none','important');
-      b.style.setProperty('visibility','hidden','important');
-      b.style.setProperty('opacity','0','important');
-    }
+    const value=i===0&&n>0?String(n):'';
+    if(b.textContent!==value)b.textContent=value;
+    const visible=i===0&&n>0;
+    const display=visible?'inline-flex':'none';
+    if(b.style.getPropertyValue('display')!==display||b.style.getPropertyPriority('display')!=='important')
+      b.style.setProperty('display',display,'important');
+    const visibility=visible?'visible':'hidden';
+    if(b.style.getPropertyValue('visibility')!==visibility||b.style.getPropertyPriority('visibility')!=='important')
+      b.style.setProperty('visibility',visibility,'important');
+    const opacity=visible?'1':'0';
+    if(b.style.getPropertyValue('opacity')!==opacity||b.style.getPropertyPriority('opacity')!=='important')
+      b.style.setProperty('opacity',opacity,'important');
   });
 }
+
 function paintLocation(){
   const loc=locationState();
   const txt=loc.id?loc.name:'Lokacija nije odabrana';
