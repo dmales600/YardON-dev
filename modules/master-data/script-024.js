@@ -30,8 +30,9 @@ function ymsAlerts(){
     const end=new Date(`${a.date}T23:59:59`);if(!a.actualDate&&now>end)out.push({type:'danger',title:`Dobavljač nije stigao · ${a.supplier}`,msg:`Najava ${fmtPlan(a.date,a.time)} nema evidentiran dolazak.`});
   });
   announcements.forEach((a,i)=>announcements.slice(i+1).forEach(b=>{
-    if(a.date===b.date&&Number(a.dock)===Number(b.dock)&&overlaps(toMin(a.time),Number(a.duration),toMin(b.time),Number(b.duration)))
-      out.push({type:'danger',title:`Konflikt termina · Rampa ${a.dock}`,msg:`${a.supplier} i ${b.supplier} se preklapaju.`});
+    const ad=Number(a.dock),bd=Number(b.dock);
+    if(ad>0&&bd>0&&a.date===b.date&&ad===bd&&overlaps(toMin(a.time),Number(a.duration),toMin(b.time),Number(b.duration)))
+      out.push({type:'danger',title:`Konflikt termina · Rampa ${ad}`,msg:`${a.supplier} i ${b.supplier} se preklapaju na istoj rampi R${ad}.`});
   }));
   return out;
 }
