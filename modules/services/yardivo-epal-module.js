@@ -240,25 +240,22 @@ document.getElementById('epalSupplierSearch')?.addEventListener('input',render);
 document.addEventListener('click',e=>{if(e.target.closest('[data-view="epal"],[data-home-target="epal"]'))setTimeout(render,20)},true);
 
 function homeCard(){
-  const grid=document.getElementById('homeMenuGrid');if(!grid)return;
-  let card=grid.querySelector('[data-home-target="epal"]');
-  if(!allowed()){if(card)card.style.setProperty('display','none','important');return}
-  if(!card){
-    card=document.createElement('div');card.className='home-menu-card';card.dataset.homeTarget='epal';card.setAttribute('role','button');card.setAttribute('tabindex','0');
-    card.innerHTML='<div class="home-menu-icon">▦</div><h3>Stanje europaleta</h3><p>Saldo EPAL paleta po dobavljaču i skladištu.</p><div class="home-menu-open">OTVORI →</div>';
-    grid.appendChild(card);
-  }
-  card.style.setProperty('display','flex','important');card.onclick=()=>window.openAppView?.('epal');
+  const grid=document.getElementById('homeMenuGrid');
+  if(!grid||!allowed()||grid.querySelector('[data-home-target="epal"]'))return;
+  const card=document.createElement('button');
+  card.type='button';
+  card.className='home-menu-card';
+  card.dataset.homeTarget='epal';
+  card.innerHTML='<div class="home-menu-icon">▦</div><h3>Stanje europaleta</h3><p>Saldo EPAL paleta po dobavljaču i skladištu.</p><div class="home-menu-open">OTVORI →</div>';
+  grid.appendChild(card);
 }
-
-let last='';
-setInterval(()=>{
-  let u='';try{u=String(currentSession?.username||currentSession?.user||'')}catch(e){}
-  const sig=u+'|'+role();
-  if(sig!==last){last=sig;homeCard();render()}
-  else if(allowed())render();
-},4000);
-window.addEventListener('load',()=>setTimeout(()=>{homeCard();render()},400));
+function refreshVisibleEpal(){
+  if(document.getElementById('epal')?.classList.contains('active'))render();
+}
+window.addEventListener('yardivo:login',()=>requestAnimationFrame(()=>{homeCard();refreshVisibleEpal()}));
+window.addEventListener('yardivo:view-opened',e=>{if(e.detail?.view==='epal')render()});
+window.addEventListener('yardivo:data-synced',refreshVisibleEpal);
+window.addEventListener('load',()=>setTimeout(()=>{homeCard();refreshVisibleEpal()},400));
 
 window.YardivoEPAL={render,open:openDialog,openForSupplier,transactions:load,balances};
 })();
