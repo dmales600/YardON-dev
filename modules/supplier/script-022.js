@@ -1842,20 +1842,24 @@ function renderReceiving(){
   const allForDay=announcements.filter(a=>a.date===receivingDateValue()&&(a.warehouse||yardivoCanonicalWarehouseV583())===receivingWarehouseValue());
   const counts={'U dolasku':0,'U dvorištu':0,'Na rampi':0,'Zaprimljeno':0,'Odbijen':0};
   allForDay.forEach(a=>counts[receivingStatus(a)]++);
-  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  const set=(id,v)=>{const el=document.getElementById(id);if(el&&el.textContent!==String(v))el.textContent=String(v)};
   set('receivingKpiTotal',allForDay.length);set('receivingKpiComing',counts['U dolasku']);set('receivingKpiYard',counts['U dvorištu']);set('receivingKpiDock',counts['Na rampi']);set('receivingKpiDone',counts['Zaprimljeno']);set('receivingKpiRejected',counts['Odbijen']);
   const note=document.getElementById('receivingPermissionNote');
   if(note){
     if(receivingCanEdit()&&yardivoQrMobileEnabled()){
-      note.textContent=`Prijam robe · ${receivingWarehouseValue()} · QR scanner je UKLJUČEN. Ručna promjena statusa je zaključana.`;
+      const t=`Prijam robe · ${receivingWarehouseValue()} · QR scanner je UKLJUČEN. Ručna promjena statusa je zaključana.`;if(note.textContent!==t)note.textContent=t;
     }else if(receivingCanEdit()){
-      note.textContent=`Prijam robe · ${receivingWarehouseValue()} · QR scanner je ISKLJUČEN. Otvori dobavljača za ručnu promjenu statusa.`;
+      const t=`Prijam robe · ${receivingWarehouseValue()} · QR scanner je ISKLJUČEN. Otvori dobavljača za ručnu promjenu statusa.`;if(note.textContent!==t)note.textContent=t;
     }else{
-      note.textContent=`Pregled prijama · ${receivingWarehouseValue()} · tvoja uloga može samo pregledavati statuse.`;
+      const t=`Pregled prijama · ${receivingWarehouseValue()} · tvoja uloga može samo pregledavati statuse.`;if(note.textContent!==t)note.textContent=t;
     }
   }
-  if(!data.length){host.innerHTML='<div class="receiving-empty">Nema najava za odabrani datum, skladište i filter.</div>';return}
-  host.innerHTML=data.map(a=>{
+  if(!data.length){
+    const empty='<div class="receiving-empty">Nema najava za odabrani datum, skladište i filter.</div>';
+    if(host.innerHTML!==empty)host.innerHTML=empty;
+    return;
+  }
+  const nextHtml=data.map(a=>{
     const meta=receivingStatusMeta(a),st=receivingStatus(a),lateText=latenessLabel(a),isLate=!!lateText;
     const lateStyle=isLate?'background:linear-gradient(90deg,rgba(113,19,28,.58),rgba(62,13,20,.34));border-color:#d84e5d;box-shadow:inset 5px 0 0 #ff5a67;':'';
     return `<div class="receiving-row ${isLate?'status-kasni ':''}${st==='Odbijen'?'status-odbijen':st==='NIJE DOŠAO'?'status-nije-dosao':''}" data-receiving-announcement-id="${a.id}" role="button" tabindex="0" title="Klikni za detalje najave" style="--receiving-color:${meta.color};${lateStyle}">
@@ -1874,6 +1878,8 @@ function renderReceiving(){
       </div>
     </div>`;
   }).join('');
+  if(host.innerHTML===nextHtml)return;
+  host.innerHTML=nextHtml;
   host.querySelectorAll('[data-receiving-announcement-id]').forEach(row=>{
     const open=()=>{
       const id=Number(row.dataset.receivingAnnouncementId);
