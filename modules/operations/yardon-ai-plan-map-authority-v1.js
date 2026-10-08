@@ -117,13 +117,20 @@ function withPlannedDock(fn,ctx,args){
 function decorateDaily(){
  try{
   document.querySelectorAll('#dailyMapBoard [data-announcement-id]').forEach(el=>{
-   const id=String(el.getAttribute('data-announcement-id')||''),a=rows().find(x=>String(x?.id||'')===id);if(!a||actualNo(a)||!plannedNo(a))return;
-   el.setAttribute('draggable','false');el.classList.add('yardon-ai-planned-dock');el.title='AI plan · R'+plannedNo(a)+' · stvarna rampa dodjeljuje se po dolasku';
-   if(!el.querySelector('.yardon-ai-plan-badge')){const b=document.createElement('span');b.className='yardon-ai-plan-badge';b.textContent='AI PLAN · R'+plannedNo(a);el.appendChild(b)}
+   const id=String(el.getAttribute('data-announcement-id')||''),a=rows().find(x=>String(x?.id||'')===id);if(!a)return;
+   const actual=actualNo(a),planned=plannedNo(a);
+   if(actual&&(a.aiAssignedDock||a.aiAssignedAt)){
+     el.classList.add('yardon-ai-assigned-dock');el.title='YardOn AI je dodijelio stvarnu rampu R'+actual;
+     if(!el.querySelector('.yardon-ai-assigned-badge')){const b=document.createElement('span');b.className='yardon-ai-assigned-badge';b.textContent='AI DODIJELIO · R'+actual;el.appendChild(b)}
+     return;
+   }
+   if(actual||!planned)return;
+   el.setAttribute('draggable','false');el.classList.add('yardon-ai-planned-dock');el.title='AI plan · R'+planned+' · stvarna rampa dodjeljuje se po dolasku';
+   if(!el.querySelector('.yardon-ai-plan-badge')){const b=document.createElement('span');b.className='yardon-ai-plan-badge';b.textContent='AI PLAN · R'+planned;el.appendChild(b)}
   });
  }catch(_){}
 }
-function injectStyle(){if(document.getElementById('yardonAiPlanMapStyleV1'))return;const s=document.createElement('style');s.id='yardonAiPlanMapStyleV1';s.textContent='.yardon-ai-planned-dock{outline:1px solid rgba(59,130,246,.65)!important;cursor:default!important}.yardon-ai-plan-badge{display:inline-flex;margin-top:5px;padding:3px 6px;border-radius:999px;background:rgba(37,99,235,.18);border:1px solid rgba(59,130,246,.35);font-size:7px;font-weight:1000;letter-spacing:.05em;color:#8fc7ff}';document.head.appendChild(s)}
+function injectStyle(){if(document.getElementById('yardonAiPlanMapStyleV1'))return;const s=document.createElement('style');s.id='yardonAiPlanMapStyleV1';s.textContent='.yardon-ai-planned-dock{outline:1px solid rgba(59,130,246,.65)!important;cursor:default!important}.yardon-ai-plan-badge,.yardon-ai-assigned-badge{display:inline-flex;margin-top:5px;padding:3px 6px;border-radius:999px;font-size:7px;font-weight:1000;letter-spacing:.05em}.yardon-ai-plan-badge{background:rgba(37,99,235,.18);border:1px solid rgba(59,130,246,.35);color:#8fc7ff}.yardon-ai-assigned-dock{outline:2px solid rgba(34,197,94,.7)!important}.yardon-ai-assigned-badge{background:rgba(34,197,94,.16);border:1px solid rgba(34,197,94,.4);color:#86efac}';document.head.appendChild(s)}
 
 function wrap(name,kind){
  const f=window[name];if(typeof f!=='function'||f.__yardonAiPlanWrapped)return false;
