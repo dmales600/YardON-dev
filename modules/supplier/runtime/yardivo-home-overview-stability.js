@@ -2,21 +2,12 @@
 'use strict';
 
 function masterSupplierNames(){
-  const set=new Set();
-  try{
-    if(Array.isArray(suppliers)){
-      suppliers.forEach(s=>{
-        if(typeof s==='string'&&s.trim())set.add(s.trim());
-        else if(s&&typeof s==='object'){
-          const n=s.name||s.supplier||s.supplierName||s.label||s.title;
-          if(n)set.add(String(n).trim());
-        }
-      });
-    }
-  }catch(e){}
-  try{(announcements||[]).forEach(a=>a?.supplier&&set.add(String(a.supplier).trim()))}catch(e){}
-  try{(incidents||[]).forEach(i=>i?.supplier&&set.add(String(i.supplier).trim()))}catch(e){}
-  return [...set].filter(Boolean).sort((a,b)=>a.localeCompare(b,'hr'));
+ // Supplier overview dropdown uses only active Master entries.
+ try{
+  const d=window.YardivoAppStateV583?.master?.()||JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}');
+  return [...new Set((Array.isArray(d?.suppliers)?d.suppliers:[]).filter(x=>x&&x.active!==false)
+    .map(x=>String(x.name||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'hr'));
+ }catch(_){return []}
 }
 
 function ensureOverviewAllSuppliers(){
@@ -47,7 +38,7 @@ function homeIsVisible(){
   return !!h&&(h.classList.contains('active')||document.body.classList.contains('home-menu-mode'));
 }
 function stabilizeHome(){
- try{window.YardivoRoleStableFinal?.apply?.()}catch(e){}
+ // Role/navigation owners synchronize only on authentication or real permission changes.
  const grid=document.getElementById('homeMenuGrid');
  if(grid){
    grid.querySelectorAll('.home-menu-card').forEach(card=>{
