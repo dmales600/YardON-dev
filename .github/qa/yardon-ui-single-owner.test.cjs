@@ -15,8 +15,10 @@ check('Legacy manager mutation hardlock is not loaded',()=>{
 });
 check('Both retired sections hidden before first paint',()=>{
  const head=read('index.html').slice(0,5000);
- for(const s of ['#aiOperations,#smartReplanning','[data-view="smartReplanning"]','[data-home-target="aiOperations"]'])
- assert(head.includes(s),s+' pre-paint stylesheet missing');
+ const css=read('styles/yardon-navigation-single-owner.css');
+ assert(head.includes('href="styles/yardon-navigation-single-owner.css'));
+ for(const selector of ['#aiOperations','#smartReplanning','[data-view="smartReplanning"]','[data-home-target="aiOperations"]'])
+   assert(css.includes(selector),selector+' pre-paint stylesheet missing');
 });
 check('Only Smart engine remains; no menu auto insertion',()=>{
  const smart=read('modules/services/yardivo-smart-replanning-v1.js');
