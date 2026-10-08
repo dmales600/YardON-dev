@@ -42,9 +42,20 @@ const approved={id:'SUP-CONFIRMED-10',event:'ANNOUNCEMENT_CREATED',title:'NOVA N
  supplier:'Franck',body:'Franck · 2026-10-20 14:00'};
 toast(approved);
 assert.equal(played.length,3,'confirmed supplier announcement should also speak');
+const operational={id:'GATE-001',event:'GATE_ARRIVAL',title:'DOLAZAK KAMIONA',
+ body:'Kamion ABC stigao je na portu.',at:new Date().toISOString()};
+toast(operational);
+assert.equal(played.length,4,'every live operational notification must start local speech');
+assert.match(played[3].text,/DOLAZAK KAMIONA/);
+const incident={id:'INCIDENT-001',event:'INCIDENT',title:'NOVI INCIDENT',body:'Blokirana rampa.'};
+toast(incident);
+assert.equal(played.length,5,'incident notification must speak instantly');
+assert.equal(emitted.filter(x=>x.type==='yardivo:voice-enqueued').length,5,'every live event must trigger exactly one voice event');
+assert(emitted.filter(x=>x.type==='yardivo:voice-enqueued').every(x=>x.detail.instant===true));
+
 assert.equal(played[2].text,'Nova najava dobavljača Franck, dvadesetog desetog u 14 sati.');
 values.set('yardivo_notification_sound_mode_v2','off');
 toast({...announcement,id:'SUPREQ-silent'});
-assert.equal(played.length,3,'voice-off preference must be respected');
+assert.equal(played.length,5,'voice-off preference must be respected');
 assert(!src.includes("if(role()==='inventory'&&ev==='SUPPLIER_REQUEST'){\n    forceRead(n)"),'supplier request must not bypass dedup');
-console.log('YARDON_INSTANT_SUPPLIER_VOICE_PASS: synchronous, Croatian date, no year, dedupe, confirmed request, muted setting');
+console.log('YARDON_INSTANT_ALL_NOTIFICATIONS_VOICE_PASS: synchronous, Croatian date, no year, dedupe, supplier, operational, incident, muted setting');
