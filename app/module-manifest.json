@@ -1,1431 +1,2048 @@
 {
-  "version": "2026-09-25-phase3-domain-extraction",
-  "strategy": "behavior-preserving externalization + canonical domain ownership",
+  "version": "2026-10-08-active-runtime",
+  "strategy": "index.html is the sole ordered source for browser script loading. This manifest documents ONLY those active scripts. Never use stale byte sizes or checksums as runtime truth.",
+  "entrypoint": "index.html",
+  "script_count": 332,
   "scripts": [
     {
-      "id": "script-022",
+      "id": "yardivo-canonical-warehouse-helper-v583",
+      "path": "modules/master-data/runtime/phase5-001-yardivo-canonical-warehouse-helper-v583.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-production-bootstrap-guard-v4-20260902",
+      "path": "modules/settings/runtime/yardivo-production-bootstrap-guard-v4-20260902.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-first-paint-bootstrap-v1",
+      "path": "modules/settings/runtime/yardivo-first-paint-bootstrap-v1.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-first-visit-original-theme-v1-20260901",
+      "path": "modules/settings/runtime/phase5-004-yardivo-first-visit-original-theme-v1-20260901.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardon-brand-v1",
+      "path": "modules/ui/yardon-brand-v1.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-rbac-session-migration",
+      "path": "services/runtime/phase5-005-yardivo-rbac-session-migration.js",
+      "category": "services"
+    },
+    {
+      "id": "script-unnamed-6",
+      "path": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+      "category": "https:"
+    },
+    {
+      "id": "script-unnamed-7",
+      "path": "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+      "category": "https:"
+    },
+    {
+      "id": "script-unnamed-8",
+      "path": "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
+      "category": "https:"
+    },
+    {
+      "id": "script-unnamed-9",
+      "path": "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
+      "category": "https:"
+    },
+    {
+      "id": "script-unnamed-10",
+      "path": "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js",
+      "category": "https:"
+    },
+    {
+      "id": "yardivo-smart-prepaint-state",
+      "path": "modules/ui/runtime/phase5-011-yardivo-smart-prepaint-state.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-welcome-observer-guard-v1-20260901",
+      "path": "modules/ui/runtime/yardivo-welcome-observer-guard-v1-20260901.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-server-authoritative-browser-storage-v583",
+      "path": "modules/master-data/phase2-013-yardivo-server-authoritative-browser-storage-v583.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-master-data-service",
+      "path": "modules/master-data/service.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-local-date-authority",
+      "path": "services/runtime/phase5-016-yardivo-v583-local-date-authority.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-welcome-splash-script",
+      "path": "modules/ui/phase2-017-yardivo-welcome-splash-script.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-early-runtime-helpers",
+      "path": "modules/gate/runtime/yardivo-early-runtime-helpers.js",
+      "category": "gate"
+    },
+    {
+      "id": "yardivo-early-session",
+      "path": "services/runtime/phase5-019-yardivo-early-session.js",
+      "category": "services"
+    },
+    {
+      "id": "script-unnamed-19",
+      "path": "modules/ui/runtime/inline-020.js",
+      "category": "ui"
+    },
+    {
+      "id": "script-unnamed-20",
       "path": "modules/supplier/script-022.js",
-      "bytes": 173088,
-      "sha256": "ac16ed3a5dcbdc0301c82523289e5e06af985f64b26a10fdfedd97236f5c8a3a",
       "category": "supplier"
     },
     {
-      "id": "script-024",
-      "path": "modules/master-data/script-024.js",
-      "bytes": 70126,
-      "sha256": "35838dd4720c26339b87c6e09032bb8f249f4b6c1b4ceea902837476eede392f",
+      "id": "script-unnamed-21",
+      "path": "modules/master-data/runtime/phase5-022-inline-022.js",
       "category": "master-data"
+    },
+    {
+      "id": "script-unnamed-22",
+      "path": "modules/master-data/script-024.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-driver-form-final-binding",
+      "path": "modules/gate/phase2-024-yardivo-driver-form-final-binding.js",
+      "category": "gate"
+    },
+    {
+      "id": "yardivo-3d-camera-controls",
+      "path": "modules/master-data/runtime/yardivo-3d-camera-controls.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-overview-supplier-binding",
+      "path": "modules/supplier/runtime/phase5-026-yardivo-overview-supplier-binding.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-theme-switch",
+      "path": "modules/settings/runtime/phase5-027-yardivo-theme-switch.js",
+      "category": "settings"
     },
     {
       "id": "yardivo-notifications-timeline",
       "path": "modules/supplier/yardivo-notifications-timeline.js",
-      "bytes": 5045,
-      "sha256": "7014e9e0e592fa5a47ed55a341a8627f2f01e0a4b11e70d9721c102c0712d707",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-yard-truck-detail-click",
+      "path": "modules/ui/runtime/phase5-029-yardivo-yard-truck-detail-click.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-disable-yard-pan",
+      "path": "modules/ui/runtime/phase5-030-yardivo-disable-yard-pan.js",
+      "category": "ui"
     },
     {
       "id": "yardivo-smart-yard-brain",
       "path": "modules/master-data/yardivo-smart-yard-brain.js",
-      "bytes": 11735,
-      "sha256": "7dd74a00298ceafa55ffb3b8f212cea9276896f415a6a2531e1884dee35d21e9",
       "category": "master-data"
+    },
+    {
+      "id": "yardivo-final-truck-inspector-click",
+      "path": "modules/ui/runtime/yardivo-final-truck-inspector-click.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-final-inspector-close",
+      "path": "modules/ui/runtime/phase5-033-yardivo-final-inspector-close.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-final-yard-click-mode",
+      "path": "modules/ui/runtime/yardivo-final-yard-click-mode.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-inspector-visibility-fix",
+      "path": "modules/ui/runtime/phase5-035-yardivo-inspector-visibility-fix.js",
+      "category": "ui"
     },
     {
       "id": "yardivo-master-upgrade-js",
       "path": "modules/supplier/yardivo-master-upgrade-js.js",
-      "bytes": 20421,
-      "sha256": "a0361f6a017e18933e2e505cb08dec259d3bcc43c4d0bfbef92cba8f446e3e3f",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-settings-access-fix",
+      "path": "modules/settings/runtime/yardivo-settings-access-fix.js",
+      "category": "settings"
     },
     {
       "id": "yardivo-location-selection-final-fix",
       "path": "modules/services/yardivo-location-selection-final-fix.js",
-      "bytes": 7504,
-      "sha256": "cad06490d8fec7150e5084519d76fea74d8d569511793d597bd865457e73ad33",
       "category": "services"
+    },
+    {
+      "id": "yardivo-admin-create-user-case-fix",
+      "path": "modules/master-data/runtime/phase5-039-yardivo-admin-create-user-case-fix.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-remove-obsolete-sections",
+      "path": "modules/ui/runtime/phase5-040-yardivo-remove-obsolete-sections.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-tab-auth-isolation-v583",
+      "path": "services/runtime/phase5-041-yardivo-tab-auth-isolation-v583.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-supabase-client-service",
+      "path": "services/supabase.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-auth-service",
+      "path": "services/auth.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-realtime-service",
+      "path": "services/realtime.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-supplier-service",
+      "path": "modules/supplier/service.js",
+      "category": "supplier"
     },
     {
       "id": "yardivo-auth-driver-role-final-fix",
       "path": "modules/auth/role-ui.js",
-      "bytes": 9098,
-      "sha256": "bf44cdb4000bcaf37d17652a79ebc04300be9fa14211ffe86d223ec052ecd6eb",
-      "category": "services"
+      "category": "auth"
     },
     {
       "id": "yardivo-clean-operational-core",
       "path": "modules/supplier/yardivo-clean-operational-core.js",
-      "bytes": 9441,
-      "sha256": "6f3573ca3f724038af87354512bd3ec0e6759a92c45438db9983e7f8e0678b28",
       "category": "supplier"
     },
     {
       "id": "yardivo-live-operational-notifications",
       "path": "modules/services/yardivo-live-operational-notifications.js",
-      "bytes": 5455,
-      "sha256": "acc43dcc3600dfbb7a099b5c51f7154be6e8c5739142d87a9dc08aa3c3cd679f",
       "category": "services"
+    },
+    {
+      "id": "yardivo-daily-map-scroll-controls",
+      "path": "modules/ui/runtime/phase5-045-yardivo-daily-map-scroll-controls.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-daily-map-vertical-zoom-disable",
+      "path": "modules/ui/runtime/phase5-046-yardivo-daily-map-vertical-zoom-disable.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-suppliers-classic-360-final",
+      "path": "modules/supplier/runtime/phase5-047-yardivo-suppliers-classic-360-final.js",
+      "category": "supplier"
     },
     {
       "id": "yardivo-smart-timers-and-daily-forecast",
       "path": "modules/services/yardivo-smart-timers-and-daily-forecast.js",
-      "bytes": 5623,
-      "sha256": "2669a445c382b9e36a5839968397474dae781a311ef5bab399adbfc51c08cb3d",
       "category": "services"
+    },
+    {
+      "id": "yardivo-map-announcement-info",
+      "path": "modules/supplier/runtime/yardivo-map-announcement-info.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-role-context-menu-fix",
+      "path": "modules/receiving/runtime/yardivo-role-context-menu-fix.js",
+      "category": "receiving"
     },
     {
       "id": "yardivo-notifications-incidents-final",
       "path": "modules/supplier/yardivo-notifications-incidents-final.js",
-      "bytes": 7914,
-      "sha256": "561d4613f9f2229363e167a907c9d94e7728437c14ab05135166870b7f4367da",
       "category": "supplier"
     },
     {
       "id": "yardivo-global-warehouse-sync-final",
       "path": "modules/master-data/warehouse-context.js",
-      "bytes": 8554,
-      "sha256": "f195eeb61c9d9b76ad6d512c005ddf6b8c82088b10a2ab3033533ae9161e6c70",
-      "category": "services"
+      "category": "master-data"
     },
     {
       "id": "yardivo-capacity-settings",
       "path": "modules/services/yardivo-capacity-settings.js",
-      "bytes": 5512,
-      "sha256": "1d615c74019c5c49e4e3e83c4d9534f6653f7a86044a58701620906465aed24c",
       "category": "services"
+    },
+    {
+      "id": "yardivo-capacity-transactional-final",
+      "path": "modules/master-data/phase2-054-yardivo-capacity-transactional-final.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-unannounced-workflow",
       "path": "modules/services/yardivo-unannounced-workflow.js",
-      "bytes": 10304,
-      "sha256": "f4823b513bb0430eab9e17ac7471a6a889c9f05e5f23b6d71d70f219bacf972c",
       "category": "services"
     },
     {
       "id": "yardivo-unannounced-section-final",
       "path": "modules/services/yardivo-unannounced-section-final.js",
-      "bytes": 6759,
-      "sha256": "0569c33c5a5502d1776a8802aa1e11c7dee774734a3424e3e0b09610ba2e980b",
       "category": "services"
     },
     {
       "id": "yardivo-epal-module",
       "path": "modules/services/yardivo-epal-module.js",
-      "bytes": 17040,
-      "sha256": "d8e2f585c852f223603661e68263f01e8f9fcf8a1e3728d3c8ba3c94375b42aa",
       "category": "services"
     },
     {
       "id": "yardivo-epal-initial-stock",
       "path": "modules/services/yardivo-epal-initial-stock.js",
-      "bytes": 5804,
-      "sha256": "27a3759ac4853064e50170e3f3a6e5f72c9ddd958dc13891cdf10d3256494d9d",
       "category": "services"
     },
     {
       "id": "yardivo-control-tower-module",
       "path": "modules/supplier/yardivo-control-tower-module.js",
-      "bytes": 13542,
-      "sha256": "80d1f95d34a3c4106d802486f98c9f38412cc75b504642c57deb902e49dfe5b6",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-manual-order-js",
+      "path": "modules/ui/runtime/phase5-060-yardivo-manual-order-js.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-order-number-decorator",
+      "path": "modules/ui/runtime/phase5-061-yardivo-order-number-decorator.js",
+      "category": "ui"
     },
     {
       "id": "yardivo-order-search-module",
       "path": "modules/services/yardivo-order-search-module.js",
-      "bytes": 6098,
-      "sha256": "2f8590a8d1a55867da5e7b5da984e7be72752bc898e832489945b1178646f3ba",
       "category": "services"
+    },
+    {
+      "id": "yardivo-final-context-delete-fix",
+      "path": "modules/ui/runtime/yardivo-final-context-delete-fix.js",
+      "category": "ui"
     },
     {
       "id": "yardivo-final-overview-unannounced-fix",
       "path": "modules/supplier/yardivo-final-overview-unannounced-fix.js",
-      "bytes": 16713,
-      "sha256": "64dba473ae05ed622373f4e44074d35a81ad9afd6d76396cbbfdb9efdbf17f3f",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-login-notification-fix",
+      "path": "modules/notifications/runtime/yardivo-login-notification-fix.js",
+      "category": "notifications"
+    },
+    {
+      "id": "yardivo-home-overview-stability",
+      "path": "modules/supplier/runtime/yardivo-home-overview-stability.js",
       "category": "supplier"
     },
     {
       "id": "yardivo-unannounced-gate-v2",
       "path": "modules/services/yardivo-unannounced-gate-v2.js",
-      "bytes": 6959,
-      "sha256": "bece23a60b03251cde7886a221f1cb51bd1726cb73574819c93bab2861e182bf",
       "category": "services"
     },
     {
       "id": "yardivo-xlsx-export-v1",
       "path": "modules/supplier/yardivo-xlsx-export-v1.js",
-      "bytes": 15305,
-      "sha256": "f2f2e8d239669fb90ba6ace323d9d9c727db52c6caf20d6da4880b54379cd096",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-welcome-mini-previews-v8-script",
+      "path": "modules/ui/runtime/yardivo-welcome-mini-previews-v8-script.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-incident-image-viewer-v1-script",
+      "path": "modules/ui/phase2-070-yardivo-incident-image-viewer-v1-script.js",
+      "category": "ui"
     },
     {
       "id": "yardivo-unannounced-reception-gate-flow",
       "path": "modules/services/yardivo-unannounced-reception-gate-flow.js",
-      "bytes": 6088,
-      "sha256": "3259c372219ad9cef4ff224d5ab08415c53be25d82c85b678bd8392aaf6afbae",
       "category": "services"
+    },
+    {
+      "id": "yardivo-fullscreen-v1-script",
+      "path": "modules/notifications/runtime/yardivo-fullscreen-v1-script.js",
+      "category": "notifications"
     },
     {
       "id": "yardivo-notifications-final-v5",
       "path": "modules/services/yardivo-notifications-final-v5.js",
-      "bytes": 19216,
-      "sha256": "4c0a5e449d94cef12ef0e3dbf2a01bc6ba127d9d8b1038444454bd2887275e1c",
       "category": "services"
     },
     {
       "id": "yardivo-operational-drilldown-v1",
       "path": "modules/legacy/yardivo-operational-drilldown-v1.js",
-      "bytes": 7761,
-      "sha256": "bb6f058c0e6d3fdc297486cdacf33a16805379125333512384f9fe7e9ade0448",
       "category": "legacy"
     },
     {
       "id": "yardivo-inventory-drag-reschedule-v1",
       "path": "modules/services/yardivo-inventory-drag-reschedule-v1.js",
-      "bytes": 12723,
-      "sha256": "e41fa4ab6bb84a50cb933747b006811b5b177eb8b588566dc400cc8750ca29d3",
       "category": "services"
     },
     {
       "id": "yardivo-expanded-schedule-map-v1",
       "path": "modules/services/yardivo-expanded-schedule-map-v1.js",
-      "bytes": 14659,
-      "sha256": "de65fb29235f509c82b2cf284586fbdfd3fef7e6284154ae7bf8ef512f76c593",
       "category": "services"
     },
     {
       "id": "yardivo-smart-replanning-v1",
       "path": "modules/services/yardivo-smart-replanning-v1.js",
-      "bytes": 22807,
-      "sha256": "ad2f534bdadd91e5884ac4161e4c41f7410829fd615f801135d1c1bcdc529e9f",
       "category": "services"
+    },
+    {
+      "id": "yardon-ai-operations-v1",
+      "path": "modules/ai/yardon-ai-operations-v1.js",
+      "category": "ai"
+    },
+    {
+      "id": "yardivo-live-yard-truck-modal-v5-2",
+      "path": "modules/master-data/phase2-078-yardivo-live-yard-truck-modal-v5-2.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-ann-map-availability-v3",
       "path": "modules/services/yardivo-ann-map-availability-v3.js",
-      "bytes": 10044,
-      "sha256": "c77ca4bdb3759d9921b182c1f66e9462c6f3b1f364d04bc10a912be959c14aaa",
       "category": "services"
+    },
+    {
+      "id": "yardivo-overview-methodology-note-v2",
+      "path": "modules/supplier/runtime/phase5-080-yardivo-overview-methodology-note-v2.js",
+      "category": "supplier"
     },
     {
       "id": "yardivo-final-yard-v27",
       "path": "modules/services/yardivo-final-yard-v27.js",
-      "bytes": 8354,
-      "sha256": "b24c44aeffb47d604a1c8b9ce7fed06c8c6b41c7ed96f6ca657003452fe107d5",
       "category": "services"
+    },
+    {
+      "id": "yardivo-v28-mode-switch-guard",
+      "path": "services/runtime/yardivo-v28-mode-switch-guard.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-v29-stable-rotation",
+      "path": "modules/master-data/runtime/phase5-083-yardivo-v29-stable-rotation.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v30-single-owner-guard",
+      "path": "modules/ui/runtime/phase5-084-yardivo-v30-single-owner-guard.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-v31-change-vehicle-driver",
+      "path": "modules/supplier/runtime/yardivo-v31-change-vehicle-driver.js",
+      "category": "supplier"
     },
     {
       "id": "yardivo-v32-my-announcements",
       "path": "modules/services/yardivo-v32-my-announcements.js",
-      "bytes": 5766,
-      "sha256": "6d42efbbf324e472828aab42ad447f20ee393fc312a7b9e6e17db1a7589fee6c",
       "category": "services"
     },
     {
       "id": "yardivo-v35-my-yard",
       "path": "modules/master-data/yardivo-v35-my-yard.js",
-      "bytes": 12724,
-      "sha256": "9a7863ea7ab438137ed6bb2e345f78dd9b0ada2897d281f9649892bd2261fd57",
       "category": "master-data"
+    },
+    {
+      "id": "yardivo-qr-mobile-setting-runtime-v34",
+      "path": "modules/receiving/runtime/phase5-088-yardivo-qr-mobile-setting-runtime-v34.js",
+      "category": "receiving"
+    },
+    {
+      "id": "yardivo-v36-remove-double-rampa",
+      "path": "modules/master-data/runtime/yardivo-v36-remove-double-rampa.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v37-no-double-ramp-header",
+      "path": "modules/master-data/runtime/phase5-090-yardivo-v37-no-double-ramp-header.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v39-qa-role-workflow-fixes",
+      "path": "modules/supplier/phase2-091-yardivo-v39-qa-role-workflow-fixes.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-final-settings-rbac-20260831",
+      "path": "modules/supplier/runtime/yardivo-final-settings-rbac-20260831.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-final-login-interaction-fix-js-20260831",
+      "path": "modules/supplier/runtime/yardivo-final-login-interaction-fix-js-20260831.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-final-login-stability-20260831",
+      "path": "services/runtime/yardivo-final-login-stability-20260831.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-welcome-before-login-lock-20260831",
+      "path": "services/runtime/phase5-095-yardivo-welcome-before-login-lock-20260831.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-final-theme-two-mode-cleanup-20260831",
+      "path": "modules/settings/runtime/phase5-096-yardivo-final-theme-two-mode-cleanup-20260831.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-final-my-announcements-role-lock-20260831",
+      "path": "modules/receiving/runtime/yardivo-final-my-announcements-role-lock-20260831.js",
+      "category": "receiving"
+    },
+    {
+      "id": "yardivo-global-font-scale-init-20260831",
+      "path": "modules/master-data/runtime/phase5-098-yardivo-global-font-scale-init-20260831.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-full-light-mode-sync-20260831",
+      "path": "modules/settings/runtime/phase5-099-yardivo-full-light-mode-sync-20260831.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-dark-accent-choice-20260831",
+      "path": "modules/gate/phase2-100-yardivo-dark-accent-choice-20260831.js",
+      "category": "gate"
+    },
+    {
+      "id": "yardivo-light-theme-class-bridge-20260831",
+      "path": "modules/settings/runtime/phase5-101-yardivo-light-theme-class-bridge-20260831.js",
+      "category": "settings"
     },
     {
       "id": "yardivo-overview-3d-carousel-20260831",
       "path": "modules/supplier/yardivo-overview-3d-carousel-20260831.js",
-      "bytes": 5474,
-      "sha256": "c1863c563e3ed4f1850e7a23357bb5170a43ba71428cdf8e8aff30324e4f38f5",
       "category": "supplier"
     },
     {
       "id": "yardivo-myyard-webgl-v3",
       "path": "modules/master-data/yardivo-myyard-webgl-v3.js",
-      "bytes": 14612,
-      "sha256": "fa109a8d8bdbaf72985d939a9c106f856402b136caeb90e5df59093f657cbad2",
       "category": "master-data"
+    },
+    {
+      "id": "yardivo-hide-smart-allocation-card-20260831-js",
+      "path": "modules/master-data/runtime/phase5-104-yardivo-hide-smart-allocation-card-20260831-js.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-myyard-webgl-lighten-v1-20260831-js",
+      "path": "modules/settings/runtime/yardivo-myyard-webgl-lighten-v1-20260831-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-professional-redesign-v1-js",
+      "path": "modules/ui/runtime/phase5-106-yardivo-professional-redesign-v1-js.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-professional-redesign-v2-js",
+      "path": "modules/ui/runtime/phase5-107-yardivo-professional-redesign-v2-js.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-ux-original-option-v1-20260831-js",
+      "path": "modules/settings/runtime/yardivo-ux-original-option-v1-20260831-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-professional-graphite-green-maps-v1-20260831-js",
+      "path": "modules/settings/runtime/phase5-109-yardivo-professional-graphite-green-maps-v1-20260831-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-xlsx-export-complete-fix-v1-20260831",
+      "path": "modules/supplier/phase2-110-yardivo-xlsx-export-complete-fix-v1-20260831.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-myyard-flicker-fix-v1-20260831-js",
+      "path": "modules/settings/runtime/yardivo-myyard-flicker-fix-v1-20260831-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-theme-canonical-bridge-v1-20260831-js",
+      "path": "modules/settings/runtime/yardivo-theme-canonical-bridge-v1-20260831-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-no-dashboard-flash-after-welcome-v2-20260901-js",
+      "path": "services/runtime/yardivo-no-dashboard-flash-after-welcome-v2-20260901-js.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-theme-simplified-final-v1-20260831-js",
+      "path": "modules/settings/phase2-114-yardivo-theme-simplified-final-v1-20260831-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-login-safe-isolation-v2-20260901-js",
+      "path": "modules/ui/phase2-115-yardivo-login-safe-isolation-v2-20260901-js.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-login-unconditional-finalizer-v3-20260901",
+      "path": "modules/ui/phase2-116-yardivo-login-unconditional-finalizer-v3-20260901.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-remove-studenac-legacy-v1-20260902",
+      "path": "services/runtime/phase5-117-yardivo-remove-studenac-legacy-v1-20260902.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-v583-db-status-single-authority",
+      "path": "services/runtime/phase5-118-yardivo-v583-db-status-single-authority.js",
+      "category": "services"
     },
     {
       "id": "yardivo-online-sync-v2-20260902",
       "path": "services/sync.js",
-      "bytes": 26274,
-      "sha256": "3469eb0a828d2a084de91850a2346f3db78f0695c296e794a0155119f925184c",
-      "category": "sync"
+      "category": "services"
     },
     {
       "id": "yardivo-canonical-login-router-v2-20260901",
       "path": "modules/supplier/yardivo-canonical-login-router-v2-20260901.js",
-      "bytes": 9520,
-      "sha256": "00b6f7e8185267b61aae29aab42dcf3d331faee9b651000695fc8b0fd744fc22",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-post-auth-transition-fix-v1-20260901-js",
+      "path": "services/runtime/yardivo-post-auth-transition-fix-v1-20260901-js.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-original-dark-authentic-v1-20260901-js",
+      "path": "modules/settings/runtime/yardivo-original-dark-authentic-v1-20260901-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-receiving-service",
+      "path": "modules/receiving/service.js",
+      "category": "receiving"
+    },
+    {
+      "id": "yardon-live-truck-card-v1",
+      "path": "modules/receiving/yardon-live-truck-card-v1.js",
+      "category": "receiving"
     },
     {
       "id": "yardivo-operational-sync-v1-20260901",
       "path": "modules/master-data/yardivo-operational-sync-v1-20260901.js",
-      "bytes": 7345,
-      "sha256": "4973d969993e9c5989e69d51050f8197c08820eb328d837513fdbb9ef186b313",
       "category": "master-data"
+    },
+    {
+      "id": "yardivo-announcement-map-canonical-sync-v1-20260901",
+      "path": "modules/master-data/runtime/yardivo-announcement-map-canonical-sync-v1-20260901.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-full-white-light-mode-v1-20260901-js",
+      "path": "modules/settings/runtime/phase5-125-yardivo-full-white-light-mode-v1-20260901-js.js",
+      "category": "settings"
     },
     {
       "id": "yardivo-overview-fullwidth-chart-v1-20260901-js",
       "path": "modules/supplier/yardivo-overview-fullwidth-chart-v1-20260901-js.js",
-      "bytes": 5260,
-      "sha256": "79939a5df2109577a2582b5eabce74dc0291a35586a4f5625e369157bf0e2d10",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-overview-fullchart-master-bridge-v1-20260901",
+      "path": "modules/master-data/runtime/phase5-127-yardivo-overview-fullchart-master-bridge-v1-20260901.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-dark-palette-total-isolation-v1-20260901-js",
+      "path": "modules/settings/runtime/yardivo-dark-palette-total-isolation-v1-20260901-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-overview-manager-summary-v1-20260901",
+      "path": "modules/master-data/phase2-129-yardivo-overview-manager-summary-v1-20260901.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-settings-dark-only-holidays-v1-20260901",
+      "path": "modules/settings/runtime/yardivo-settings-dark-only-holidays-v1-20260901.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-canonical-logout-fix-v1-20260901-js",
+      "path": "services/runtime/yardivo-canonical-logout-fix-v1-20260901-js.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-myyard-360-orbit-final-v1-20260901-js",
+      "path": "services/runtime/yardivo-myyard-360-orbit-final-v1-20260901-js.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-light-absolute-white-v4-20260901-js",
+      "path": "modules/settings/runtime/phase5-133-yardivo-light-absolute-white-v4-20260901-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-theme-canonical-single-owner-v5-20260901",
+      "path": "modules/settings/phase2-134-yardivo-theme-canonical-single-owner-v5-20260901.js",
+      "category": "settings"
     },
     {
       "id": "yardivo-myyard-focus-live-v1-20260901-js",
       "path": "modules/supplier/yardivo-myyard-focus-live-v1-20260901-js.js",
-      "bytes": 5745,
-      "sha256": "c04d534b19895b660a06bc5935c0223af74cd22d188da1f5bb642001576babae",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-myyard-2d-final-fix-v2-20260901-js",
+      "path": "modules/ui/runtime/yardivo-myyard-2d-final-fix-v2-20260901-js.js",
+      "category": "ui"
+    },
+    {
+      "id": "yardivo-notification-delete-read-style-v1-20260901-js",
+      "path": "modules/sync/phase2-137-yardivo-notification-delete-read-style-v1-20260901-js.js",
+      "category": "sync"
+    },
+    {
+      "id": "yardivo-incidents-delete-v1-20260901-js",
+      "path": "modules/supplier/runtime/yardivo-incidents-delete-v1-20260901-js.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-overview-executive-simple-v1-20260901-js",
+      "path": "modules/supplier/runtime/yardivo-overview-executive-simple-v1-20260901-js.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-overview-hero3-v2-20260901-js",
+      "path": "modules/supplier/phase2-140-yardivo-overview-hero3-v2-20260901-js.js",
       "category": "supplier"
     },
     {
       "id": "yardivo-overview-reset-empty-fix-v1-20260901-js",
       "path": "modules/analytics/yardivo-overview-reset-empty-fix-v1-20260901-js.js",
-      "bytes": 5255,
-      "sha256": "e534519773570fae0f91964e985e7a887f33010e3a48d09a5336352c11fffd33",
       "category": "analytics"
+    },
+    {
+      "id": "yardivo-settings-cleanup-light-sheets-v1-20260901-js",
+      "path": "modules/settings/runtime/yardivo-settings-cleanup-light-sheets-v1-20260901-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-v581-user-profile-scope-fix",
+      "path": "modules/master-data/runtime/phase5-144-yardivo-v581-user-profile-scope-fix.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-gate-and-users-final-v3-20260901-js",
       "path": "modules/services/yardivo-gate-and-users-final-v3-20260901-js.js",
-      "bytes": 12647,
-      "sha256": "021e307a835d907567124952c9f5a1d0d697d0ed39892b8464619f7da4ba18b3",
       "category": "services"
     },
     {
       "id": "yardivo-role-stability-final-v6-20260902-js",
       "path": "modules/supplier/yardivo-role-stability-final-v6-20260902-js.js",
-      "bytes": 8520,
-      "sha256": "a0a10ea4e2a6c76d4226a3de75e9e11ca62f5f28c2b281178a3eab10d65c8017",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-login-feedback-password-v2-20260901-js",
+      "path": "services/runtime/yardivo-login-feedback-password-v2-20260901-js.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-login-change-password-v2-20260901-js",
+      "path": "services/runtime/yardivo-login-change-password-v2-20260901-js.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-dashboard-daily-xlsx-label-v1-20260902",
+      "path": "modules/receiving/runtime/phase5-149-yardivo-dashboard-daily-xlsx-label-v1-20260902.js",
+      "category": "receiving"
+    },
+    {
+      "id": "yardivo-smart-admin-setting-v1-20260902",
+      "path": "modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js",
+      "category": "settings"
     },
     {
       "id": "yardivo-supplier-account-admin-v52",
       "path": "modules/supplier/yardivo-supplier-account-admin-v52.js",
-      "bytes": 10971,
-      "sha256": "a395d2a8d591952f13a7ccdd24fdad2365cbe04eec8d44b9986fc6f30b6f9698",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-v535-internal-user-location-bind",
+      "path": "modules/master-data/runtime/phase5-152-yardivo-v535-internal-user-location-bind.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-v545-user-admin-controller",
       "path": "modules/supplier/yardivo-v545-user-admin-controller.js",
-      "bytes": 6212,
-      "sha256": "b63e5479887832d19defb9e625a06de28ea80e079f435f4f887926e11b237719",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-v548-create-profile-hard-owner",
+      "path": "modules/gate/phase2-154-yardivo-v548-create-profile-hard-owner.js",
+      "category": "gate"
     },
     {
       "id": "yardivo-v548-full-operational-notifications",
       "path": "modules/master-data/yardivo-v548-full-operational-notifications.js",
-      "bytes": 11447,
-      "sha256": "4b62c0e669493a2f55b94a82f210e655be9ac1de139b893b51f774a972c51045",
       "category": "master-data"
+    },
+    {
+      "id": "yardivo-v551-supplier-accounts-admin",
+      "path": "modules/supplier/phase2-156-yardivo-v551-supplier-accounts-admin.js",
+      "category": "supplier"
     },
     {
       "id": "yardivo-v549-supplier-portal",
       "path": "modules/supplier/yardivo-v549-supplier-portal.js",
-      "bytes": 33753,
-      "sha256": "d45209ff2db30d6bfada8b499134ea19bd3891e56e8951b2937cb6e1ab618e04",
       "category": "supplier"
     },
     {
       "id": "yardivo-v560-supplier-live-sync",
       "path": "modules/supplier/yardivo-v560-supplier-live-sync.js",
-      "bytes": 13738,
-      "sha256": "e8b4373a1fdbb3d5e30357868a873270f8887c477c9775706c3efcbdfd93a129",
       "category": "supplier"
     },
     {
       "id": "yardivo-v561-supplier-pro-ui",
       "path": "modules/supplier/yardivo-v561-supplier-pro-ui.js",
-      "bytes": 8161,
-      "sha256": "60b4916a58c8dbd97a4913592d86ed2961d8b3118baf826bce5f7c30b9bdf559",
       "category": "supplier"
     },
     {
       "id": "yardivo-v570-supplier-approval-workflow",
       "path": "modules/supplier/yardivo-v570-supplier-approval-workflow.js",
-      "bytes": 12757,
-      "sha256": "8b72ae064e82ad8ab833b345159f37e2f7505b601a454e46420f828e9370ed45",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v574-supplier-proposal-flow",
+      "path": "modules/supplier/runtime/yardivo-v574-supplier-proposal-flow.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v576-supplier-auth-calendar-final",
+      "path": "modules/supplier/phase2-162-yardivo-v576-supplier-auth-calendar-final.js",
       "category": "supplier"
     },
     {
       "id": "yardivo-v582-supplier-planner-canonical-fix",
       "path": "modules/supplier/yardivo-v582-supplier-planner-canonical-fix.js",
-      "bytes": 28102,
-      "sha256": "95a289c5144e0447a412970b9f14847ec81df6f6040092a1fbc5e7ef0c7eff96",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-notification-scope-supplier-transport-ui",
       "path": "modules/supplier/yardivo-v583-notification-scope-supplier-transport-ui.js",
-      "bytes": 5426,
-      "sha256": "3ca336631a9919cd8e22d5218c2b61658297b41bd1674ffd9787699a49b3925b",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-manager-section-authority-v583",
+      "path": "modules/receiving/runtime/yardivo-manager-section-authority-v583.js",
+      "category": "receiving"
     },
     {
       "id": "yardivo-manager-assignment-system-v583",
       "path": "modules/supplier/yardivo-manager-assignment-system-v583.js",
-      "bytes": 15039,
-      "sha256": "ddf9f5d2825faa3bdd49b6ff53c1978c7f3408603f2d75ed09e5aa86d69e6cd3",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-manager-section-reconciler-v583",
+      "path": "services/runtime/yardivo-manager-section-reconciler-v583.js",
+      "category": "services"
     },
     {
       "id": "yardivo-admin-user-creation-redesign-v583",
       "path": "modules/supplier/yardivo-admin-user-creation-redesign-v583.js",
-      "bytes": 19397,
-      "sha256": "4941edd81b7c0b718a5deac27af8c7210c8fd46a6e4a874e57d72db475083026",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-admin-separated-user-lists-v583",
+      "path": "modules/supplier/phase2-169-yardivo-admin-separated-user-lists-v583.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-notification-policy-ui-final-v583",
+      "path": "modules/notifications/runtime/yardivo-notification-policy-ui-final-v583.js",
+      "category": "notifications"
     },
     {
       "id": "yardivo-v583-ux-ramps-docs-weekload-hours",
       "path": "modules/services/yardivo-v583-ux-ramps-docs-weekload-hours.js",
-      "bytes": 12306,
-      "sha256": "563b358aa70b19c0d7c1d27ee5dbc7c21cdf538f57c884ee2cb7001bb3818c41",
       "category": "services"
     },
     {
       "id": "yardivo-v583-executive-context-control-tower",
       "path": "modules/services/yardivo-v583-executive-context-control-tower.js",
-      "bytes": 13285,
-      "sha256": "64ee613c837400e8d5cd50edb9fd4a02598860958883d4753c1422da62ea79c9",
       "category": "services"
+    },
+    {
+      "id": "yardivo-v583-macos-motion-ui",
+      "path": "modules/supplier/phase2-173-yardivo-v583-macos-motion-ui.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-warehouse-transition",
+      "path": "modules/master-data/phase2-174-yardivo-v583-warehouse-transition.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-graphite-notifications-scanner-final",
+      "path": "modules/sync/phase2-175-yardivo-v583-graphite-notifications-scanner-final.js",
+      "category": "sync"
+    },
+    {
+      "id": "yardivo-v583-smart-engine-settings",
+      "path": "modules/supplier/runtime/yardivo-v583-smart-engine-settings.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-stability-runtime-guard",
+      "path": "modules/settings/runtime/phase5-177-yardivo-v583-stability-runtime-guard.js",
+      "category": "settings"
     },
     {
       "id": "yardivo-v583-map-fullscreen-day-drilldown-js",
       "path": "modules/legacy/yardivo-v583-map-fullscreen-day-drilldown-js.js",
-      "bytes": 5640,
-      "sha256": "aad347504561a23d469779af4d0e122b64167ad575de8707543da2296f5ce3fb",
       "category": "legacy"
     },
     {
       "id": "yardivo-v583-supplier-history-detail-stability",
       "path": "modules/supplier/yardivo-v583-supplier-history-detail-stability.js",
-      "bytes": 5650,
-      "sha256": "772a4cdf9f5542d4245c86c3be1ea5b1e264ec0e04d8c16cbf05cc3752860788",
       "category": "supplier"
     },
     {
       "id": "yardivo-full-data-v583",
       "path": "modules/services/yardivo-full-data-v583.js",
-      "bytes": 5593,
-      "sha256": "e34e9d7c465ef18a3c3ac6f2cb8b9003e9854878f9e569364321ba3ee0b5bef5",
       "category": "services"
     },
     {
       "id": "yardivo-v583-settings-export-supplier-bulk-hard-fix",
       "path": "modules/supplier/yardivo-v583-settings-export-supplier-bulk-hard-fix.js",
-      "bytes": 11018,
-      "sha256": "cbf9a8eec67098bd5b8d96b55d5ee0996f44acc3424cbcd3b12ced3a4e2962b5",
       "category": "supplier"
     },
     {
       "id": "yardivo-supplier-auto-day-slot-v583",
       "path": "modules/supplier/yardivo-supplier-auto-day-slot-v583.js",
-      "bytes": 8054,
-      "sha256": "2177f37c4bc3c7b154ad23afdca6a97056d81fb73e8e19e2644e81c067764409",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-supplier-day-map-real-slots-hard-fix",
+      "path": "modules/supplier/phase2-183-yardivo-supplier-day-map-real-slots-hard-fix.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-supplier-fullscreen-day-map-v583",
+      "path": "modules/supplier/phase2-184-yardivo-supplier-fullscreen-day-map-v583.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-supplier-native-fullscreen-map-final-v583",
+      "path": "modules/supplier/phase2-185-yardivo-supplier-native-fullscreen-map-final-v583.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-supplier-status-dark-contrast-final-v583-js",
+      "path": "modules/supplier/runtime/yardivo-supplier-status-dark-contrast-final-v583-js.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-supplier-slot-prerequisites-v583",
+      "path": "modules/supplier/phase2-187-yardivo-supplier-slot-prerequisites-v583.js",
       "category": "supplier"
     },
     {
       "id": "yardivo-supplier-daily-map-button-final-v583",
       "path": "modules/supplier/yardivo-supplier-daily-map-button-final-v583.js",
-      "bytes": 9271,
-      "sha256": "58f10776e1c0ff15e096b2f6d81defc06d00680c56609dfa2f6dccb33caccad4",
       "category": "supplier"
     },
     {
       "id": "yardivo-supplier-right-daily-map-final-v583",
       "path": "modules/supplier/yardivo-supplier-right-daily-map-final-v583.js",
-      "bytes": 8464,
-      "sha256": "2cb7276f45422ee4e6e1b5f56f51e76f9bf137b970d0bf9465becfdc51509a43",
       "category": "supplier"
     },
     {
       "id": "yardivo-master-data-registry-final-v583",
       "path": "modules/master-data/yardivo-master-data-registry.js",
-      "bytes": 13084,
-      "sha256": "c339cb5e1304152e8d1d293c187507d924078c92cf255f64aca7e5c8ac9babd1",
       "category": "master-data"
+    },
+    {
+      "id": "yardivo-test-data-runtime-anonymizer-v583",
+      "path": "modules/supplier/runtime/yardivo-test-data-runtime-anonymizer-v583.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-test-notifications-clean-v583",
+      "path": "modules/notifications/runtime/yardivo-test-notifications-clean-v583.js",
+      "category": "notifications"
     },
     {
       "id": "yardivo-unified-dynamic-ramps-v583",
       "path": "modules/services/yardivo-unified-dynamic-ramps-v583.js",
-      "bytes": 11656,
-      "sha256": "57eb82d11be900ab95670635bf162518707b51d8952b7e661c7efb12e136d6fa",
       "category": "services"
     },
     {
       "id": "yardivo-master-data-persistence-dropdown-warehouse-fix-v583",
       "path": "modules/supplier/yardivo-master-data-persistence-dropdown-warehouse-fix-v583.js",
-      "bytes": 7372,
-      "sha256": "e1bef4ab24c87c41980ff95de26699fa3d6a596e8d362ed4de0a3e061099544c",
       "category": "supplier"
     },
     {
       "id": "yardivo-supplier-location-warehouse-binding-v583",
       "path": "modules/supplier/yardivo-supplier-location-warehouse-binding-v583.js",
-      "bytes": 9696,
-      "sha256": "d7861fd547c4df70f8933bfab33ff5e476dc50acdefe763c9b38fcdbe6337981",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-home-location-stability-final-v583",
+      "path": "modules/master-data/runtime/phase5-196-yardivo-home-location-stability-final-v583.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-location-state-single-source-v583",
       "path": "modules/services/yardivo-location-state-single-source-v583.js",
-      "bytes": 9071,
-      "sha256": "a1a5066b2faa97f994662fea3aa3a6ae98fec76b00fa62f86fad430529e4f6ae",
       "category": "services"
+    },
+    {
+      "id": "yardivo-disable-legacy-flicker-observers-v583",
+      "path": "modules/master-data/runtime/yardivo-disable-legacy-flicker-observers-v583.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-master-warehouse-rampcount-no-legacy-v583",
       "path": "modules/services/yardivo-master-warehouse-rampcount-no-legacy-v583.js",
-      "bytes": 8706,
-      "sha256": "95ac63d0a8e04684aafeb030a66c32e878c6766376cc238accdef33587e307d9",
       "category": "services"
     },
     {
       "id": "yardivo-settings-consolidation-notifications-v583",
       "path": "modules/master-data/yardivo-settings-consolidation-notifications-v583.js",
-      "bytes": 9929,
-      "sha256": "6bcb55ad482c557f1b1ada91acb4a4524023802d2a16decb333873100c3b6da2",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-saas-cleanup-pass1-guard-v583",
+      "path": "modules/master-data/runtime/yardivo-saas-cleanup-pass1-guard-v583.js",
       "category": "master-data"
     },
     {
       "id": "yardivo-saas-hardening-pass2-v583",
       "path": "modules/master-data/yardivo-saas-hardening-pass2-v583.js",
-      "bytes": 8233,
-      "sha256": "a7be8798a4e6da8adbf6cbbdd26653daf9f5084b7ccdbb8293bbd053a0f5f952",
       "category": "master-data"
+    },
+    {
+      "id": "yardivo-masterdata-single-warehouse-owner-guard-v583",
+      "path": "modules/master-data/runtime/phase5-203-yardivo-masterdata-single-warehouse-owner-guard-v583.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-unannounced-location-flicker-fix-v583",
+      "path": "modules/master-data/phase2-204-yardivo-unannounced-location-flicker-fix-v583.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-zero-state-runtime-v583",
+      "path": "modules/supplier/phase2-205-yardivo-zero-state-runtime-v583.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-clean-catalog-baseline-v583",
+      "path": "modules/supplier/runtime/yardivo-clean-catalog-baseline-v583.js",
+      "category": "supplier"
     },
     {
       "id": "yardivo-master-admin-settings-v583",
       "path": "modules/services/yardivo-master-admin-settings-v583.js",
-      "bytes": 11145,
-      "sha256": "841f21e8c7532707d1279b092253c1803f53b7fd9d8bb3aac32c12b010c35585",
       "category": "services"
+    },
+    {
+      "id": "yardivo-home-saved-count-authority-v583",
+      "path": "services/runtime/yardivo-home-saved-count-authority-v583.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-dashboard-vs-yesterday-diagnostic-v583",
+      "path": "modules/ui/runtime/phase5-210-yardivo-dashboard-vs-yesterday-diagnostic-v583.js",
+      "category": "ui"
     },
     {
       "id": "yardivo-gate-qr-supplier-v583",
       "path": "modules/supplier/yardivo-gate-qr-supplier-v583.js",
-      "bytes": 17037,
-      "sha256": "d87c56d1ac15f2cbde8729b04827132e513c4ef322a73d9df1d4abfdc161c2a4",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-supplier-slot-map-fix",
       "path": "modules/supplier/yardivo-v583-supplier-slot-map-fix.js",
-      "bytes": 6845,
-      "sha256": "befe67ea3e20f6ae52deadc197d49cd5579f7887a2ef3024a2b687dc23334a43",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-realtime-x10-effective-final",
+      "path": "modules/supplier/runtime/phase5-213-yardivo-v583-realtime-x10-effective-final.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-deep-qa-diagnostics-x10",
+      "path": "modules/settings/runtime/yardivo-v583-deep-qa-diagnostics-x10.js",
+      "category": "settings"
     },
     {
       "id": "yardivo-v583-master-system-fix-x10",
       "path": "modules/master-data/yardivo-v583-master-system-fix-x10.js",
-      "bytes": 16398,
-      "sha256": "a05f282e488514d18613580bc5304ac89a012e99917b51ec7e12f16e3abf86f3",
       "category": "master-data"
     },
     {
       "id": "yardivo-v583-master-foundation-final",
       "path": "modules/master-data/yardivo-v583-master-foundation-final.js",
-      "bytes": 26929,
-      "sha256": "b8a91e09854c2b39a73fff60806913a95f7e830b27323b687299940914acad9e",
       "category": "master-data"
     },
     {
-      "id": "yardivo-v583-dev-total-reset-final",
+      "id": "yardivo-v583-production-empty-guard-final",
+      "path": "modules/master-data/runtime/yardivo-v583-production-empty-guard-final.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardon-reset-final",
       "path": "modules/supplier/yardivo-v583-dev-total-reset-final.js",
-      "bytes": 14259,
-      "sha256": "55c6be7d977a15b80358ab2acb929d8a3b3a465d77e22ba4c87b5dc1aa863fb6",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-stable-master-supplier-zero-final",
       "path": "modules/supplier/yardivo-v583-stable-master-supplier-zero-final.js",
-      "bytes": 33536,
-      "sha256": "a694bf023d8e1612e9f7255f2533e49ea9bc41875b547f4326f0d024d5b17874",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-handover-production-empty-final",
       "path": "modules/master-data/yardivo-v583-handover-production-empty-final.js",
-      "bytes": 5653,
-      "sha256": "79da9b767fb8b8af8cac3da061c44caf5409c217101caf186374903ac32c412f",
       "category": "master-data"
     },
     {
       "id": "yardivo-v583-final-product-spec-controller",
       "path": "modules/supplier/yardivo-v583-final-product-spec-controller.js",
-      "bytes": 16605,
-      "sha256": "43f4177fd277a4dfbe274a2459495cffbebeef9f55386364a4bc35cd8bcb8290",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-admin-global-scope-final",
+      "path": "services/runtime/phase5-223-yardivo-v583-admin-global-scope-final.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-v583-master-runtime-sync-final-authority",
+      "path": "modules/supplier/runtime/yardivo-v583-master-runtime-sync-final-authority.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-canonical-master-context-final-authority",
+      "path": "modules/master-data/runtime/phase5-225-yardivo-v583-canonical-master-context-final-authority.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-header-warehouse-dropdown-authority",
+      "path": "modules/master-data/runtime/yardivo-v583-header-warehouse-dropdown-authority.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-master-location-and-supplier-account-authority-final",
+      "path": "modules/supplier/runtime/yardivo-v583-master-location-and-supplier-account-authority-final.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-epal-ramp-master-clean-authority",
+      "path": "modules/master-data/runtime/yardivo-v583-epal-ramp-master-clean-authority.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-ramp-role-guard-final",
+      "path": "modules/master-data/phase2-229-yardivo-v583-ramp-role-guard-final.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-v583-global-master-context-names-final",
       "path": "modules/supplier/yardivo-v583-global-master-context-names-final.js",
-      "bytes": 5169,
-      "sha256": "6395fd1068675daff28175e41fee7a7a64e20082e37f8829498f5b27a2bb0a37",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-admin-actions-capture-final",
+      "path": "modules/supplier/phase2-231-yardivo-v583-admin-actions-capture-final.js",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-supplier-portal-ux-authority",
       "path": "modules/supplier/yardivo-v583-supplier-portal-ux-authority.js",
-      "bytes": 7978,
-      "sha256": "b9799d05f50ae65a284731414c20a59edec6dd05b4f41d0d53de8f6c5764f78f",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-responsible-person-inventory-account-authority",
       "path": "modules/supplier/yardivo-v583-responsible-person-inventory-account-authority.js",
-      "bytes": 14033,
-      "sha256": "12e5bb2f712fcc31a0a344f65493b30641938ded1ac8cdc91d52ad6fef72a5c0",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-warehouse-master-ramps-header-repair-final",
       "path": "modules/services/yardivo-v583-warehouse-master-ramps-header-repair-final.js",
-      "bytes": 5631,
-      "sha256": "fcee86ff7420603b7c72d52116bffc4c88b5b6d60469d9f51d3f0f223eb2e078",
       "category": "services"
     },
     {
       "id": "yardivo-v583-production-master-cleanup-final",
       "path": "modules/master-data/yardivo-v583-production-master-cleanup-final.js",
-      "bytes": 7487,
-      "sha256": "77cfb8d432faf076551934f7ba1922677841b1096307ddc080bfbd96e4812049",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-admin-master-clean-no-flicker-final",
+      "path": "modules/master-data/runtime/yardivo-v583-admin-master-clean-no-flicker-final.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-header-home-context-clean-authority",
+      "path": "modules/master-data/phase2-237-yardivo-v583-header-home-context-clean-authority.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-header-home-user-right-final-authority",
+      "path": "modules/master-data/runtime/yardivo-v583-header-home-user-right-final-authority.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-settings-single-page-master-light-blue-authority",
+      "path": "modules/master-data/runtime/yardivo-v583-settings-single-page-master-light-blue-authority.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-header-context-settings-contrast-final-authority",
+      "path": "modules/master-data/runtime/phase5-240-yardivo-v583-header-context-settings-contrast-final-authority.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-myyard-parking42-final-authority",
+      "path": "services/runtime/phase5-241-yardivo-v583-myyard-parking42-final-authority.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-v583-header-prompt-myyard-parking42-authority",
+      "path": "modules/master-data/runtime/yardivo-v583-header-prompt-myyard-parking42-authority.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-header-clean-context-final",
+      "path": "modules/master-data/runtime/phase5-243-yardivo-v583-header-clean-context-final.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-shared-hours-dropdown-authority",
+      "path": "services/runtime/yardivo-v583-shared-hours-dropdown-authority.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-v583-master-active-edit-no-flicker-final",
+      "path": "modules/master-data/runtime/phase5-245-yardivo-v583-master-active-edit-no-flicker-final.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-supplier-master-popup-authority",
+      "path": "modules/supplier/runtime/yardivo-v583-supplier-master-popup-authority.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-master-context-capacity-binding-final",
+      "path": "modules/master-data/phase2-247-yardivo-v583-master-context-capacity-binding-final.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-master-bootstrap-backend-frontend-authority-final",
+      "path": "modules/supplier/phase2-248-yardivo-v583-master-bootstrap-backend-frontend-authority-final.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-master-total-stability-authority-final",
+      "path": "modules/master-data/runtime/yardivo-v583-master-total-stability-authority-final.js",
       "category": "master-data"
     },
     {
       "id": "yardivo-v583-supplier-popup-xlsx-total-fix-authority",
       "path": "modules/supplier/yardivo-v583-supplier-popup-xlsx-total-fix-authority.js",
-      "bytes": 5866,
-      "sha256": "2d43ab654dcfa55c5baa458d3382dc59cec8e70785d925475612ecc5abea7ef1",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-supplier-master-scope-account-xlsx-total",
       "path": "modules/supplier/yardivo-v583-supplier-master-scope-account-xlsx-total.js",
-      "bytes": 17345,
-      "sha256": "eb87b777597b30abb13374cafb5b3a951d86460ddeddda40fd18f4a99c43f010",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-master-popup-only-fix",
+      "path": "modules/master-data/runtime/yardivo-v583-master-popup-only-fix.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-v583-master-data-cleanup-final-js",
       "path": "modules/supplier/yardivo-v583-master-data-cleanup-final-js.js",
-      "bytes": 8412,
-      "sha256": "7afdcc504fae3a41964ac626cf080e6f9b2e492fa1b6cb2109cd179d56a40433",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-master-access-settings-repair-final-js",
+      "path": "modules/master-data/runtime/yardivo-v583-master-access-settings-repair-final-js.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-master-ordinary-strict-separation-js",
+      "path": "modules/supplier/phase2-255-yardivo-v583-master-ordinary-strict-separation-js.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-settings-unified-single-section-rebuild-js",
+      "path": "modules/master-data/phase2-256-yardivo-v583-settings-unified-single-section-rebuild-js.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-smart-suppliers-accounts-fix-js",
+      "path": "modules/supplier/phase2-257-yardivo-v583-smart-suppliers-accounts-fix-js.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-add-user-smart-system-toggle-js",
+      "path": "modules/master-data/phase2-258-yardivo-v583-add-user-smart-system-toggle-js.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-login-home-no-flicker-js",
+      "path": "services/runtime/yardivo-v583-login-home-no-flicker-js.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-v583-stable-home-guard-js",
+      "path": "services/runtime/phase5-260-yardivo-v583-stable-home-guard-js.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-v583-qr-server-settings-refresh-js",
+      "path": "modules/gate/runtime/phase5-262-yardivo-v583-qr-server-settings-refresh-js.js",
+      "category": "gate"
+    },
+    {
+      "id": "yardivo-v583-settings-smart-qr-master-zero-runtime",
+      "path": "modules/master-data/runtime/phase5-263-yardivo-v583-settings-smart-qr-master-zero-runtime.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-qr-public-authority-js",
+      "path": "modules/gate/runtime/phase5-264-yardivo-v583-qr-public-authority-js.js",
+      "category": "gate"
+    },
+    {
+      "id": "yardivo-v583-settings-master-separation-cleanup-js",
+      "path": "modules/master-data/runtime/yardivo-v583-settings-master-separation-cleanup-js.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-v583-home-header-master-dwell-final-js",
       "path": "modules/supplier/yardivo-v583-home-header-master-dwell-final-js.js",
-      "bytes": 5087,
-      "sha256": "1716afd305e3acbb69dd8ff5c498b971b41f952ec841bf925bee507e7d749557",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-master-people-users-ui-final-js",
       "path": "modules/supplier/yardivo-v583-master-people-users-ui-final-js.js",
-      "bytes": 11859,
-      "sha256": "eee1fafe55c5fece76404c003f3f2e8e5ba00bb52806c5ed33dae043162bff56",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-master-users-stability-hotfix",
       "path": "modules/supplier/yardivo-v583-master-users-stability-hotfix.js",
-      "bytes": 13136,
-      "sha256": "ba34c5539fa4730fd3a0d226659bfd4da796187c7f18648cdb45c45e2bbb4ca9",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-maps-header-smart-master-final-js",
       "path": "modules/services/yardivo-v583-maps-header-smart-master-final-js.js",
-      "bytes": 7800,
-      "sha256": "e0aae3c595ac8f95e6c10054574e101ffb5d04cf091859f28df821cce5719190",
       "category": "services"
     },
     {
       "id": "yardivo-v583-home13-master-scope-users-ui-hotfix-js",
       "path": "modules/supplier/yardivo-v583-home13-master-scope-users-ui-hotfix-js.js",
-      "bytes": 10933,
-      "sha256": "ba1bf173041c78a97d8b63fa54e1aa0958ccbccd50e761b2e8cb3113f9a4b5e7",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-supplier-booking-rebuilt-clean-authority",
       "path": "modules/supplier/yardivo-v583-supplier-booking-rebuilt-clean-authority.js",
-      "bytes": 24580,
-      "sha256": "d7224a9f48c121236eda5715f4cee4289bd079c8e18a4fa09666135609f3254b",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-smart-operational-visibility-final-authority",
+      "path": "modules/master-data/runtime/yardivo-v583-smart-operational-visibility-final-authority.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-v583-supplier-inbox-stable-health-final-authority",
       "path": "modules/supplier/yardivo-v583-supplier-inbox-stable-health-final-authority.js",
-      "bytes": 6375,
-      "sha256": "da530bc807852c1ca8bd74bf2a4a63e47b89da2b29acc096a4340438864fa227",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-header-bell-final-authority",
+      "path": "modules/master-data/runtime/yardivo-v583-header-bell-final-authority.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-notifications-master-supplier-sanitizer",
+      "path": "modules/notifications/yardivo-v583-notifications-master-supplier-sanitizer.js",
+      "category": "notifications"
+    },
+    {
+      "id": "yardivo-v583-global-visible-master-names",
+      "path": "modules/master-data/runtime/yardivo-v583-global-visible-master-names.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-v583-deep-ui-stability-final-authority",
+      "path": "modules/supplier/runtime/phase5-277-yardivo-v583-deep-ui-stability-final-authority.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-hard-ui-stability-final-authority",
+      "path": "services/runtime/yardivo-v583-hard-ui-stability-final-authority.js",
+      "category": "services"
     },
     {
       "id": "yardivo-v583-reception-ui-scope-clean-js",
       "path": "modules/supplier/yardivo-v583-reception-ui-scope-clean-js.js",
-      "bytes": 10579,
-      "sha256": "6faf1984f3e0f7a28b0ef00c3a7b50100da9de26e2d1d8bcfdc6e219ddaf2a99",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-sidebar-hover-drawer-js",
+      "path": "modules/ui/runtime/yardivo-v583-sidebar-hover-drawer-js.js",
+      "category": "ui"
     },
     {
       "id": "yardivo-v583-account-warehouse-scope-final-js",
       "path": "modules/services/yardivo-v583-account-warehouse-scope-final-js.js",
-      "bytes": 5086,
-      "sha256": "591d32e03c36a4dadcf02bb1391371e6a327d36e65a973df829983c8699958c4",
       "category": "services"
+    },
+    {
+      "id": "yardivo-v583-reception-basic-settings-only-js",
+      "path": "modules/supplier/runtime/yardivo-v583-reception-basic-settings-only-js.js",
+      "category": "supplier"
     },
     {
       "id": "yardivo-v583-right-settings-drawer-js",
       "path": "modules/services/yardivo-v583-right-settings-drawer-js.js",
-      "bytes": 17778,
-      "sha256": "971050c93710b744ad6ceddc733db8e07f3b35324657fda3ea66762695b2fd7c",
       "category": "services"
     },
     {
       "id": "yardivo-v583-live-yard-3d-twin-js",
       "path": "modules/master-data/yardivo-v583-live-yard-3d-twin-js.js",
-      "bytes": 7750,
-      "sha256": "51ced78e8a1a0b1aead3a654d34d7109129918bee4e5b54dfa76ad6336404ebd",
       "category": "master-data"
     },
     {
       "id": "yardivo-v583-bottom-minimap-assistant-js",
       "path": "modules/services/yardivo-v583-bottom-minimap-assistant-js.js",
-      "bytes": 19004,
-      "sha256": "7ad0a32e1171af60d0d5c0e6b8f052ee35e260c5c3daac5c570b914ca10b1528",
       "category": "services"
     },
     {
       "id": "yardivo-v583-minimap-assistant-ux-fix-final-js",
       "path": "modules/ai/yardivo-v583-minimap-assistant-ux-fix-final-js.js",
-      "bytes": 6515,
-      "sha256": "20254ecd07e04a1b2e9f886955f49343ba6ee1e9d2d69668521d619892a7203a",
+      "category": "ai"
+    },
+    {
+      "id": "yardivo-v583-real-ai-assistant-dom-final-js",
+      "path": "modules/ai/runtime/phase5-288-yardivo-v583-real-ai-assistant-dom-final-js.js",
+      "category": "ai"
+    },
+    {
+      "id": "yardivo-v583-ai-assistant-supabase-v2-final-js",
+      "path": "modules/ai/yardivo-v583-ai-assistant-supabase-v2-final.js",
       "category": "ai"
     },
     {
       "id": "yardivo-v583-timeline-next-arrivals-js",
       "path": "modules/legacy/yardivo-v583-timeline-next-arrivals-js.js",
-      "bytes": 10936,
-      "sha256": "08f2361e1b88f0671f81c5813f0e945df9e435637fbbec2c369241e5cbe2b865",
       "category": "legacy"
+    },
+    {
+      "id": "yardivo-v583-dark-palette-full-ui-runtime",
+      "path": "modules/settings/yardivo-v583-dark-palette-full-ui-runtime.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-v583-role-ops-pdf-popup-guard-final-js",
+      "path": "modules/supplier/runtime/yardivo-v583-role-ops-pdf-popup-guard-final-js.js",
+      "category": "supplier"
     },
     {
       "id": "yardivo-v583-document-archive-final",
       "path": "modules/services/yardivo-v583-document-archive-final.js",
-      "bytes": 11411,
-      "sha256": "e7b672e2995f3149dd8ad5d1cad458006769a25b22ce728a174f2f2c0cd4ac27",
       "category": "services"
+    },
+    {
+      "id": "yardivo-v583-pdf-icon-click-final-fix-js",
+      "path": "modules/supplier/runtime/yardivo-v583-pdf-icon-click-final-fix-js.js",
+      "category": "supplier"
     },
     {
       "id": "yardivo-ai-voice-notifications-v583",
       "path": "modules/services/yardivo-ai-voice-notifications-v583.js",
-      "bytes": 10152,
-      "sha256": "e28cfbf652b9297b63135b97f16d21a7a614c61ba8820a3d7eab7c084f1ea4ac",
       "category": "services"
+    },
+    {
+      "id": "yardivo-v583-unified-ai-sound-settings-js",
+      "path": "modules/notifications/phase2-296-yardivo-v583-unified-ai-sound-settings-js.js",
+      "category": "notifications"
     },
     {
       "id": "yardivo-v583-help-chat-js",
       "path": "modules/chat/yardivo-v583-help-chat.js",
-      "bytes": 7512,
-      "sha256": "0a875c7254307d6512f76e4953d5e9c0c09d8b08292b291b91fe0a4590dfa24d",
+      "category": "chat"
+    },
+    {
+      "id": "yardivo-v583-help-chat-admin-popups-js",
+      "path": "modules/chat/yardivo-v583-help-chat-admin-popups.js",
       "category": "chat"
     },
     {
       "id": "yardivo-v583-supplier-context-actions",
       "path": "modules/supplier/yardivo-v583-supplier-context-actions.js",
-      "bytes": 5157,
-      "sha256": "be0a158e00c72e85d51651c262c822a76e4d450f703cff317c1b7d8f0837229c",
       "category": "supplier"
     },
     {
       "id": "yardivo-receiving-header-warehouse-qr-v583",
       "path": "modules/receiving/header-warehouse-qr.js",
-      "bytes": 14326,
-      "sha256": "c21a260d9ec527518886821352f345179270b2873d10c064c66be3055249a098",
-      "category": "services"
+      "category": "receiving"
     },
     {
       "id": "yardivo-qr-admin-visible-v584",
       "path": "modules/services/yardivo-qr-admin-visible-v584.js",
-      "bytes": 7250,
-      "sha256": "35518620946e3d8bd6b1e1c08ecc01013b783e10083ccbbf64f25ee80e894011",
       "category": "services"
     },
     {
       "id": "yardivo-qr-role-control-v586",
       "path": "modules/services/yardivo-qr-role-control-v586.js",
-      "bytes": 17085,
-      "sha256": "a4c243d3b895fcff2bb8d10ce0d7c96c5d42ab07ae61f6391258a4a04e29be20",
       "category": "services"
     },
     {
       "id": "yardivo-self-gate-pass-v1",
       "path": "modules/self-gate/service.js",
-      "bytes": 29463,
-      "sha256": "a1306d791eec087ebf75aff3064154a072ffdcd296992b4a9b3bc4748708b7b0",
-      "category": "services"
+      "category": "self-gate"
     },
     {
       "id": "yardivo-manager-scope-popup-v2",
       "path": "modules/supplier/yardivo-manager-scope-popup-v2.js",
-      "bytes": 17931,
-      "sha256": "dfdeb8a2eb1f091b5b5d4586c0bd65705b05c424a1b104a188b468694c1e3683",
       "category": "supplier"
     },
     {
       "id": "yardivo-manager-final-authority-v4",
       "path": "modules/supplier/yardivo-manager-final-authority-v4.js",
-      "bytes": 18413,
-      "sha256": "92048ef16e601ad28e52955326ace067952f3cdf34047221b7145b8206ec602b",
       "category": "supplier"
     },
     {
       "id": "yardivo-overview-master-authority-v5",
       "path": "modules/supplier/yardivo-overview-master-authority-v5.js",
-      "bytes": 14193,
-      "sha256": "0334b5eb0909bdb9b101537c0dbe2cdd010f8ecf4e3698d4991f3d645d3f8d78",
       "category": "supplier"
     },
     {
       "id": "yardivo-analytics-v1",
       "path": "modules/supplier/yardivo-analytics-v1.js",
-      "bytes": 28412,
-      "sha256": "7e1fdb4527b48c24adef431922bd869876d65441638d53a5069e333612448477",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-map-live-delay-refresh-v1",
+      "path": "services/runtime/phase5-310-yardivo-map-live-delay-refresh-v1.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-theme-full-authority-v4-js",
+      "path": "modules/settings/phase2-311-yardivo-theme-full-authority-v4-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-light-full-white-v5-js",
+      "path": "modules/settings/runtime/phase5-312-yardivo-light-full-white-v5-js.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-master-warehouse-display-shield-v6",
+      "path": "modules/master-data/runtime/yardivo-master-warehouse-display-shield-v6.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-delay-settings-v1",
+      "path": "modules/settings/yardivo-delay-settings-v1.js",
+      "category": "settings"
+    },
+    {
+      "id": "yardivo-admin-cleanup-v8-js",
+      "path": "modules/master-data/runtime/yardivo-admin-cleanup-v8-js.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-global-delay-rules-v9",
+      "path": "modules/master-data/runtime/yardivo-global-delay-rules-v9.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-final-qa-1-5-v10",
+      "path": "modules/master-data/runtime/yardivo-final-qa-1-5-v10.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-delay-label-sync-v10",
+      "path": "services/runtime/phase5-318-yardivo-delay-label-sync-v10.js",
+      "category": "services"
+    },
+    {
+      "id": "yardivo-admin-master-restore-v11-js",
+      "path": "modules/master-data/phase2-319-yardivo-admin-master-restore-v11-js.js",
+      "category": "master-data"
+    },
+    {
+      "id": "yardivo-master-single-editor-v12-js",
+      "path": "modules/master-data/runtime/yardivo-master-single-editor-v12-js.js",
+      "category": "master-data"
     },
     {
       "id": "yardivo-v583-inventory-supplier-actions-fix-20260923",
       "path": "modules/supplier/yardivo-v583-inventory-supplier-actions-fix-20260923.js",
-      "bytes": 6444,
-      "sha256": "999994a6b44a9894f0e3ade5e3a85d2f75427f13473f501da110770157bf4e64",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-inventory-supplier-notif-delete-20260923",
       "path": "modules/supplier/yardivo-v583-inventory-supplier-notif-delete-20260923.js",
-      "bytes": 6640,
-      "sha256": "3734b2bd0798b773629a18ba32057ccbbea5721ff54eb4d0c028110809ba10d1",
       "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-announcement-number-display-20260923",
+      "path": "modules/ui/runtime/phase5-323-yardivo-v583-announcement-number-display-20260923.js",
+      "category": "ui"
     },
     {
       "id": "yardivo-v583-supplier-history-status-server-authority-20260923",
       "path": "modules/supplier/yardivo-v583-supplier-history-status-server-authority-20260923.js",
-      "bytes": 19549,
-      "sha256": "f941f2f6223acf2fc62d5038576a3277facc2bf684442fee09bda72a35f3065b",
+      "category": "supplier"
+    },
+    {
+      "id": "yardon-supplier-self-service-v2",
+      "path": "modules/supplier/yardon-supplier-self-service-v2.js",
+      "category": "supplier"
+    },
+    {
+      "id": "yardivo-v583-supplier-no-flicker-final-20260923",
+      "path": "modules/supplier/runtime/yardivo-v583-supplier-no-flicker-final-20260923.js",
       "category": "supplier"
     },
     {
       "id": "yardivo-v583-operational-chat",
       "path": "modules/chat/yardivo-v583-operational-chat.js",
-      "bytes": 7687,
-      "sha256": "7f0a8c96f7c32a40f0b6c0609cca1930231cbc7a268cfe56dafb4b313d1e161b",
       "category": "chat"
     },
     {
-      "id": "yardivo-delay-settings-v1",
-      "path": "modules/settings/yardivo-delay-settings-v1.js",
-      "bytes": 7822,
-      "category": "settings"
+      "id": "yardivo-v583-supplier-history-tombstone-voice-20260924",
+      "path": "modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js",
+      "category": "supplier"
     },
     {
-      "id": "yardivo-server-authoritative-browser-storage-v583",
-      "path": "modules/master-data/phase2-013-yardivo-server-authoritative-browser-storage-v583.js",
-      "bytes": 4295,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-welcome-splash-script",
-      "path": "modules/ui/phase2-017-yardivo-welcome-splash-script.js",
-      "bytes": 3848,
-      "category": "ui",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-driver-form-final-binding",
-      "path": "modules/gate/phase2-024-yardivo-driver-form-final-binding.js",
-      "bytes": 4124,
-      "category": "gate",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-capacity-transactional-final",
-      "path": "modules/master-data/phase2-054-yardivo-capacity-transactional-final.js",
-      "bytes": 3156,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-incident-image-viewer-v1-script",
-      "path": "modules/ui/phase2-070-yardivo-incident-image-viewer-v1-script.js",
-      "bytes": 3689,
-      "category": "ui",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-live-yard-truck-modal-v5-2",
-      "path": "modules/master-data/phase2-078-yardivo-live-yard-truck-modal-v5-2.js",
-      "bytes": 3555,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v39-qa-role-workflow-fixes",
-      "path": "modules/supplier/phase2-091-yardivo-v39-qa-role-workflow-fixes.js",
-      "bytes": 3761,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-dark-accent-choice-20260831",
-      "path": "modules/gate/phase2-100-yardivo-dark-accent-choice-20260831.js",
-      "bytes": 4787,
-      "category": "gate",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-xlsx-export-complete-fix-v1-20260831",
-      "path": "modules/supplier/phase2-110-yardivo-xlsx-export-complete-fix-v1-20260831.js",
-      "bytes": 3377,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-theme-simplified-final-v1-20260831-js",
-      "path": "modules/settings/phase2-114-yardivo-theme-simplified-final-v1-20260831-js.js",
-      "bytes": 4899,
-      "category": "settings",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-login-safe-isolation-v2-20260901-js",
-      "path": "modules/ui/phase2-115-yardivo-login-safe-isolation-v2-20260901-js.js",
-      "bytes": 4660,
-      "category": "ui",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-login-unconditional-finalizer-v3-20260901",
-      "path": "modules/ui/phase2-116-yardivo-login-unconditional-finalizer-v3-20260901.js",
-      "bytes": 3171,
-      "category": "ui",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-overview-manager-summary-v1-20260901",
-      "path": "modules/master-data/phase2-129-yardivo-overview-manager-summary-v1-20260901.js",
-      "bytes": 3561,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-theme-canonical-single-owner-v5-20260901",
-      "path": "modules/settings/phase2-134-yardivo-theme-canonical-single-owner-v5-20260901.js",
-      "bytes": 3296,
-      "category": "settings",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-notification-delete-read-style-v1-20260901-js",
-      "path": "modules/sync/phase2-137-yardivo-notification-delete-read-style-v1-20260901-js.js",
-      "bytes": 4882,
-      "category": "sync",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-overview-hero3-v2-20260901-js",
-      "path": "modules/supplier/phase2-140-yardivo-overview-hero3-v2-20260901-js.js",
-      "bytes": 3039,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-smart-admin-setting-v1-20260902",
-      "path": "modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js",
-      "bytes": 3173,
-      "category": "settings",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v548-create-profile-hard-owner",
-      "path": "modules/gate/phase2-154-yardivo-v548-create-profile-hard-owner.js",
-      "bytes": 3855,
-      "category": "gate",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v551-supplier-accounts-admin",
-      "path": "modules/supplier/phase2-156-yardivo-v551-supplier-accounts-admin.js",
-      "bytes": 4293,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v576-supplier-auth-calendar-final",
-      "path": "modules/supplier/phase2-162-yardivo-v576-supplier-auth-calendar-final.js",
-      "bytes": 4357,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-admin-separated-user-lists-v583",
-      "path": "modules/supplier/phase2-169-yardivo-admin-separated-user-lists-v583.js",
-      "bytes": 3861,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-macos-motion-ui",
-      "path": "modules/supplier/phase2-173-yardivo-v583-macos-motion-ui.js",
-      "bytes": 3169,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-warehouse-transition",
-      "path": "modules/master-data/phase2-174-yardivo-v583-warehouse-transition.js",
-      "bytes": 4357,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-graphite-notifications-scanner-final",
-      "path": "modules/sync/phase2-175-yardivo-v583-graphite-notifications-scanner-final.js",
-      "bytes": 3685,
-      "category": "sync",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-supplier-day-map-real-slots-hard-fix",
-      "path": "modules/supplier/phase2-183-yardivo-supplier-day-map-real-slots-hard-fix.js",
-      "bytes": 4717,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-supplier-fullscreen-day-map-v583",
-      "path": "modules/supplier/phase2-184-yardivo-supplier-fullscreen-day-map-v583.js",
-      "bytes": 4984,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-supplier-native-fullscreen-map-final-v583",
-      "path": "modules/supplier/phase2-185-yardivo-supplier-native-fullscreen-map-final-v583.js",
-      "bytes": 4628,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-supplier-slot-prerequisites-v583",
-      "path": "modules/supplier/phase2-187-yardivo-supplier-slot-prerequisites-v583.js",
-      "bytes": 4408,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-unannounced-location-flicker-fix-v583",
-      "path": "modules/master-data/phase2-204-yardivo-unannounced-location-flicker-fix-v583.js",
-      "bytes": 4180,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-zero-state-runtime-v583",
-      "path": "modules/supplier/phase2-205-yardivo-zero-state-runtime-v583.js",
-      "bytes": 4841,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-ramp-role-guard-final",
-      "path": "modules/master-data/phase2-229-yardivo-v583-ramp-role-guard-final.js",
-      "bytes": 3586,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-admin-actions-capture-final",
-      "path": "modules/supplier/phase2-231-yardivo-v583-admin-actions-capture-final.js",
-      "bytes": 3558,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-header-home-context-clean-authority",
-      "path": "modules/master-data/phase2-237-yardivo-v583-header-home-context-clean-authority.js",
-      "bytes": 3163,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-master-context-capacity-binding-final",
-      "path": "modules/master-data/phase2-247-yardivo-v583-master-context-capacity-binding-final.js",
-      "bytes": 3082,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-master-bootstrap-backend-frontend-authority-final",
-      "path": "modules/supplier/phase2-248-yardivo-v583-master-bootstrap-backend-frontend-authority-final.js",
-      "bytes": 3460,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-master-ordinary-strict-separation-js",
-      "path": "modules/supplier/phase2-255-yardivo-v583-master-ordinary-strict-separation-js.js",
-      "bytes": 3195,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-settings-unified-single-section-rebuild-js",
-      "path": "modules/master-data/phase2-256-yardivo-v583-settings-unified-single-section-rebuild-js.js",
-      "bytes": 3728,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-smart-suppliers-accounts-fix-js",
-      "path": "modules/supplier/phase2-257-yardivo-v583-smart-suppliers-accounts-fix-js.js",
-      "bytes": 3162,
-      "category": "supplier",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-add-user-smart-system-toggle-js",
-      "path": "modules/master-data/phase2-258-yardivo-v583-add-user-smart-system-toggle-js.js",
-      "bytes": 3514,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-unified-ai-sound-settings-js",
-      "path": "modules/notifications/phase2-296-yardivo-v583-unified-ai-sound-settings-js.js",
-      "bytes": 4066,
-      "category": "notifications",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-theme-full-authority-v4-js",
-      "path": "modules/settings/phase2-311-yardivo-theme-full-authority-v4-js.js",
-      "bytes": 4843,
-      "category": "settings",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-admin-master-restore-v11-js",
-      "path": "modules/master-data/phase2-319-yardivo-admin-master-restore-v11-js.js",
-      "bytes": 4066,
-      "category": "master-data",
-      "phase": 2
-    },
-    {
-      "id": "yardivo-v583-help-chat-admin-popups-js",
-      "path": "modules/chat/yardivo-v583-help-chat-admin-popups.js",
-      "bytes": 2768,
-      "category": "chat",
-      "phase": 3
-    },
-    {
-      "id": "yardivo-v583-chat-realtime-signal-final",
-      "path": "modules/chat/yardivo-v583-chat-realtime-signal-final.js",
-      "bytes": 1959,
-      "category": "chat",
-      "phase": 3
-    },
-    {
-      "id": "yardivo-v583-ai-assistant-supabase-v2-final-js",
-      "path": "modules/ai/yardivo-v583-ai-assistant-supabase-v2-final.js",
-      "bytes": 2046,
-      "category": "ai",
-      "phase": 3
+      "id": "yardivo-v583-notification-login-ai-voice-guard-20260924",
+      "path": "modules/notifications/runtime/phase5-328-yardivo-v583-notification-login-ai-voice-guard-20260924.js",
+      "category": "notifications"
     },
     {
       "id": "yardivo-v583-login-ai-welcome-20260924",
       "path": "modules/ai/yardivo-v583-login-ai-welcome-20260924.js",
-      "bytes": 2485,
-      "category": "ai",
-      "phase": 3
+      "category": "ai"
     },
     {
-      "id": "yardivo-v583-notifications-master-supplier-sanitizer",
-      "path": "modules/notifications/yardivo-v583-notifications-master-supplier-sanitizer.js",
-      "bytes": 2711,
-      "category": "notifications",
-      "phase": 3
-    },
-    {
-      "id": "yardivo-v583-dark-palette-full-ui-runtime",
-      "path": "modules/settings/yardivo-v583-dark-palette-full-ui-runtime.js",
-      "bytes": 2763,
-      "category": "settings",
-      "phase": 3
+      "id": "yardivo-v583-chat-realtime-signal-final",
+      "path": "modules/chat/yardivo-v583-chat-realtime-signal-final.js",
+      "category": "chat"
     },
     {
       "id": "yardivo-role-visibility-authority",
       "path": "modules/auth/role-visibility.js",
-      "bytes": 4720,
       "category": "auth"
     }
   ],
   "css": {
-    "path": "styles/yardivo-runtime.css",
-    "source_style_blocks": 342,
-    "bytes": 1153354
+    "files": [
+      "styles/yardon-navigation-single-owner.css",
+      "styles/yardivo-runtime.css",
+      "styles/yardon-supplier-modern-v1.css",
+      "styles/yardon-ai-operations-v1.css"
+    ]
+  },
+  "groups": {
+    "master-data": [
+      "modules/master-data/runtime/phase5-001-yardivo-canonical-warehouse-helper-v583.js",
+      "modules/master-data/phase2-013-yardivo-server-authoritative-browser-storage-v583.js",
+      "modules/master-data/service.js",
+      "modules/master-data/runtime/phase5-022-inline-022.js",
+      "modules/master-data/script-024.js",
+      "modules/master-data/runtime/yardivo-3d-camera-controls.js",
+      "modules/master-data/yardivo-smart-yard-brain.js",
+      "modules/master-data/runtime/phase5-039-yardivo-admin-create-user-case-fix.js",
+      "modules/master-data/warehouse-context.js",
+      "modules/master-data/phase2-054-yardivo-capacity-transactional-final.js",
+      "modules/master-data/phase2-078-yardivo-live-yard-truck-modal-v5-2.js",
+      "modules/master-data/runtime/phase5-083-yardivo-v29-stable-rotation.js",
+      "modules/master-data/yardivo-v35-my-yard.js",
+      "modules/master-data/runtime/yardivo-v36-remove-double-rampa.js",
+      "modules/master-data/runtime/phase5-090-yardivo-v37-no-double-ramp-header.js",
+      "modules/master-data/runtime/phase5-098-yardivo-global-font-scale-init-20260831.js",
+      "modules/master-data/yardivo-myyard-webgl-v3.js",
+      "modules/master-data/runtime/phase5-104-yardivo-hide-smart-allocation-card-20260831-js.js",
+      "modules/master-data/yardivo-operational-sync-v1-20260901.js",
+      "modules/master-data/runtime/yardivo-announcement-map-canonical-sync-v1-20260901.js",
+      "modules/master-data/runtime/phase5-127-yardivo-overview-fullchart-master-bridge-v1-20260901.js",
+      "modules/master-data/phase2-129-yardivo-overview-manager-summary-v1-20260901.js",
+      "modules/master-data/runtime/phase5-144-yardivo-v581-user-profile-scope-fix.js",
+      "modules/master-data/runtime/phase5-152-yardivo-v535-internal-user-location-bind.js",
+      "modules/master-data/yardivo-v548-full-operational-notifications.js",
+      "modules/master-data/phase2-174-yardivo-v583-warehouse-transition.js",
+      "modules/master-data/yardivo-master-data-registry.js",
+      "modules/master-data/runtime/phase5-196-yardivo-home-location-stability-final-v583.js",
+      "modules/master-data/runtime/yardivo-disable-legacy-flicker-observers-v583.js",
+      "modules/master-data/yardivo-settings-consolidation-notifications-v583.js",
+      "modules/master-data/runtime/yardivo-saas-cleanup-pass1-guard-v583.js",
+      "modules/master-data/yardivo-saas-hardening-pass2-v583.js",
+      "modules/master-data/runtime/phase5-203-yardivo-masterdata-single-warehouse-owner-guard-v583.js",
+      "modules/master-data/phase2-204-yardivo-unannounced-location-flicker-fix-v583.js",
+      "modules/master-data/yardivo-v583-master-system-fix-x10.js",
+      "modules/master-data/yardivo-v583-master-foundation-final.js",
+      "modules/master-data/runtime/yardivo-v583-production-empty-guard-final.js",
+      "modules/master-data/yardivo-v583-handover-production-empty-final.js",
+      "modules/master-data/runtime/phase5-225-yardivo-v583-canonical-master-context-final-authority.js",
+      "modules/master-data/runtime/yardivo-v583-header-warehouse-dropdown-authority.js",
+      "modules/master-data/runtime/yardivo-v583-epal-ramp-master-clean-authority.js",
+      "modules/master-data/phase2-229-yardivo-v583-ramp-role-guard-final.js",
+      "modules/master-data/yardivo-v583-production-master-cleanup-final.js",
+      "modules/master-data/runtime/yardivo-v583-admin-master-clean-no-flicker-final.js",
+      "modules/master-data/phase2-237-yardivo-v583-header-home-context-clean-authority.js",
+      "modules/master-data/runtime/yardivo-v583-header-home-user-right-final-authority.js",
+      "modules/master-data/runtime/yardivo-v583-settings-single-page-master-light-blue-authority.js",
+      "modules/master-data/runtime/phase5-240-yardivo-v583-header-context-settings-contrast-final-authority.js",
+      "modules/master-data/runtime/yardivo-v583-header-prompt-myyard-parking42-authority.js",
+      "modules/master-data/runtime/phase5-243-yardivo-v583-header-clean-context-final.js",
+      "modules/master-data/runtime/phase5-245-yardivo-v583-master-active-edit-no-flicker-final.js",
+      "modules/master-data/phase2-247-yardivo-v583-master-context-capacity-binding-final.js",
+      "modules/master-data/runtime/yardivo-v583-master-total-stability-authority-final.js",
+      "modules/master-data/runtime/yardivo-v583-master-popup-only-fix.js",
+      "modules/master-data/runtime/yardivo-v583-master-access-settings-repair-final-js.js",
+      "modules/master-data/phase2-256-yardivo-v583-settings-unified-single-section-rebuild-js.js",
+      "modules/master-data/phase2-258-yardivo-v583-add-user-smart-system-toggle-js.js",
+      "modules/master-data/runtime/phase5-263-yardivo-v583-settings-smart-qr-master-zero-runtime.js",
+      "modules/master-data/runtime/yardivo-v583-settings-master-separation-cleanup-js.js",
+      "modules/master-data/runtime/yardivo-v583-smart-operational-visibility-final-authority.js",
+      "modules/master-data/runtime/yardivo-v583-header-bell-final-authority.js",
+      "modules/master-data/runtime/yardivo-v583-global-visible-master-names.js",
+      "modules/master-data/yardivo-v583-live-yard-3d-twin-js.js",
+      "modules/master-data/runtime/yardivo-master-warehouse-display-shield-v6.js",
+      "modules/master-data/runtime/yardivo-admin-cleanup-v8-js.js",
+      "modules/master-data/runtime/yardivo-global-delay-rules-v9.js",
+      "modules/master-data/runtime/yardivo-final-qa-1-5-v10.js",
+      "modules/master-data/phase2-319-yardivo-admin-master-restore-v11-js.js",
+      "modules/master-data/runtime/yardivo-master-single-editor-v12-js.js"
+    ],
+    "settings": [
+      "modules/settings/runtime/yardivo-production-bootstrap-guard-v4-20260902.js",
+      "modules/settings/runtime/yardivo-first-paint-bootstrap-v1.js",
+      "modules/settings/runtime/phase5-004-yardivo-first-visit-original-theme-v1-20260901.js",
+      "modules/settings/runtime/phase5-027-yardivo-theme-switch.js",
+      "modules/settings/runtime/yardivo-settings-access-fix.js",
+      "modules/settings/runtime/phase5-096-yardivo-final-theme-two-mode-cleanup-20260831.js",
+      "modules/settings/runtime/phase5-099-yardivo-full-light-mode-sync-20260831.js",
+      "modules/settings/runtime/phase5-101-yardivo-light-theme-class-bridge-20260831.js",
+      "modules/settings/runtime/yardivo-myyard-webgl-lighten-v1-20260831-js.js",
+      "modules/settings/runtime/yardivo-ux-original-option-v1-20260831-js.js",
+      "modules/settings/runtime/phase5-109-yardivo-professional-graphite-green-maps-v1-20260831-js.js",
+      "modules/settings/runtime/yardivo-myyard-flicker-fix-v1-20260831-js.js",
+      "modules/settings/runtime/yardivo-theme-canonical-bridge-v1-20260831-js.js",
+      "modules/settings/phase2-114-yardivo-theme-simplified-final-v1-20260831-js.js",
+      "modules/settings/runtime/yardivo-original-dark-authentic-v1-20260901-js.js",
+      "modules/settings/runtime/phase5-125-yardivo-full-white-light-mode-v1-20260901-js.js",
+      "modules/settings/runtime/yardivo-dark-palette-total-isolation-v1-20260901-js.js",
+      "modules/settings/runtime/yardivo-settings-dark-only-holidays-v1-20260901.js",
+      "modules/settings/runtime/phase5-133-yardivo-light-absolute-white-v4-20260901-js.js",
+      "modules/settings/phase2-134-yardivo-theme-canonical-single-owner-v5-20260901.js",
+      "modules/settings/runtime/yardivo-settings-cleanup-light-sheets-v1-20260901-js.js",
+      "modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js",
+      "modules/settings/runtime/phase5-177-yardivo-v583-stability-runtime-guard.js",
+      "modules/settings/runtime/yardivo-v583-deep-qa-diagnostics-x10.js",
+      "modules/settings/yardivo-v583-dark-palette-full-ui-runtime.js",
+      "modules/settings/phase2-311-yardivo-theme-full-authority-v4-js.js",
+      "modules/settings/runtime/phase5-312-yardivo-light-full-white-v5-js.js",
+      "modules/settings/yardivo-delay-settings-v1.js"
+    ],
+    "ui": [
+      "modules/ui/yardon-brand-v1.js",
+      "modules/ui/runtime/phase5-011-yardivo-smart-prepaint-state.js",
+      "modules/ui/runtime/yardivo-welcome-observer-guard-v1-20260901.js",
+      "modules/ui/phase2-017-yardivo-welcome-splash-script.js",
+      "modules/ui/runtime/inline-020.js",
+      "modules/ui/runtime/phase5-029-yardivo-yard-truck-detail-click.js",
+      "modules/ui/runtime/phase5-030-yardivo-disable-yard-pan.js",
+      "modules/ui/runtime/yardivo-final-truck-inspector-click.js",
+      "modules/ui/runtime/phase5-033-yardivo-final-inspector-close.js",
+      "modules/ui/runtime/yardivo-final-yard-click-mode.js",
+      "modules/ui/runtime/phase5-035-yardivo-inspector-visibility-fix.js",
+      "modules/ui/runtime/phase5-040-yardivo-remove-obsolete-sections.js",
+      "modules/ui/runtime/phase5-045-yardivo-daily-map-scroll-controls.js",
+      "modules/ui/runtime/phase5-046-yardivo-daily-map-vertical-zoom-disable.js",
+      "modules/ui/runtime/phase5-060-yardivo-manual-order-js.js",
+      "modules/ui/runtime/phase5-061-yardivo-order-number-decorator.js",
+      "modules/ui/runtime/yardivo-final-context-delete-fix.js",
+      "modules/ui/runtime/yardivo-welcome-mini-previews-v8-script.js",
+      "modules/ui/phase2-070-yardivo-incident-image-viewer-v1-script.js",
+      "modules/ui/runtime/phase5-084-yardivo-v30-single-owner-guard.js",
+      "modules/ui/runtime/phase5-106-yardivo-professional-redesign-v1-js.js",
+      "modules/ui/runtime/phase5-107-yardivo-professional-redesign-v2-js.js",
+      "modules/ui/phase2-115-yardivo-login-safe-isolation-v2-20260901-js.js",
+      "modules/ui/phase2-116-yardivo-login-unconditional-finalizer-v3-20260901.js",
+      "modules/ui/runtime/yardivo-myyard-2d-final-fix-v2-20260901-js.js",
+      "modules/ui/runtime/phase5-210-yardivo-dashboard-vs-yesterday-diagnostic-v583.js",
+      "modules/ui/runtime/yardivo-v583-sidebar-hover-drawer-js.js",
+      "modules/ui/runtime/phase5-323-yardivo-v583-announcement-number-display-20260923.js"
+    ],
+    "services": [
+      "services/runtime/phase5-005-yardivo-rbac-session-migration.js",
+      "services/runtime/phase5-016-yardivo-v583-local-date-authority.js",
+      "services/runtime/phase5-019-yardivo-early-session.js",
+      "modules/services/yardivo-location-selection-final-fix.js",
+      "services/runtime/phase5-041-yardivo-tab-auth-isolation-v583.js",
+      "services/supabase.js",
+      "services/auth.js",
+      "services/realtime.js",
+      "modules/services/yardivo-live-operational-notifications.js",
+      "modules/services/yardivo-smart-timers-and-daily-forecast.js",
+      "modules/services/yardivo-capacity-settings.js",
+      "modules/services/yardivo-unannounced-workflow.js",
+      "modules/services/yardivo-unannounced-section-final.js",
+      "modules/services/yardivo-epal-module.js",
+      "modules/services/yardivo-epal-initial-stock.js",
+      "modules/services/yardivo-order-search-module.js",
+      "modules/services/yardivo-unannounced-gate-v2.js",
+      "modules/services/yardivo-unannounced-reception-gate-flow.js",
+      "modules/services/yardivo-notifications-final-v5.js",
+      "modules/services/yardivo-inventory-drag-reschedule-v1.js",
+      "modules/services/yardivo-expanded-schedule-map-v1.js",
+      "modules/services/yardivo-smart-replanning-v1.js",
+      "modules/services/yardivo-ann-map-availability-v3.js",
+      "modules/services/yardivo-final-yard-v27.js",
+      "services/runtime/yardivo-v28-mode-switch-guard.js",
+      "modules/services/yardivo-v32-my-announcements.js",
+      "services/runtime/yardivo-final-login-stability-20260831.js",
+      "services/runtime/phase5-095-yardivo-welcome-before-login-lock-20260831.js",
+      "services/runtime/yardivo-no-dashboard-flash-after-welcome-v2-20260901-js.js",
+      "services/runtime/phase5-117-yardivo-remove-studenac-legacy-v1-20260902.js",
+      "services/runtime/phase5-118-yardivo-v583-db-status-single-authority.js",
+      "services/sync.js",
+      "services/runtime/yardivo-post-auth-transition-fix-v1-20260901-js.js",
+      "services/runtime/yardivo-canonical-logout-fix-v1-20260901-js.js",
+      "services/runtime/yardivo-myyard-360-orbit-final-v1-20260901-js.js",
+      "modules/services/yardivo-gate-and-users-final-v3-20260901-js.js",
+      "services/runtime/yardivo-login-feedback-password-v2-20260901-js.js",
+      "services/runtime/yardivo-login-change-password-v2-20260901-js.js",
+      "services/runtime/yardivo-manager-section-reconciler-v583.js",
+      "modules/services/yardivo-v583-ux-ramps-docs-weekload-hours.js",
+      "modules/services/yardivo-v583-executive-context-control-tower.js",
+      "modules/services/yardivo-full-data-v583.js",
+      "modules/services/yardivo-unified-dynamic-ramps-v583.js",
+      "modules/services/yardivo-location-state-single-source-v583.js",
+      "modules/services/yardivo-master-warehouse-rampcount-no-legacy-v583.js",
+      "modules/services/yardivo-master-admin-settings-v583.js",
+      "services/runtime/yardivo-home-saved-count-authority-v583.js",
+      "services/runtime/phase5-223-yardivo-v583-admin-global-scope-final.js",
+      "modules/services/yardivo-v583-warehouse-master-ramps-header-repair-final.js",
+      "services/runtime/phase5-241-yardivo-v583-myyard-parking42-final-authority.js",
+      "services/runtime/yardivo-v583-shared-hours-dropdown-authority.js",
+      "services/runtime/yardivo-v583-login-home-no-flicker-js.js",
+      "services/runtime/phase5-260-yardivo-v583-stable-home-guard-js.js",
+      "modules/services/yardivo-v583-maps-header-smart-master-final-js.js",
+      "services/runtime/yardivo-v583-hard-ui-stability-final-authority.js",
+      "modules/services/yardivo-v583-account-warehouse-scope-final-js.js",
+      "modules/services/yardivo-v583-right-settings-drawer-js.js",
+      "modules/services/yardivo-v583-bottom-minimap-assistant-js.js",
+      "modules/services/yardivo-v583-document-archive-final.js",
+      "modules/services/yardivo-ai-voice-notifications-v583.js",
+      "modules/services/yardivo-qr-admin-visible-v584.js",
+      "modules/services/yardivo-qr-role-control-v586.js",
+      "services/runtime/phase5-310-yardivo-map-live-delay-refresh-v1.js",
+      "services/runtime/phase5-318-yardivo-delay-label-sync-v10.js"
+    ],
+    "https:": [
+      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+      "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+      "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
+      "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+    ],
+    "gate": [
+      "modules/gate/runtime/yardivo-early-runtime-helpers.js",
+      "modules/gate/phase2-024-yardivo-driver-form-final-binding.js",
+      "modules/gate/phase2-100-yardivo-dark-accent-choice-20260831.js",
+      "modules/gate/phase2-154-yardivo-v548-create-profile-hard-owner.js",
+      "modules/gate/runtime/phase5-262-yardivo-v583-qr-server-settings-refresh-js.js",
+      "modules/gate/runtime/phase5-264-yardivo-v583-qr-public-authority-js.js"
+    ],
+    "supplier": [
+      "modules/supplier/script-022.js",
+      "modules/supplier/runtime/phase5-026-yardivo-overview-supplier-binding.js",
+      "modules/supplier/yardivo-notifications-timeline.js",
+      "modules/supplier/yardivo-master-upgrade-js.js",
+      "modules/supplier/service.js",
+      "modules/supplier/yardivo-clean-operational-core.js",
+      "modules/supplier/runtime/phase5-047-yardivo-suppliers-classic-360-final.js",
+      "modules/supplier/runtime/yardivo-map-announcement-info.js",
+      "modules/supplier/yardivo-notifications-incidents-final.js",
+      "modules/supplier/yardivo-control-tower-module.js",
+      "modules/supplier/yardivo-final-overview-unannounced-fix.js",
+      "modules/supplier/runtime/yardivo-home-overview-stability.js",
+      "modules/supplier/yardivo-xlsx-export-v1.js",
+      "modules/supplier/runtime/phase5-080-yardivo-overview-methodology-note-v2.js",
+      "modules/supplier/runtime/yardivo-v31-change-vehicle-driver.js",
+      "modules/supplier/phase2-091-yardivo-v39-qa-role-workflow-fixes.js",
+      "modules/supplier/runtime/yardivo-final-settings-rbac-20260831.js",
+      "modules/supplier/runtime/yardivo-final-login-interaction-fix-js-20260831.js",
+      "modules/supplier/yardivo-overview-3d-carousel-20260831.js",
+      "modules/supplier/phase2-110-yardivo-xlsx-export-complete-fix-v1-20260831.js",
+      "modules/supplier/yardivo-canonical-login-router-v2-20260901.js",
+      "modules/supplier/yardivo-overview-fullwidth-chart-v1-20260901-js.js",
+      "modules/supplier/yardivo-myyard-focus-live-v1-20260901-js.js",
+      "modules/supplier/runtime/yardivo-incidents-delete-v1-20260901-js.js",
+      "modules/supplier/runtime/yardivo-overview-executive-simple-v1-20260901-js.js",
+      "modules/supplier/phase2-140-yardivo-overview-hero3-v2-20260901-js.js",
+      "modules/supplier/yardivo-role-stability-final-v6-20260902-js.js",
+      "modules/supplier/yardivo-supplier-account-admin-v52.js",
+      "modules/supplier/yardivo-v545-user-admin-controller.js",
+      "modules/supplier/phase2-156-yardivo-v551-supplier-accounts-admin.js",
+      "modules/supplier/yardivo-v549-supplier-portal.js",
+      "modules/supplier/yardivo-v560-supplier-live-sync.js",
+      "modules/supplier/yardivo-v561-supplier-pro-ui.js",
+      "modules/supplier/yardivo-v570-supplier-approval-workflow.js",
+      "modules/supplier/runtime/yardivo-v574-supplier-proposal-flow.js",
+      "modules/supplier/phase2-162-yardivo-v576-supplier-auth-calendar-final.js",
+      "modules/supplier/yardivo-v582-supplier-planner-canonical-fix.js",
+      "modules/supplier/yardivo-v583-notification-scope-supplier-transport-ui.js",
+      "modules/supplier/yardivo-manager-assignment-system-v583.js",
+      "modules/supplier/yardivo-admin-user-creation-redesign-v583.js",
+      "modules/supplier/phase2-169-yardivo-admin-separated-user-lists-v583.js",
+      "modules/supplier/phase2-173-yardivo-v583-macos-motion-ui.js",
+      "modules/supplier/runtime/yardivo-v583-smart-engine-settings.js",
+      "modules/supplier/yardivo-v583-supplier-history-detail-stability.js",
+      "modules/supplier/yardivo-v583-settings-export-supplier-bulk-hard-fix.js",
+      "modules/supplier/yardivo-supplier-auto-day-slot-v583.js",
+      "modules/supplier/phase2-183-yardivo-supplier-day-map-real-slots-hard-fix.js",
+      "modules/supplier/phase2-184-yardivo-supplier-fullscreen-day-map-v583.js",
+      "modules/supplier/phase2-185-yardivo-supplier-native-fullscreen-map-final-v583.js",
+      "modules/supplier/runtime/yardivo-supplier-status-dark-contrast-final-v583-js.js",
+      "modules/supplier/phase2-187-yardivo-supplier-slot-prerequisites-v583.js",
+      "modules/supplier/yardivo-supplier-daily-map-button-final-v583.js",
+      "modules/supplier/yardivo-supplier-right-daily-map-final-v583.js",
+      "modules/supplier/runtime/yardivo-test-data-runtime-anonymizer-v583.js",
+      "modules/supplier/yardivo-master-data-persistence-dropdown-warehouse-fix-v583.js",
+      "modules/supplier/yardivo-supplier-location-warehouse-binding-v583.js",
+      "modules/supplier/phase2-205-yardivo-zero-state-runtime-v583.js",
+      "modules/supplier/runtime/yardivo-clean-catalog-baseline-v583.js",
+      "modules/supplier/yardivo-gate-qr-supplier-v583.js",
+      "modules/supplier/yardivo-v583-supplier-slot-map-fix.js",
+      "modules/supplier/runtime/phase5-213-yardivo-v583-realtime-x10-effective-final.js",
+      "modules/supplier/yardivo-v583-dev-total-reset-final.js",
+      "modules/supplier/yardivo-v583-stable-master-supplier-zero-final.js",
+      "modules/supplier/yardivo-v583-final-product-spec-controller.js",
+      "modules/supplier/runtime/yardivo-v583-master-runtime-sync-final-authority.js",
+      "modules/supplier/runtime/yardivo-v583-master-location-and-supplier-account-authority-final.js",
+      "modules/supplier/yardivo-v583-global-master-context-names-final.js",
+      "modules/supplier/phase2-231-yardivo-v583-admin-actions-capture-final.js",
+      "modules/supplier/yardivo-v583-supplier-portal-ux-authority.js",
+      "modules/supplier/yardivo-v583-responsible-person-inventory-account-authority.js",
+      "modules/supplier/runtime/yardivo-v583-supplier-master-popup-authority.js",
+      "modules/supplier/phase2-248-yardivo-v583-master-bootstrap-backend-frontend-authority-final.js",
+      "modules/supplier/yardivo-v583-supplier-popup-xlsx-total-fix-authority.js",
+      "modules/supplier/yardivo-v583-supplier-master-scope-account-xlsx-total.js",
+      "modules/supplier/yardivo-v583-master-data-cleanup-final-js.js",
+      "modules/supplier/phase2-255-yardivo-v583-master-ordinary-strict-separation-js.js",
+      "modules/supplier/phase2-257-yardivo-v583-smart-suppliers-accounts-fix-js.js",
+      "modules/supplier/yardivo-v583-home-header-master-dwell-final-js.js",
+      "modules/supplier/yardivo-v583-master-people-users-ui-final-js.js",
+      "modules/supplier/yardivo-v583-master-users-stability-hotfix.js",
+      "modules/supplier/yardivo-v583-home13-master-scope-users-ui-hotfix-js.js",
+      "modules/supplier/yardivo-v583-supplier-booking-rebuilt-clean-authority.js",
+      "modules/supplier/yardivo-v583-supplier-inbox-stable-health-final-authority.js",
+      "modules/supplier/runtime/phase5-277-yardivo-v583-deep-ui-stability-final-authority.js",
+      "modules/supplier/yardivo-v583-reception-ui-scope-clean-js.js",
+      "modules/supplier/runtime/yardivo-v583-reception-basic-settings-only-js.js",
+      "modules/supplier/runtime/yardivo-v583-role-ops-pdf-popup-guard-final-js.js",
+      "modules/supplier/runtime/yardivo-v583-pdf-icon-click-final-fix-js.js",
+      "modules/supplier/yardivo-v583-supplier-context-actions.js",
+      "modules/supplier/yardivo-manager-scope-popup-v2.js",
+      "modules/supplier/yardivo-manager-final-authority-v4.js",
+      "modules/supplier/yardivo-overview-master-authority-v5.js",
+      "modules/supplier/yardivo-analytics-v1.js",
+      "modules/supplier/yardivo-v583-inventory-supplier-actions-fix-20260923.js",
+      "modules/supplier/yardivo-v583-inventory-supplier-notif-delete-20260923.js",
+      "modules/supplier/yardivo-v583-supplier-history-status-server-authority-20260923.js",
+      "modules/supplier/yardon-supplier-self-service-v2.js",
+      "modules/supplier/runtime/yardivo-v583-supplier-no-flicker-final-20260923.js",
+      "modules/supplier/runtime/yardivo-v583-supplier-history-tombstone-voice-20260924.js"
+    ],
+    "auth": [
+      "modules/auth/role-ui.js",
+      "modules/auth/role-visibility.js"
+    ],
+    "receiving": [
+      "modules/receiving/runtime/yardivo-role-context-menu-fix.js",
+      "modules/receiving/runtime/phase5-088-yardivo-qr-mobile-setting-runtime-v34.js",
+      "modules/receiving/runtime/yardivo-final-my-announcements-role-lock-20260831.js",
+      "modules/receiving/service.js",
+      "modules/receiving/yardon-live-truck-card-v1.js",
+      "modules/receiving/runtime/phase5-149-yardivo-dashboard-daily-xlsx-label-v1-20260902.js",
+      "modules/receiving/runtime/yardivo-manager-section-authority-v583.js",
+      "modules/receiving/header-warehouse-qr.js"
+    ],
+    "notifications": [
+      "modules/notifications/runtime/yardivo-login-notification-fix.js",
+      "modules/notifications/runtime/yardivo-fullscreen-v1-script.js",
+      "modules/notifications/runtime/yardivo-notification-policy-ui-final-v583.js",
+      "modules/notifications/runtime/yardivo-test-notifications-clean-v583.js",
+      "modules/notifications/yardivo-v583-notifications-master-supplier-sanitizer.js",
+      "modules/notifications/phase2-296-yardivo-v583-unified-ai-sound-settings-js.js",
+      "modules/notifications/runtime/phase5-328-yardivo-v583-notification-login-ai-voice-guard-20260924.js"
+    ],
+    "legacy": [
+      "modules/legacy/yardivo-operational-drilldown-v1.js",
+      "modules/legacy/yardivo-v583-map-fullscreen-day-drilldown-js.js",
+      "modules/legacy/yardivo-v583-timeline-next-arrivals-js.js"
+    ],
+    "ai": [
+      "modules/ai/yardon-ai-operations-v1.js",
+      "modules/ai/yardivo-v583-minimap-assistant-ux-fix-final-js.js",
+      "modules/ai/runtime/phase5-288-yardivo-v583-real-ai-assistant-dom-final-js.js",
+      "modules/ai/yardivo-v583-ai-assistant-supabase-v2-final.js",
+      "modules/ai/yardivo-v583-login-ai-welcome-20260924.js"
+    ],
+    "sync": [
+      "modules/sync/phase2-137-yardivo-notification-delete-read-style-v1-20260901-js.js",
+      "modules/sync/phase2-175-yardivo-v583-graphite-notifications-scanner-final.js"
+    ],
+    "analytics": [
+      "modules/analytics/yardivo-overview-reset-empty-fix-v1-20260901-js.js"
+    ],
+    "chat": [
+      "modules/chat/yardivo-v583-help-chat.js",
+      "modules/chat/yardivo-v583-help-chat-admin-popups.js",
+      "modules/chat/yardivo-v583-operational-chat.js",
+      "modules/chat/yardivo-v583-chat-realtime-signal-final.js"
+    ],
+    "self-gate": [
+      "modules/self-gate/service.js"
+    ]
   },
   "assets": {
     "yardivo_logo": {
       "path": "assets/yardivo-logo.svg",
       "embedded_png_copies_removed": 3
-    }
-  },
-  "groups": {
-    "ai": {
-      "owner": "modules/ai/",
-      "files": [
-        "modules/ai/yardivo-v583-minimap-assistant-ux-fix-final-js.js",
-        "modules/ai/yardivo-v583-ai-assistant-supabase-v2-final.js",
-        "modules/ai/yardivo-v583-login-ai-welcome-20260924.js"
-      ]
-    },
-    "analytics": {
-      "owner": "modules/analytics/",
-      "files": [
-        "modules/analytics/yardivo-overview-reset-empty-fix-v1-20260901-js.js"
-      ]
-    },
-    "chat": {
-      "owner": "modules/chat/",
-      "files": [
-        "modules/chat/yardivo-v583-help-chat.js",
-        "modules/chat/yardivo-v583-operational-chat.js",
-        "modules/chat/yardivo-v583-help-chat-admin-popups.js",
-        "modules/chat/yardivo-v583-chat-realtime-signal-final.js"
-      ]
-    },
-    "gate": {
-      "owner": "modules/gate/",
-      "files": [
-        "modules/gate/phase2-024-yardivo-driver-form-final-binding.js",
-        "modules/gate/phase2-100-yardivo-dark-accent-choice-20260831.js",
-        "modules/gate/phase2-154-yardivo-v548-create-profile-hard-owner.js"
-      ]
-    },
-    "legacy": {
-      "owner": "modules/legacy/",
-      "files": [
-        "modules/legacy/yardivo-operational-drilldown-v1.js",
-        "modules/legacy/yardivo-v583-map-fullscreen-day-drilldown-js.js",
-        "modules/legacy/yardivo-v583-timeline-next-arrivals-js.js"
-      ]
-    },
-    "master-data": {
-      "owner": "modules/master-data/",
-      "files": [
-        "modules/master-data/phase2-013-yardivo-server-authoritative-browser-storage-v583.js",
-        "modules/master-data/phase2-054-yardivo-capacity-transactional-final.js",
-        "modules/master-data/phase2-078-yardivo-live-yard-truck-modal-v5-2.js",
-        "modules/master-data/phase2-129-yardivo-overview-manager-summary-v1-20260901.js",
-        "modules/master-data/phase2-174-yardivo-v583-warehouse-transition.js",
-        "modules/master-data/phase2-204-yardivo-unannounced-location-flicker-fix-v583.js",
-        "modules/master-data/phase2-229-yardivo-v583-ramp-role-guard-final.js",
-        "modules/master-data/phase2-237-yardivo-v583-header-home-context-clean-authority.js",
-        "modules/master-data/phase2-247-yardivo-v583-master-context-capacity-binding-final.js",
-        "modules/master-data/phase2-256-yardivo-v583-settings-unified-single-section-rebuild-js.js",
-        "modules/master-data/phase2-258-yardivo-v583-add-user-smart-system-toggle-js.js",
-        "modules/master-data/phase2-319-yardivo-admin-master-restore-v11-js.js",
-        "modules/master-data/script-024.js",
-        "modules/master-data/yardivo-master-data-registry.js",
-        "modules/master-data/yardivo-myyard-webgl-v3.js",
-        "modules/master-data/yardivo-operational-sync-v1-20260901.js",
-        "modules/master-data/yardivo-saas-hardening-pass2-v583.js",
-        "modules/master-data/yardivo-settings-consolidation-notifications-v583.js",
-        "modules/master-data/yardivo-smart-yard-brain.js",
-        "modules/master-data/yardivo-v35-my-yard.js",
-        "modules/master-data/yardivo-v548-full-operational-notifications.js",
-        "modules/master-data/yardivo-v583-handover-production-empty-final.js",
-        "modules/master-data/yardivo-v583-live-yard-3d-twin-js.js",
-        "modules/master-data/yardivo-v583-master-foundation-final.js",
-        "modules/master-data/yardivo-v583-master-system-fix-x10.js",
-        "modules/master-data/yardivo-v583-production-master-cleanup-final.js",
-        "modules/master-data/warehouse-context.js"
-      ]
-    },
-    "notifications": {
-      "owner": "modules/notifications/",
-      "files": [
-        "modules/notifications/phase2-296-yardivo-v583-unified-ai-sound-settings-js.js",
-        "modules/notifications/yardivo-v583-notifications-master-supplier-sanitizer.js"
-      ]
-    },
-    "services": {
-      "owner": "modules/services/",
-      "files": [
-        "modules/services/yardivo-ai-voice-notifications-v583.js",
-        "modules/services/yardivo-ann-map-availability-v3.js",
-        "modules/services/yardivo-capacity-settings.js",
-        "modules/services/yardivo-epal-initial-stock.js",
-        "modules/services/yardivo-epal-module.js",
-        "modules/services/yardivo-expanded-schedule-map-v1.js",
-        "modules/services/yardivo-final-yard-v27.js",
-        "modules/services/yardivo-full-data-v583.js",
-        "modules/services/yardivo-gate-and-users-final-v3-20260901-js.js",
-        "modules/services/yardivo-inventory-drag-reschedule-v1.js",
-        "modules/services/yardivo-live-operational-notifications.js",
-        "modules/services/yardivo-location-selection-final-fix.js",
-        "modules/services/yardivo-location-state-single-source-v583.js",
-        "modules/services/yardivo-master-admin-settings-v583.js",
-        "modules/services/yardivo-master-warehouse-rampcount-no-legacy-v583.js",
-        "modules/services/yardivo-notifications-final-v5.js",
-        "modules/services/yardivo-order-search-module.js",
-        "modules/services/yardivo-qr-admin-visible-v584.js",
-        "modules/services/yardivo-qr-role-control-v586.js",
-        "modules/services/yardivo-smart-replanning-v1.js",
-        "modules/services/yardivo-smart-timers-and-daily-forecast.js",
-        "modules/services/yardivo-total-operational-wipe-v2-20260901-js.js",
-        "modules/services/yardivo-unannounced-gate-v2.js",
-        "modules/services/yardivo-unannounced-reception-gate-flow.js",
-        "modules/services/yardivo-unannounced-section-final.js",
-        "modules/services/yardivo-unannounced-workflow.js",
-        "modules/services/yardivo-unified-dynamic-ramps-v583.js",
-        "modules/services/yardivo-v32-my-announcements.js",
-        "modules/services/yardivo-v583-account-warehouse-scope-final-js.js",
-        "modules/services/yardivo-v583-bottom-minimap-assistant-js.js",
-        "modules/services/yardivo-v583-document-archive-final.js",
-        "modules/services/yardivo-v583-executive-context-control-tower.js",
-        "modules/services/yardivo-v583-maps-header-smart-master-final-js.js",
-        "modules/services/yardivo-v583-right-settings-drawer-js.js",
-        "modules/services/yardivo-v583-ux-ramps-docs-weekload-hours.js",
-        "modules/services/yardivo-v583-warehouse-master-ramps-header-repair-final.js"
-      ]
-    },
-    "settings": {
-      "owner": "modules/settings/",
-      "files": [
-        "modules/settings/phase2-114-yardivo-theme-simplified-final-v1-20260831-js.js",
-        "modules/settings/phase2-134-yardivo-theme-canonical-single-owner-v5-20260901.js",
-        "modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js",
-        "modules/settings/phase2-311-yardivo-theme-full-authority-v4-js.js",
-        "modules/settings/yardivo-delay-settings-v1.js",
-        "modules/settings/yardivo-v583-dark-palette-full-ui-runtime.js"
-      ]
-    },
-    "supplier": {
-      "owner": "modules/supplier/",
-      "files": [
-        "modules/supplier/phase2-091-yardivo-v39-qa-role-workflow-fixes.js",
-        "modules/supplier/phase2-110-yardivo-xlsx-export-complete-fix-v1-20260831.js",
-        "modules/supplier/phase2-140-yardivo-overview-hero3-v2-20260901-js.js",
-        "modules/supplier/phase2-156-yardivo-v551-supplier-accounts-admin.js",
-        "modules/supplier/phase2-162-yardivo-v576-supplier-auth-calendar-final.js",
-        "modules/supplier/phase2-169-yardivo-admin-separated-user-lists-v583.js",
-        "modules/supplier/phase2-173-yardivo-v583-macos-motion-ui.js",
-        "modules/supplier/phase2-183-yardivo-supplier-day-map-real-slots-hard-fix.js",
-        "modules/supplier/phase2-184-yardivo-supplier-fullscreen-day-map-v583.js",
-        "modules/supplier/phase2-185-yardivo-supplier-native-fullscreen-map-final-v583.js",
-        "modules/supplier/phase2-187-yardivo-supplier-slot-prerequisites-v583.js",
-        "modules/supplier/phase2-205-yardivo-zero-state-runtime-v583.js",
-        "modules/supplier/phase2-207-yardivo-factory-zero-ui-v583.js",
-        "modules/supplier/phase2-231-yardivo-v583-admin-actions-capture-final.js",
-        "modules/supplier/phase2-248-yardivo-v583-master-bootstrap-backend-frontend-authority-final.js",
-        "modules/supplier/phase2-255-yardivo-v583-master-ordinary-strict-separation-js.js",
-        "modules/supplier/phase2-257-yardivo-v583-smart-suppliers-accounts-fix-js.js",
-        "modules/supplier/phase2-309-yardivo-manager-single-view-hard-lock-v5.js",
-        "modules/supplier/script-022.js",
-        "modules/supplier/yardivo-admin-user-creation-redesign-v583.js",
-        "modules/supplier/yardivo-analytics-v1.js",
-        "modules/supplier/yardivo-canonical-login-router-v2-20260901.js",
-        "modules/supplier/yardivo-clean-operational-core.js",
-        "modules/supplier/yardivo-control-tower-module.js",
-        "modules/supplier/yardivo-final-overview-unannounced-fix.js",
-        "modules/supplier/yardivo-gate-qr-supplier-v583.js",
-        "modules/supplier/yardivo-manager-assignment-system-v583.js",
-        "modules/supplier/yardivo-manager-final-authority-v4.js",
-        "modules/supplier/yardivo-manager-scope-popup-v2.js",
-        "modules/supplier/yardivo-master-data-persistence-dropdown-warehouse-fix-v583.js",
-        "modules/supplier/yardivo-master-upgrade-js.js",
-        "modules/supplier/yardivo-myyard-focus-live-v1-20260901-js.js",
-        "modules/supplier/yardivo-notifications-incidents-final.js",
-        "modules/supplier/yardivo-notifications-timeline.js",
-        "modules/supplier/yardivo-overview-3d-carousel-20260831.js",
-        "modules/supplier/yardivo-overview-fullwidth-chart-v1-20260901-js.js",
-        "modules/supplier/yardivo-overview-master-authority-v5.js",
-        "modules/supplier/yardivo-role-stability-final-v6-20260902-js.js",
-        "modules/supplier/yardivo-supplier-account-admin-v52.js",
-        "modules/supplier/yardivo-supplier-auto-day-slot-v583.js",
-        "modules/supplier/yardivo-supplier-daily-map-button-final-v583.js",
-        "modules/supplier/yardivo-supplier-location-warehouse-binding-v583.js",
-        "modules/supplier/yardivo-supplier-right-daily-map-final-v583.js",
-        "modules/supplier/yardivo-v545-user-admin-controller.js",
-        "modules/supplier/yardivo-v549-supplier-portal.js",
-        "modules/supplier/yardivo-v560-supplier-live-sync.js",
-        "modules/supplier/yardivo-v561-supplier-pro-ui.js",
-        "modules/supplier/yardivo-v570-supplier-approval-workflow.js",
-        "modules/supplier/yardivo-v582-supplier-planner-canonical-fix.js",
-        "modules/supplier/yardivo-v583-dev-total-reset-final.js",
-        "modules/supplier/yardivo-v583-final-product-spec-controller.js",
-        "modules/supplier/yardivo-v583-global-master-context-names-final.js",
-        "modules/supplier/yardivo-v583-home-header-master-dwell-final-js.js",
-        "modules/supplier/yardivo-v583-home13-master-scope-users-ui-hotfix-js.js",
-        "modules/supplier/yardivo-v583-inventory-supplier-actions-fix-20260923.js",
-        "modules/supplier/yardivo-v583-inventory-supplier-notif-delete-20260923.js",
-        "modules/supplier/yardivo-v583-master-data-cleanup-final-js.js",
-        "modules/supplier/yardivo-v583-master-people-users-ui-final-js.js",
-        "modules/supplier/yardivo-v583-master-users-stability-hotfix.js",
-        "modules/supplier/yardivo-v583-notification-scope-supplier-transport-ui.js",
-        "modules/supplier/yardivo-v583-reception-ui-scope-clean-js.js",
-        "modules/supplier/yardivo-v583-responsible-person-inventory-account-authority.js",
-        "modules/supplier/yardivo-v583-settings-export-supplier-bulk-hard-fix.js",
-        "modules/supplier/yardivo-v583-stable-master-supplier-zero-final.js",
-        "modules/supplier/yardivo-v583-supplier-booking-rebuilt-clean-authority.js",
-        "modules/supplier/yardivo-v583-supplier-context-actions.js",
-        "modules/supplier/yardivo-v583-supplier-history-detail-stability.js",
-        "modules/supplier/yardivo-v583-supplier-history-status-server-authority-20260923.js",
-        "modules/supplier/yardivo-v583-supplier-inbox-stable-health-final-authority.js",
-        "modules/supplier/yardivo-v583-supplier-master-scope-account-xlsx-total.js",
-        "modules/supplier/yardivo-v583-supplier-popup-xlsx-total-fix-authority.js",
-        "modules/supplier/yardivo-v583-supplier-portal-ux-authority.js",
-        "modules/supplier/yardivo-v583-supplier-slot-map-fix.js",
-        "modules/supplier/yardivo-xlsx-export-v1.js"
-      ]
-    },
-    "sync": {
-      "owner": "services/",
-      "files": [
-        "modules/sync/phase2-137-yardivo-notification-delete-read-style-v1-20260901-js.js",
-        "modules/sync/phase2-175-yardivo-v583-graphite-notifications-scanner-final.js",
-        "services/sync.js"
-      ]
-    },
-    "ui": {
-      "owner": "modules/ui/",
-      "files": [
-        "modules/ui/phase2-017-yardivo-welcome-splash-script.js",
-        "modules/ui/phase2-070-yardivo-incident-image-viewer-v1-script.js",
-        "modules/ui/phase2-115-yardivo-login-safe-isolation-v2-20260901-js.js",
-        "modules/ui/phase2-116-yardivo-login-unconditional-finalizer-v3-20260901.js"
-      ]
-    },
-    "auth": {
-      "owner": "modules/auth/",
-      "files": [
-        "modules/auth/role-ui.js",
-        "modules/auth/role-visibility.js"
-      ]
-    },
-    "receiving": {
-      "owner": "modules/receiving/",
-      "files": [
-        "modules/receiving/header-warehouse-qr.js"
-      ]
-    },
-    "self-gate": {
-      "owner": "modules/self-gate/",
-      "files": [
-        "modules/self-gate/service.js"
-      ]
     }
   }
 }
