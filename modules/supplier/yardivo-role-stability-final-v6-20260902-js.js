@@ -27,6 +27,7 @@ function managerAccess(){
  }catch(_){return {sections:[]}}
 }
 function allowed(v){
+ if(v==='aiOperations'||v==='smartReplanning')return false;
  const r=role();
  if(r==='admin')return true;
  if(r==='manager'){
@@ -50,6 +51,10 @@ function setChromeForView(view){
 
 function apply(){
  const r=role();if(!r)return;
+ if(r==='manager'){
+   window.YardivoManagerFinalV4?.syncMenu?.();
+   return;
+ }
  // Central RoleVisibility owns sidebar/home display. This controller owns routing.
  if(r!=='manager'&&window.YardivoRoleVisibility?.owner==='modules/auth/role-visibility.js'){
    window.YardivoRoleVisibility.apply();
