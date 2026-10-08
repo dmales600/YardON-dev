@@ -152,6 +152,18 @@ async function persistPlan(plan:any[],p:any){
  if(changes.length)await writeState("yardivo_ai_operations_plan_log_v1",log,String(p.username||"yardivo-ai-operations"));
  return changes;
 }
+async function effectivePlan(plan:any[]){
+ const ids=uniq(plan.map((x:any)=>x?.supplier_delivery_id).filter(Boolean));if(!ids.length)return plan;
+ const {data,error}=await db.from("yardivo_supplier_deliveries").select("id,planned_dock,planned_start,planned_end,planning_source,planned_at").in("id",ids);if(error)throw error;
+ const map=new Map((data||[]).map((x:any)=>[String(x.id),x]));
+ return plan.map((x:any)=>{
+  const d:any=map.get(String(x?.supplier_delivery_id||""));if(!d?.planned_dock)return x;
+  const rn=dockNum(d.planned_dock),start=d.planned_start?new Date(d.planned_start).toISOString().slice(11,16):x.planned_start,end=d.planned_end?new Date(d.planned_end).toISOString().slice(11,16):x.planned_end;
+  const requested=mins(x.time),effective=mins(start),shift=Number.isFinite(requested)&&Number.isFinite(effective)?Math.max(0,effective-requested):Number(x.shift_minutes||0);
+  return {...x,planned_dock:rn,planned_start:start,planned_end:end,shift_minutes:shift,parking_risk:shift>0,predicted_parking:shift>0?(x.predicted_parking||"QUEUE"):null,effective_plan_source:String(d.planning_source||"AI_OPERATIONS"),effective_plan_at:d.planned_at||null};
+ });
+}
+
 async function resolveChange(decisionId:string,approve:boolean,p:any){
  if(!["admin","inventory","manager"].includes(String(p.role||"")))throw new Error("Samo Admin, Zalihe ili Manager mogu odlučiti o AI promjeni.");
  let log=await readState("yardivo_ai_operations_plan_log_v1",[]);if(!Array.isArray(log))log=[];
@@ -187,9 +199,10 @@ Deno.serve(async(req:Request)=>{
    const pp=planWarehouse(group,w,aiOrder);fullPlan.push(...pp.planned);warehouseOut.push({id:String(w.id),name:String(w.name||w.id),location_id:String(w.location_id||""),reception_from:String(w.reception_from||""),reception_to:String(w.reception_to||""),ramps:pp.ramps});
   }
   const changes=await persistPlan(fullPlan,p);
+  const visiblePlan=await effectivePlan(fullPlan);
   const from=date+"T00:00:00.000Z",to=new Date(new Date(from).getTime()+86400000).toISOString(),pq=await db.from("yardivo_delivery_passes").select("id,announcement_id,supplier_delivery_id,warehouse,supplier_name,appointment_at,dock,parking_slot,driver_name,driver_phone,vehicle_plate,state,gate_decision,last_instruction,checked_in_at,completed_at,updated_at").in("warehouse",whIds).gte("appointment_at",from).lt("appointment_at",to).order("appointment_at",{ascending:true});if(pq.error)throw pq.error;const passes=pq.data||[];
   let decisions:any[]=[];for(const key of ["yardivo_auto_replan_log_v1","yardivo_ai_operations_plan_log_v1"]){try{const z=await readState(key,[]);if(Array.isArray(z))decisions.push(...z)}catch{}}decisions=decisions.filter((x:any)=>String(x?.old?.date||x?.newSlot?.date||x?.at||"").slice(0,10)===date).sort((a:any,b:any)=>String(a.at||"").localeCompare(String(b.at||""))).slice(-200);
   const occupied=new Set(passes.filter((x:any)=>x.parking_slot&&!x.completed_at&&!["COMPLETED","REJECTED","CANCELLED"].includes(String(x.state||"").toUpperCase())).map((x:any)=>String(x.parking_slot))),parking={capacity:42,occupied:[...occupied].sort(),free:Math.max(0,42-occupied.size)};
-  return J({ok:true,data:{date,warehouses:warehouseOut,plan:fullPlan,passes,decisions,parking,summary:planSummary(fullPlan,selected),persisted_changes:changes,generated_at:new Date().toISOString()}});
+  return J({ok:true,data:{date,warehouses:warehouseOut,plan:visiblePlan,passes,decisions,parking,summary:planSummary(visiblePlan,selected),persisted_changes:changes,generated_at:new Date().toISOString()}});
  }catch(e){return J({ok:false,error:e instanceof Error?e.message:String(e)},400)}
 });
