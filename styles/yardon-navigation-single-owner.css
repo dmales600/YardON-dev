@@ -1,0 +1,11 @@
+/* Canonical first-paint visibility: YARDIVO SMART stays an engine,
+   not a separate navigation page. AI Operations UI is retired. */
+[data-view="aiOperations"],
+[data-home-target="aiOperations"],
+[data-view="smartReplanning"],
+[data-home-target="smartReplanning"],
+#aiOperations,
+#smartReplanning {
+  display: none !important;
+  visibility: hidden !important;
+}
