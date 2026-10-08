@@ -5,8 +5,8 @@ if(window.YardivoRoleVisibility?.owner==='modules/auth/role-visibility.js')retur
 const MATRIX={
   admin:null,
   manager:new Set(['homeMenu','dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']),
-  inventory:new Set(['homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','operations','incidents','documentArchive','unannounced','epal','myYard','reports','settings']),
-  reception:new Set(['homeMenu','aiOperations','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard']),
+  inventory:new Set(['smartReplanning','homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','operations','incidents','documentArchive','unannounced','epal','myYard','reports','settings']),
+  reception:new Set(['smartReplanning','homeMenu','aiOperations','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard']),
   gate:new Set(['homeMenu','checkin','unannounced','myYard','docks']),
   supplier:new Set([])
 };
@@ -43,7 +43,7 @@ function aiControlEnabled(){
 }
 function allowed(r,v){
   const id=String(v||'');
-  if(id==='aiOperations'||id==='smartReplanning')return false;
+  if(id==='aiOperations')return false;
   if(r==='admin')return true;
   return !!MATRIX[r]?.has(id);
 }
