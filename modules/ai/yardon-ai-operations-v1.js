@@ -70,6 +70,8 @@ let bound=false;
 function bind(){
  if(bound)return;bound=true;
  document.addEventListener('click',e=>{
+   const decision=e.target.closest?.('[data-yaio-decision-action]');
+   if(decision){void resolveDecision(decision.dataset.yaioDecisionId||'',decision.dataset.yaioDecisionAction||'');return}
    const tab=e.target.closest?.('[data-yaio-tab]');
    if(tab){activeTab=tab.dataset.yaioTab||'plan';renderTabs();return}
    if(e.target.closest?.('#yaioRefresh')){void refresh(true);return}
@@ -111,6 +113,17 @@ async function refresh(force=false){
    if(root)root.innerHTML='<div class="yaio-error"><strong>AI Operations nije uspio učitati plan.</strong><br>'+esc(e?.message||e)+'</div>';
    const u=$('yaioUpdated');if(u)u.textContent='Greška pri učitavanju.';
  }finally{loading=false}
+}
+
+async function resolveDecision(id,action){
+ if(!id||!['approve','reject'].includes(action))return;
+ if(!['admin','inventory','manager'].includes(role()))return alert('Samo Admin, Zalihe ili Manager mogu odlučiti o AI zahtjevu.');
+ const approve=action==='approve';
+ if(!confirm(approve?'ODOBRITI AI prijedlog promjene?':'ODBITI AI prijedlog promjene?'))return;
+ try{
+   await invoke({action:approve?'approve_change':'reject_change',decision_id:id});
+   await refresh(true);
+ }catch(e){alert('AI zahtjev nije obrađen:\n\n'+String(e?.message||e))}
 }
 
 function populateWarehouses(){
@@ -263,11 +276,14 @@ function renderParking(){
 
 function renderDecisions(){
  const ds=(snapshot.decisions||[]).slice().sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
- return '<section class="yaio-card"><div class="yaio-card-head"><div><h3>AI ODLUKE I REPLAN</h3><small>Povijest Smart preporuka za odabrani datum</small></div><span class="yaio-pill">'+ds.length+'</span></div><div class="yaio-decisions">'+
+ const canDecide=['admin','inventory','manager'].includes(role());
+ return '<section class="yaio-card"><div class="yaio-card-head"><div><h3>AI ODLUKE I REPLAN</h3><small>Početna dodjela rampe je automatska. Svaka kasnija AI promjena čeka odobrenje i prikazuje razlog.</small></div><span class="yaio-pill">'+ds.length+'</span></div><div class="yaio-decisions">'+
  (ds.length?ds.map(x=>{
    const before=x.old?[x.old.date,x.old.time,x.old.dock?'R'+x.old.dock:''].filter(Boolean).join(' '):'—';
    const after=x.newSlot?[x.newSlot.date,x.newSlot.time,x.newSlot.dock?'R'+x.newSlot.dock:''].filter(Boolean).join(' '):'—';
-   return '<div class="yaio-decision"><div><strong>'+esc(x.supplier||'Dobavljač')+'</strong><br><small>'+esc(x.problemType||x.status||'AI')+'</small></div><div><strong>'+esc(before)+' → '+esc(after)+'</strong><br><small>'+esc(x.reason||'')+'</small></div><span class="yaio-pill '+(['NO_SAFE_SLOT'].includes(x.status)?'bad':['PENDING_INVENTORY','PENDING_SUPPLIER'].includes(x.status)?'warn':'ok')+'">'+esc(x.status||'PRIJEDLOG')+'</span></div>';
+   const pending=String(x.status||'')==='PENDING_INVENTORY';
+   const actions=pending&&canDecide?'<div class="yaio-decision-actions"><button class="primary" type="button" data-yaio-decision-action="approve" data-yaio-decision-id="'+esc(x.id||'')+'">ODOBRI</button><button class="secondary" type="button" data-yaio-decision-action="reject" data-yaio-decision-id="'+esc(x.id||'')+'">ODBIJ</button></div>':'';
+   return '<div class="yaio-decision"><div><strong>'+esc(x.supplier||'Dobavljač')+'</strong><br><small>'+esc(x.problemType||x.status||'AI')+'</small></div><div><strong>'+esc(before)+' → '+esc(after)+'</strong><br><small>'+esc(x.reason||'')+'</small></div><div><span class="yaio-pill '+(['NO_SAFE_SLOT','REJECTED'].includes(x.status)?'bad':['PENDING_INVENTORY','PENDING_SUPPLIER'].includes(x.status)?'warn':'ok')+'">'+esc(x.status||'PRIJEDLOG')+'</span>'+actions+'</div></div>';
  }).join(''):'<div class="yaio-empty">Nema spremljenih AI odluka za ovaj datum.</div>')+
  '</div></section>';
 }
