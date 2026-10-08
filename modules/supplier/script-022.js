@@ -1997,8 +1997,16 @@ function renderReceiving(){
       }
     });
   }else{
-    host.replaceChildren(...incoming);
-    incoming.forEach(bindRow);
+    // Reuse existing nodes even when the sort order changes; no full-grid white flash.
+    const previous=new Map(current.filter(x=>x.dataset?.receivingAnnouncementId).map(x=>[x.dataset.receivingAnnouncementId,x]));
+    incoming.forEach((row,index)=>{
+      const old=previous.get(row.dataset.receivingAnnouncementId);
+      const node=old&&old.outerHTML===row.outerHTML?old:row;
+      if(node===row)bindRow(row);
+      if(host.children[index]!==node)host.insertBefore(node,host.children[index]||null);
+    });
+    const ids=new Set(incoming.map(x=>x.dataset.receivingAnnouncementId));
+    [...host.children].forEach(x=>{if(!ids.has(x.dataset.receivingAnnouncementId))x.remove()});
   }
 }
 
