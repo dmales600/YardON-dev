@@ -5,6 +5,14 @@ let naTimer=0,tlTimer=0;
 const q=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const arr=()=>Array.isArray(window.announcements)?window.announcements:(Array.isArray(window.deliveries)?window.deliveries:[]);
+function masterSupplierAllowed(a){
+  const name=String(supplier(a)||'').trim().toLocaleLowerCase('hr-HR');if(!name)return false;
+  try{
+    const d=window.YardivoAppStateV583?.master?.()||JSON.parse(localStorage.getItem('yardivo_master_data_registry_v583')||'{}')||{};
+    const rows=Array.isArray(d.suppliers)?d.suppliers:[];
+    return rows.some(x=>x&&x.active!==false&&[x.name,x.id,x.supplier_code,x.code].some(v=>String(v||'').trim().toLocaleLowerCase('hr-HR')===name));
+  }catch(_){return false}
+}
 function todayISO(){const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 function dt(a){const date=a?.date||a?.deliveryDate||a?.plannedDate||a?.scheduledDate;const time=a?.time||a?.deliveryTime||a?.plannedTime||a?.scheduledTime;if(!date||!time)return null;const d=new Date(`${date}T${String(time).slice(0,5)}:00`);return Number.isNaN(d.getTime())?null:d}
 function supplier(a){return a?.supplierName||a?.supplier||a?.supplier_name||a?.companyName||a?.vendorName||'DOBAVLJAČ'}
@@ -15,7 +23,7 @@ function dock(a){const v=a?.dock??a?.dockNo??a?.ramp??a?.rampNo??a?.assignedDock
 function status(a){return String(a?.status||a?.deliveryStatus||'').toLowerCase()}
 function closed(a){const s=status(a);return /completed|rejected|cancel|otkazan|zaprim|odbij|završ/.test(s)}
 function scopeAllowed(a){try{const s=window.currentSession||window.session||{};if(s?.all_warehouses||s?.allWarehouses)return true;const scope=Array.isArray(s?.warehouses)?s.warehouses:[];if(!scope.length)return true;const wid=String(a?.warehouseId||a?.warehouse_id||a?.warehouse||'');return !wid||scope.includes(wid)}catch(_){return true}}
-function todayItems(){const t=todayISO();return arr().filter(a=>scopeAllowed(a)&&!closed(a)&&((a?.date||a?.deliveryDate||a?.plannedDate||a?.scheduledDate)===t)&&dt(a)).sort((x,y)=>dt(x)-dt(y))}
+function todayItems(){const t=todayISO();return arr().filter(a=>masterSupplierAllowed(a)&&scopeAllowed(a)&&!closed(a)&&((a?.date||a?.deliveryDate||a?.plannedDate||a?.scheduledDate)===t)&&dt(a)).sort((x,y)=>dt(x)-dt(y))}
 function fmtTime(d){return d?`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`:'—'}
 function relative(d){const min=Math.round((d-Date.now())/60000);if(min<-15)return `kasni ${Math.abs(min)} min`;if(min<0)return 'vrijeme dolaska';if(min<60)return `za ${min} min`;const h=Math.floor(min/60),m=min%60;return `za ${h} h${m?` ${m} min`:''}`}
 function ensure(){
@@ -28,8 +36,10 @@ function ensure(){
 function bind(){const nz=q('yardivoNextArrivalsZone'),np=q('yardivoNextArrivals'),tz=q('yardivoTodayTimelineZone'),tp=q('yardivoTodayTimeline');if(!nz||!np||!tz||!tp||np.dataset.bound)return;np.dataset.bound='1';
  const openN=()=>{clearTimeout(naTimer);document.body.classList.add('yv-nextarrivals-open');renderNext()};const closeN=()=>{clearTimeout(naTimer);naTimer=setTimeout(()=>document.body.classList.remove('yv-nextarrivals-open','yv-nextarrivals-expanded'),100)};
  nz.addEventListener('pointerenter',openN,{passive:true});np.addEventListener('pointerenter',()=>clearTimeout(naTimer),{passive:true});np.addEventListener('pointerleave',closeN,{passive:true});
+ nz.addEventListener('click',e=>{e.preventDefault();openN()});nz.addEventListener('pointerdown',()=>openN(),{passive:true});
  const openT=()=>{clearTimeout(tlTimer);document.body.classList.add('yv-timeline-open');renderTimeline()};const closeT=()=>{clearTimeout(tlTimer);tlTimer=setTimeout(()=>document.body.classList.remove('yv-timeline-open','yv-timeline-expanded'),100)};
  tz.addEventListener('pointerenter',openT,{passive:true});tp.addEventListener('pointerenter',()=>clearTimeout(tlTimer),{passive:true});tp.addEventListener('pointerleave',closeT,{passive:true});
+ tz.addEventListener('click',e=>{e.preventDefault();openT()});tz.addEventListener('pointerdown',()=>openT(),{passive:true});
  np.querySelector('.yv-pop-head').addEventListener('click',e=>{if(e.target.closest('.yv-pop-close'))return;document.body.classList.add('yv-nextarrivals-open');document.body.classList.toggle('yv-nextarrivals-expanded');renderNext()});
  tp.querySelector('.yv-pop-head').addEventListener('click',e=>{if(e.target.closest('.yv-pop-close'))return;document.body.classList.add('yv-timeline-open');document.body.classList.toggle('yv-timeline-expanded');renderTimeline()});
  np.querySelector('.yv-pop-close').onclick=e=>{e.stopPropagation();document.body.classList.remove('yv-nextarrivals-open','yv-nextarrivals-expanded')};tp.querySelector('.yv-pop-close').onclick=e=>{e.stopPropagation();document.body.classList.remove('yv-timeline-open','yv-timeline-expanded')};
@@ -87,6 +97,6 @@ function renderTimeline(){
  <div class="yv-tl-expanded-list">${rows||'<div class="yv-tl-minirow">Nema dolazaka danas.</div>'}</div>`;
 }
 function renderAll(){renderNext();renderTimeline()}
-function boot(){ensure();window.addEventListener('yardivo:data-synced',renderAll);window.addEventListener('yardivo:master-data-changed',renderAll);window.addEventListener('yardivo:session-ready',renderAll);document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderAll()});}
+function boot(){ensure();['yardivo:data-synced','yardivo:master-data-changed','yardivo:session-ready','yardivo:yard-ai-dispatched','yardivo:receiving-status-changed','yardivo:context-changed'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(renderAll,20)));document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderAll()});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
