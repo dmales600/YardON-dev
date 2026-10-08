@@ -239,7 +239,8 @@ jobs:
                 await page.locator('#yardonSmartPopup [data-smart-popup="approve"]').waitFor({timeout:5000});
                 const text=await page.locator('#yardonSmartPopup').innerText();
                 if(!/R1|R2/.test(text)||!/R1 je zauzeta/.test(text))throw new Error('SMART popup missing reason or old/new ramp');
-                await page.locator('#yardonSmartPopup [data-smart-popup="approve"]').click();
+                // Synthetic browser session has no real Supabase login; test the click handler directly.
+                await page.locator('#yardonSmartPopup [data-smart-popup="approve"]').evaluate(el=>el.click());
                 await page.waitForFunction(()=>window.__qaSmartActions.includes('approve_change'));
               }else if(await page.locator('#yardonSmartPopup').count()){
                 throw new Error('Reception must not receive approval popup');
