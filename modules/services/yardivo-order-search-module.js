@@ -88,17 +88,16 @@ document.addEventListener('click',e=>{
 },true);
 
 function homeCard(){
- const grid=document.getElementById('homeMenuGrid');if(!grid)return;
- let card=grid.querySelector('[data-home-target="orderSearch"]');
- if(!allowed()){if(card)card.style.display='none';return}
- if(!card){
-   card=document.createElement('div');card.className='home-menu-card';card.dataset.homeTarget='orderSearch';card.setAttribute('role','button');card.setAttribute('tabindex','0');
-   card.innerHTML='<div class="home-menu-icon">⌕</div><h3>Traži po narudžbi</h3><p>Pronađi status i cijelu povijest po 6W broju.</p><div class="home-menu-open">OTVORI →</div>';
-   grid.appendChild(card);
- }
- card.style.display='flex';card.onclick=()=>window.openAppView?.('orderSearch');
+ const grid=document.getElementById('homeMenuGrid');
+ if(!grid||!allowed()||grid.querySelector('[data-home-target="orderSearch"]'))return;
+ const card=document.createElement('button');
+ card.type='button';
+ card.className='home-menu-card';
+ card.dataset.homeTarget='orderSearch';
+ card.innerHTML='<div class="home-menu-icon">⌕</div><h3>Traži po narudžbi</h3><p>Pronađi status i cijelu povijest po 6W broju.</p><div class="home-menu-open">OTVORI →</div>';
+ grid.appendChild(card);
 }
+window.addEventListener('yardivo:login',()=>requestAnimationFrame(homeCard));
 window.addEventListener('load',()=>setTimeout(homeCard,400));
-setInterval(homeCard,3000);
 window.YardivoOrderSearch={search,normalize};
 })();
