@@ -72,7 +72,7 @@ check('daily map reconciles grid cells and highlights only provisional slot',()=
  assert(map.includes('previewTarget?.()'));
 });
 check('SMART history records approvals, rejections and alternate proposals',()=>{
- for(const marker of ['action==="record_request_review"',"decision==='proposal_sent'","problemType:\"SUPPLIER_REQUEST_REVIEW\"","await writeState(\"yardivo_ai_operations_plan_log_v1\""])
+ for(const marker of ['action==="record_request_review"','decision==="proposal_sent"',"problemType:\"SUPPLIER_REQUEST_REVIEW\"","await writeState(\"yardivo_ai_operations_plan_log_v1\""])
  assert(back.includes(marker),'missing '+marker);
 });
 console.log('YARDON_SMART_REQUEST_REVIEW_STATIC_QA_PASS '+passed+'/'+passed);
