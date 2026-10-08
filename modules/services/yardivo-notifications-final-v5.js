@@ -322,7 +322,20 @@ function openReader(id,mark=true){
   h.innerHTML=`<div><h3>${esc(n.title||'Notifikacija')}</h3><small>${fmt(n.at||n.createdAt)}</small></div><button type="button" class="y5-reader-close">×</button>`;
   b.innerHTML=`<div class="y5-reader-message">${esc(n.body||'')}</div><div class="y5-reader-grid">${field('Skladište',resolvedWarehouse(n))}${field('Kategorija',notificationClass(n)==='ANNOUNCEMENT'?'NAJAVA / TERMIN':notificationClass(n)==='OPERATIONAL'?'OPERATIVA':'OSTALO')}${field('Tip',n.event)}${field('Dobavljač',n.supplier)}${field('Tablice',n.plate)}${field('Broj najave',displayAnnouncementId(n))}${field('Status','PROČITANO')}</div>`;
   h.querySelector('.y5-reader-close').onclick=closeReader;
+  m.dataset.y5ReaderNotificationId=String(id);
   m.classList.add('open');document.body.style.overflow='hidden';
+  // A notification may arrive before supplier rows hydrate. Resolve the public
+  // NAJ number on demand and update only that field, never the entire reader.
+  if(displayAnnouncementId(n)==='—'&&n.supplierDeliveryId&&window.YardivoSupplierLiveSync?.call){
+    void Promise.resolve(window.YardivoSupplierLiveSync.call('list_internal')).then(rows=>{
+      const hit=(Array.isArray(rows)?rows:[]).find(x=>String(x?.id||'')===String(n.supplierDeliveryId));
+      const client=String(hit?.client_id||'').trim();
+      if(!/^NAJ[0-9]{6}$/i.test(client)||m.dataset.y5ReaderNotificationId!==String(id)||!m.classList.contains('open'))return;
+      const f=[...m.querySelectorAll('.y5-reader-field')].find(x=>x.querySelector('small')?.textContent==='Broj najave');
+      const display=f?.querySelector('strong');
+      if(display&&display.textContent!==client.toUpperCase())display.textContent=client.toUpperCase();
+    }).catch(()=>{});
+  }
   render();
 }
 function closeReader(){document.getElementById('yardivoNotifReaderV5')?.classList.remove('open');document.body.style.overflow=''}
