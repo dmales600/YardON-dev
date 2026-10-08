@@ -303,32 +303,12 @@ function managerAccess(){
   }catch(_){return null}
 }
 function enforceManagerAssignment(){
-  const r=String(window.currentSession?.role||'').toLowerCase();
-  if(r!=='manager')return;
-  const a=managerAccess();
-  const defaults=['dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap'];
-  const sections=(Array.isArray(a?.sections)&&a.sections.length)?a.sections:defaults;
-  const allowed=new Set(['homeMenu',...sections]);
-  document.body.dataset.yardivoManagerSections='ready';
-  document.documentElement.dataset.yardivoManagerSections='ready';
-  document.querySelectorAll('[data-view]').forEach(el=>{
-    const ok=allowed.has(el.dataset.view)&&(el.dataset.view!=='aiOperations'||aiControlEnabled());
-    el.classList.toggle('role-hidden',!ok);
-    if(ok){
-      el.style.removeProperty('display');el.style.removeProperty('visibility');
-      el.removeAttribute('hidden');el.removeAttribute('aria-disabled');
-    }else el.style.setProperty('display','none','important');
-  });
-  document.querySelectorAll('[data-home-target]').forEach(el=>{
-    const ok=allowed.has(el.dataset.homeTarget)&&(el.dataset.homeTarget!=='aiOperations'||aiControlEnabled());
-    el.classList.toggle('role-hidden',!ok);
-    if(ok){
-      el.style.removeProperty('display');el.style.removeProperty('visibility');
-      el.removeAttribute('hidden');el.removeAttribute('aria-disabled');
-      el.style.removeProperty('pointer-events');
-    }else el.style.setProperty('display','none','important');
-  });
+ if(String(window.currentSession?.role||'').toLowerCase()!=='manager')return;
+ document.body.dataset.yardivoManagerSections='ready';
+ document.documentElement.dataset.yardivoManagerSections='ready';
+ window.YardivoManagerFinalV4?.syncMenu?.();
 }
+
 function refresh(){
   installLaunch();
   if(String(window.currentSession?.role||'').toLowerCase()==='manager'){

@@ -15,22 +15,23 @@ function aiEnabled(){
 }
 const canView=()=>aiEnabled()&&['admin','manager','inventory','reception'].includes(role());
 function applyVisibility(){
- const visible=canView();
- const nav=document.querySelector('.nav-btn[data-view="aiOperations"]');
- const home=document.querySelector('[data-home-target="aiOperations"]');
- for(const el of [nav,home])if(el){
-  el.hidden=!visible;
-  el.classList.toggle('role-hidden',!visible);
-  if(visible)el.style.removeProperty('display');else el.style.setProperty('display','none','important');
- }
+ // YARDIVO SMART is the sole planner in the user-facing system.
+ // Keep AI Operations service code for compatibility but never expose its page.
+ document.querySelector('.nav-btn[data-view="aiOperations"]')?.remove();
+ document.querySelector('[data-home-target="aiOperations"]')?.remove();
  const view=$('aiOperations');
- if(view&&!visible){
-  view.classList.remove('active','manager-force-active');
-  view.hidden=true;view.style.setProperty('display','none','important');
-  if(document.querySelector('.view.active')===null)try{window.openAppView?.('homeMenu')}catch(_){}
- }else if(view&&visible){view.hidden=false;view.style.removeProperty('display')}
- return visible;
+ if(view){
+   const wasActive=view.classList.contains('active')||view.classList.contains('manager-force-active');
+   if(wasActive){
+     view.classList.remove('active','manager-force-active');
+     window.YardivoRoleStableFinal?.open?.('homeMenu');
+   }
+   if(!view.hidden)view.hidden=true;
+   if(view.style.getPropertyValue('display')!=='none')view.style.setProperty('display','none','important');
+ }
+ return false;
 }
+
 const pad=n=>String(n).padStart(2,'0');
 function localDate(add=0){const d=new Date();d.setDate(d.getDate()+add);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
 function mins(v){const m=String(v||'').match(/^(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):NaN}

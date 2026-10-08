@@ -5,7 +5,7 @@ if(window.__YARDIVO_MANAGER_SCOPE_POPUP_V2__)return;
 window.__YARDIVO_MANAGER_SCOPE_POPUP_V2__=true;
 
 const MASTER='yardivo_master_data_registry_v583';
-const ALLOWED=new Set(['homeMenu','dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']);
+const ALLOWED=new Set(['homeMenu','dashboard','controlTower','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']);
 
 function session(){try{return (typeof currentSession!=='undefined'?currentSession:window.currentSession)||null}catch(_){return window.currentSession||null}}
 function role(){let r=String(session()?.role||session()?.app_role||'').trim().toLowerCase();if(r==='management'||r==='voditelj')r='manager';return r}
@@ -59,24 +59,7 @@ function setTextNode(button,label){
 function enforceMenu(){
  if(!isManager())return;
  setRoleAttrs();
- const labels={homeMenu:'Početni izbornik',dashboard:'Nadzorna ploča',controlTower:'Control Tower',analytics:'Analytics',myYard:'My Yard',suppliers:'Dobavljači',overview:'Overview dobavljača',dailyMap:'Dnevna mapa',weeklyMap:'Tjedna mapa'};
- document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{
-   const id=String(b.dataset.view||''),ok=menuAllowed(id);
-   b.classList.toggle('role-hidden',!ok);
-   b.style.setProperty('display',ok?'flex':'none','important');
-   b.style.setProperty('visibility',ok?'visible':'hidden','important');
-   if(ok&&labels[id])setTextNode(b,labels[id]);
- });
- document.querySelectorAll('#homeMenuGrid [data-home-target]').forEach(card=>{
-   let id=String(card.dataset.homeTarget||'');if(id==='controltower')id='controlTower';
-   const ok=menuAllowed(id)&&id!=='homeMenu';
-   card.classList.toggle('role-hidden',!ok);
-   card.style.setProperty('display',ok?'block':'none','important');
-   card.style.setProperty('visibility',ok?'visible':'hidden','important');
-   card.style.setProperty('opacity',ok?'1':'0','important');
- });
- const grid=document.getElementById('homeMenuGrid');
- if(grid){grid.style.setProperty('display','grid','important');grid.style.setProperty('visibility','visible','important');grid.style.setProperty('opacity','1','important')}
+ window.YardivoManagerFinalV4?.syncMenu?.();
  document.documentElement.classList.add('yardivo-home-ready');
 }
 
@@ -161,6 +144,11 @@ function openView(raw){
  if(!ALLOWED.has(id))id='homeMenu';
  closePopup();
  enforceScope();enforceMenu();
+ if(window.YardivoManagerFinalV4?.forceView){
+   window.YardivoManagerFinalV4.forceView(id);
+   window.dispatchEvent(new CustomEvent('yardivo:view-opened',{detail:{view:id,source:'manager-v4'}}));
+   return;
+ }
 
  document.body.classList.toggle('home-menu-mode',id==='homeMenu');
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));

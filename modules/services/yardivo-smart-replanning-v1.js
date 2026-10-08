@@ -21,16 +21,7 @@ function applySmartUiState(c=loadCfg()){
  const on=!!c.enabled && c.mode!=='PAUSED';
  document.documentElement.classList.toggle('yardivo-smart-off',!on);
  document.documentElement.classList.toggle('yardivo-smart-on',on);
- const nav=document.querySelector('.nav-btn[data-view="smartReplanning"]');
- const view=document.getElementById('smartReplanning');
- if(nav){
-   nav.style.setProperty('display',on&&canView()?'':'none',on&&canView()?'':'important');
-   nav.classList.toggle('role-hidden',!(on&&canView()));
- }
- if(view&&!on){
-   view.classList.remove('active');
-   view.style.setProperty('display','none','important');
- }
+ // Navigation is permanently owned by the application shell, not SMART.
  if(!on){
    document.getElementById('yardivoAutoReplanAlertStack')?.replaceChildren();
  }
@@ -230,28 +221,17 @@ function scan(force=false){
  }finally{scanBusy=false;lastSignature=signature();renderSection()}
 }
 function inject(){
- const c=loadCfg();
- if(!applySmartUiState(c)||!canView())return;
- if(!document.querySelector('.nav-btn[data-view="smartReplanning"]')){
-   const y=document.querySelector('.nav-btn[data-view="liveYard"]')||document.querySelector('.nav-btn[data-view="controlTower"]');
-   y?.insertAdjacentHTML('afterend','<button class="nav-btn" data-view="smartReplanning"><span>⚡</span> YARDIVO automatske preporuke</button>');
+ // SMART is the active planning engine, not a separate application page.
+ // The legacy menu/view must never be recreated by the five-second scan loop.
+ const nav=document.querySelector('.nav-btn[data-view="smartReplanning"]');
+ if(nav)nav.remove();
+ const view=document.getElementById('smartReplanning');
+ if(view){
+   if(view.classList.contains('active'))window.YardivoRoleStableFinal?.open?.('homeMenu');
+   view.remove();
  }
- if(!document.getElementById('smartReplanning')){
-   const main=document.querySelector('main')||document.querySelector('.main');
-   main?.insertAdjacentHTML('beforeend',`<section id="smartReplanning" class="view">
-    <div class="section-title"><div><h1>⚡ YARDIVO AUTOMATSKE PREPORUKE</h1><p>Smart automatski prati opterećenje, kašnjenja, blokade i konflikte te predlaže sigurniji termin i rampu. Promjena vrijedi tek nakon potvrde Zaliha i dobavljača.</p></div></div>
-    <div class="srp-top">
-      <span class="srp-engine"><i></i><span id="srpEngineText">SMART ON · AUTOMATSKA ANALIZA</span></span>
-      <button class="secondary" id="srpScanNow">⚡ IZRAČUNAJ SADA</button>
-      <select id="srpMode"><option value="AUTO_SAFE">SMART ON</option><option value="PAUSED">PAUZIRANO</option></select>
-      <select id="srpLate"><option value="15">Kašnjenje 15+ min</option><option value="20">Kašnjenje 20+ min</option><option value="30">Kašnjenje 30+ min</option><option value="45">Kašnjenje 45+ min</option></select>
-    </div>
-    <div class="srp-kpis"><div class="srp-kpi"><small>SMART PRIJEDLOZI DANAS</small><strong id="srpToday">0</strong></div><div class="srp-kpi"><small>ZBOG KAŠNJENJA</small><strong id="srpLateKpi">0</strong></div><div class="srp-kpi"><small>ZBOG RAMPI / BLOKADA</small><strong id="srpRampKpi">0</strong></div><div class="srp-kpi"><small>BEZ SIGURNOG RJEŠENJA</small><strong id="srpNoSlot">0</strong></div></div>
-    <div class="srp-board"><div class="srp-history"><div class="srp-head"><h3>SMART WORKFLOW · PRIJEDLOZI I ODOBRENJA</h3><small>Smart prijedlog → potvrda Zaliha → odgovor dobavljača → promjena najave.</small></div><div class="srp-list" id="srpList"></div></div><aside class="srp-side"><div class="srp-head"><h3>DETALJ ODLUKE</h3><small>Zašto Smart predlaže promjenu i gdje je u approval workflowu.</small></div><div class="srp-detail" id="srpDetail"><div class="srp-empty">Odaberi automatsku preporuku.</div></div></aside></div>
-   </section>`);
- }
- bind();
 }
+
 let bound=false;
 function bind(){if(bound)return;bound=true;
  document.addEventListener('click',e=>{
@@ -299,7 +279,7 @@ if(typeof oldOpen==='function'&&!oldOpen.__srp){
 window.addEventListener('load',()=>setTimeout(()=>{
  const c=loadCfg();applySmartUiState(c);
  if(!c.enabled||c.mode==='PAUSED')return;
- inject();wrapRampTriggers();try{YardivoRoleAccessFinal?.apply?.()}catch(e){};lastSignature=signature();scan(true)
+ inject();wrapRampTriggers();lastSignature=signature();scan(true)
 },1800));
 setInterval(()=>{
  if(!currentSession?.role)return;

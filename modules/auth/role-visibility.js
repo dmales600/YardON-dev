@@ -5,7 +5,7 @@ if(window.YardivoRoleVisibility?.owner==='modules/auth/role-visibility.js')retur
 const MATRIX={
   admin:null,
   manager:new Set(['homeMenu','dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']),
-  inventory:new Set(['homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','incidents','documentArchive','unannounced','epal','myYard','reports','settings']),
+  inventory:new Set(['homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','operations','incidents','documentArchive','unannounced','epal','myYard','reports','settings']),
   reception:new Set(['homeMenu','aiOperations','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard']),
   gate:new Set(['homeMenu','checkin','unannounced','myYard','docks']),
   supplier:new Set([])
@@ -43,7 +43,7 @@ function aiControlEnabled(){
 }
 function allowed(r,v){
   const id=String(v||'');
-  if(id==='aiOperations'&&!aiControlEnabled())return false;
+  if(id==='aiOperations'||id==='smartReplanning')return false;
   if(r==='admin')return true;
   return !!MATRIX[r]?.has(id);
 }
@@ -98,6 +98,12 @@ function apply(){
   document.documentElement.dataset.yardivoRole=r;
   document.body.classList.remove('yardivo-role-switching');
   ensureRoleCards(r);
+  // ManagerFinalV4 owns manager navigation. Never let two controllers
+  // overwrite display/visibility after background sync or a home click.
+  if(r==='manager'){
+    if(roleChanged)try{window.dispatchEvent(new CustomEvent('yardivo:role-ui-applied',{detail:{role:r}}))}catch(_){}
+    return;
+  }
 
   document.querySelectorAll('.nav-btn[data-view]').forEach(el=>{
     allowed(r,el.dataset.view)?show(el,'nav'):hide(el);

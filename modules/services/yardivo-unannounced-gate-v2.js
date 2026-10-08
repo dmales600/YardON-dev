@@ -117,14 +117,12 @@ function create(){
 
 function forceAccess(){
   if(!window.currentSession)return;
-  const r=role();
-  const ok=allowed();
-  document.querySelectorAll('[data-view="unannounced"],[data-home-target="unannounced"]').forEach(el=>{
-    el.classList.toggle('role-hidden',!ok);
-    el.style.setProperty('display',ok?'':'none',ok?'':'important');
-  });
+  // Canonical RoleVisibility governs the menu. This module owns only Gate form content.
   const panel=document.getElementById('uaGateCreatePanel');
-  if(panel)panel.style.display=r==='gate'?'block':'none';
+  if(panel){
+    const display=role()==='gate'?'block':'none';
+    if(panel.style.display!==display)panel.style.display=display;
+  }
 }
 
 document.getElementById('uaGateSubmit')?.addEventListener('click',create);

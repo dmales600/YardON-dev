@@ -1113,26 +1113,13 @@ function allowedViewsForRole(role){
 function yardivoAiControlEnabledForRoleUi(){try{const c=JSON.parse(localStorage.getItem('yardivo_auto_replan_cfg_v1')||'{}')||{};return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED'}catch(_){return false}}
 function applyRoleAccess(){
   if(!currentSession)return;
-  const allowed=allowedViewsForRole(currentSession.role);
-  const canShow=id=>allowed.includes(id)&&(id!=='aiOperations'||yardivoAiControlEnabledForRoleUi());
-  document.querySelectorAll('[data-home-target]').forEach(card=>card.style.display=canShow(card.dataset.homeTarget)?'block':'none');
-
-  document.querySelectorAll('[data-view]').forEach(btn=>{
-    btn.classList.toggle('role-hidden',!canShow(btn.dataset.view));
-  });
-
-  const active=document.querySelector('.view.active');
-  if(active && !canShow(active.id)){
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    document.getElementById('dashboard')?.classList.add('active');
-    document.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));
-    document.querySelector('[data-view="dashboard"]')?.classList.add('active');
-  }
-
+  // Legacy login controller only supplies user/location labels.
+  // Navigation permissions are owned exclusively by RoleVisibility (manager: FinalV4).
+  try{window.YardivoRoleVisibility?.apply?.()}catch(_){}
   const chip=document.getElementById('currentUserChip');
   const label=document.getElementById('currentUserLabel');
   if(chip)chip.style.display='flex';
-  if(label)label.textContent=`${currentSession.user} · ${roleLabel(currentSession.role)}${currentSession.location?' · '+locationLabel(currentSession.location):''}`;
+  if(label){const next=`${currentSession.user} · ${roleLabel(currentSession.role)}${currentSession.location?' · '+locationLabel(currentSession.location):''}`;if(label.textContent!==next)label.textContent=next;}
   const homeSub=document.getElementById('homeMenuSubtitle');if(homeSub)homeSub.textContent=currentSession.location?`${locationLabel(currentSession.location)} · odaberi sekciju u koju želiš ući`:'Odaberi lokaciju, zatim sekciju u koju želiš ući';
   syncWarehouseSelectorsToLoginLocation();
   const deleteBtn=document.getElementById('deleteAllDataBtn');if(deleteBtn)deleteBtn.style.display=String(currentSession.role||'').toLowerCase()==='admin'?'block':'none';

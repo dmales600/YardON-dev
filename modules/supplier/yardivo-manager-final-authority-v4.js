@@ -18,7 +18,18 @@ function role(){
 }
 function isManager(){return role()==='manager'}
 function aiControlEnabled(){try{const c=JSON.parse(localStorage.getItem('yardivo_auto_replan_cfg_v1')||'{}')||{};return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED'}catch(_){return false}}
-function managerViewAllowed(id){return ALLOWED.has(String(id||''))&&(String(id||'')!=='aiOperations'||aiControlEnabled())}
+function managerViewAllowed(raw){
+ const id=String(raw||'');
+ if(id==='aiOperations'||id==='smartReplanning'||!ALLOWED.has(id))return false;
+ if(id==='homeMenu')return true;
+ try{
+  const u=String(sess()?.username||sess()?.user||'').trim().toLowerCase();
+  const raw=u?localStorage.getItem('yardivo_manager_access_'+u):'';
+  const a=raw?JSON.parse(raw):null;
+  if(Array.isArray(a?.sections)&&a.sections.length)return a.sections.includes(id);
+ }catch(_){}
+ return true;
+}
 function md(){
  try{
   const d=JSON.parse(localStorage.getItem(MASTER)||'{}')||{};
@@ -128,41 +139,56 @@ function renderTarget(id){
  (names[id]||[]).forEach(n=>{try{if(typeof window[n]==='function')window[n]()}catch(_){}});
  if(id==='aiOperations'){try{window.YardOnAIOperations?.refresh?.()}catch(_){}}
 }
+function setVisible(el,shown,display){
+ const target=shown?display:'none';
+ if(el.style.getPropertyValue('display')!==target||el.style.getPropertyPriority('display')!=='important')
+  el.style.setProperty('display',target,'important');
+ const visibility=shown?'visible':'hidden';
+ if(el.style.getPropertyValue('visibility')!==visibility)
+  el.style.setProperty('visibility',visibility,'important');
+}
+function setRoleClass(el,name,enabled){
+ if(el.classList.contains(name)!==enabled)el.classList.toggle(name,enabled);
+}
+function syncMenu(active=String(document.body.dataset.managerView||'homeMenu')){
+ if(!isManager())return;
+ document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{
+   const id=String(b.dataset.view||''),allowed=managerViewAllowed(id);
+   setVisible(b,allowed,'flex');
+   setRoleClass(b,'role-hidden',!allowed);
+   setRoleClass(b,'active',allowed&&id===active);
+ });
+ document.querySelectorAll('#homeMenuGrid [data-home-target]').forEach(c=>{
+   const id=String(c.dataset.homeTarget||''),allowed=managerViewAllowed(id)&&id!=='homeMenu';
+   setVisible(c,allowed,'block');
+   setRoleClass(c,'role-hidden',!allowed);
+ });
+}
 function forceView(raw){
  if(!isManager())return;
  let id=String(raw||'homeMenu');if(id==='controltower')id='controlTower';
- if(!ALLOWED.has(id))id='homeMenu';
-
+ if(!managerViewAllowed(id))id='homeMenu';
+ const wasCurrent=document.body.dataset.managerView===id&&document.getElementById(id)?.classList.contains('active');
  document.body.dataset.yardivoRole='manager';
  document.body.dataset.managerView=id;
  document.body.classList.toggle('home-menu-mode',id==='homeMenu');
-
  document.querySelectorAll('.view').forEach(v=>{
    const on=String(v.id)===id;
    v.classList.toggle('manager-force-active',on);
    v.classList.toggle('active',on);
-   /* Hard single-view lock: older Home logic can leave display:block!important inline.
-      Always overwrite the inline display for every manager view. */
-   v.style.setProperty('display',on?'block':'none','important');
-   if(on)v.removeAttribute('hidden');
+   const display=on?'block':'none';
+   if(v.style.getPropertyValue('display')!==display||v.style.getPropertyPriority('display')!=='important')
+     v.style.setProperty('display',display,'important');
+   if(on&&v.hidden)v.removeAttribute('hidden');
  });
- document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{
-   const bid=String(b.dataset.view||'');
-   const ok=managerViewAllowed(bid);
-   b.style.setProperty('display',ok?'flex':'none','important');
-   b.style.setProperty('visibility',ok?'visible':'hidden','important');
-   b.classList.toggle('active',bid===id);
- });
- document.querySelectorAll('#homeMenuGrid [data-home-target]').forEach(c=>{
-   let cid=String(c.dataset.homeTarget||'');if(cid==='controltower')cid='controlTower';
-   const ok=managerViewAllowed(cid)&&cid!=='homeMenu';
-   c.style.setProperty('display',ok?'block':'none','important');
-   c.style.setProperty('visibility',ok?'visible':'hidden','important');
- });
- const title=document.getElementById('pageTitle');if(title)title.textContent=labelFor(id);
- enforceAccountScope();
- if(id!=='homeMenu')renderTarget(id);
- try{window.scrollTo(0,0);document.querySelector('.main')?.scrollTo?.(0,0)}catch(_){}
+ syncMenu(id);
+ const title=document.getElementById('pageTitle');
+ const label=labelFor(id);if(title&&title.textContent!==label)title.textContent=label;
+ if(!wasCurrent){
+   enforceAccountScope();
+   if(id!=='homeMenu')renderTarget(id);
+   try{window.scrollTo(0,0);document.querySelector('.main')?.scrollTo?.(0,0)}catch(_){}
+ }
 }
 
 /* -------- popup windows -------- */
@@ -365,41 +391,46 @@ window.addEventListener('change',e=>{
  try{window.YardivoWarehouseSync?.apply?.()}catch(_){}
 },true);
 
+let repairPending=false;
 function scheduleRepair(){
- if(scheduled)return;
- scheduled=true;
- queueMicrotask(()=>{scheduled=false;if(!isManager())return;enforceAccountScope();patchDrawer();
-   const id=String(document.body.dataset.managerView||'homeMenu');
-   const target=document.getElementById(id);
-   if(target&&!target.classList.contains('manager-force-active'))forceView(id);
+ if(repairPending)return;
+ repairPending=true;
+ requestAnimationFrame(()=>{
+  repairPending=false;
+  if(!isManager())return;
+  const id=String(document.body.dataset.managerView||'homeMenu');
+  const view=document.getElementById(id);
+  if(!view||!view.classList.contains('active'))forceView(id);
  });
 }
-const obs=new MutationObserver(ms=>{
+// Observe only the view roots, never every menu / body mutation.
+const obs=new MutationObserver(()=>{
  if(!isManager())return;
- for(const m of ms){
-   const t=m.target instanceof Element?m.target:m.target?.parentElement;
-   if(t?.closest?.('#globalLocationV583,#homeLocationSelect,#yscLocationSelect,#globalWarehouse,#yscWarehouseSelect,#homeMenu,.view,#yardivoRightSettingsDrawer,.nav,.sidebar')){
-     scheduleRepair();break;
-   }
- }
+ const id=String(document.body.dataset.managerView||'homeMenu');
+ if(!document.getElementById(id)?.classList.contains('active'))scheduleRepair();
 });
-document.addEventListener('DOMContentLoaded',()=>{try{obs.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']})}catch(_){}},{once:true});
+function observeViews(){
+ document.querySelectorAll('.view').forEach(v=>obs.observe(v,{attributes:true,attributeFilter:['class']}));
+}
+document.addEventListener('DOMContentLoaded',observeViews,{once:true});
 
+let initialized=false;
 function init(){
  if(!isManager())return;
+ if(initialized){syncMenu();return;}
+ initialized=true;
  document.body.dataset.yardivoRole='manager';
  enforceAccountScope();
  patchDrawer();
- let current=[...document.querySelectorAll('.view.active')].find(v=>ALLOWED.has(String(v.id)))?.id||'homeMenu';
- if(!ALLOWED.has(current))current='homeMenu';
+ let current=[...document.querySelectorAll('.view.active')].find(v=>managerViewAllowed(String(v.id)))?.id||'homeMenu';
+ if(!managerViewAllowed(current))current='homeMenu';
  forceView(current);
 }
-window.addEventListener('yardivo:login',()=>queueMicrotask(init));
-window.addEventListener('yardivo:data-synced',()=>queueMicrotask(scheduleRepair));
-window.addEventListener('yardivo:master-data-changed',()=>queueMicrotask(scheduleRepair));
+window.addEventListener('yardivo:login',()=>{initialized=false;queueMicrotask(init)});
+window.addEventListener('yardivo:master-data-changed',()=>queueMicrotask(()=>{if(isManager())enforceAccountScope()}));
 document.addEventListener('DOMContentLoaded',init,{once:true});
 window.addEventListener('load',init,{once:true});
 setTimeout(init,0);
 
-window.YardivoManagerFinalV4={init,forceView,openPopup,enforceAccountScope,scope:accountScope};
+window.YardivoManagerFinalV4={init,forceView,syncMenu,openPopup,enforceAccountScope,scope:accountScope};
 })();

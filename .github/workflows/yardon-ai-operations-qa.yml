@@ -62,7 +62,7 @@ jobs:
           grep -q "ASSISTANT_DISABLED_BY_ADMIN" supabase/functions/yardivo-ai/index.ts
           grep -q "yardivoAiAssistantToggle" modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
           grep -q "yardivoAiControlToggle" modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
-          grep -q 'data-view="aiOperations"' index.html
+          ! grep -q '<button class="nav-btn" data-view="aiOperations"' index.html
           grep -q 'id="aiOperations"' index.html
           grep -q 'yardon-ai-operations-v1.js' index.html
       - name: Frontend stability regression
@@ -72,6 +72,8 @@ jobs:
           node --check modules/master-data/yardivo-master-data-registry.js
           node --check modules/ai/yardon-ai-operations-v1.js
           node .github/qa/yardon-frontend-stability.test.cjs
+          node .github/qa/yardon-ui-single-owner.test.cjs
+          node .github/qa/yardon-active-manifest.test.cjs
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
@@ -153,31 +155,49 @@ jobs:
           }
           (async()=>{
             const browser=await chromium.launch({headless:true});
+            // Duplicate AI screens are retired; SMART continues working in background.
+            // Verify that repeated syncs cannot repaint navigation or home-menu cards.
             for(const role of ['inventory','reception','manager']){
               const context=await browser.newContext({viewport:{width:1440,height:1000}});
               const page=await context.newPage();
               const errors=await prepare(page,role);
-              const nav=page.locator('.nav-btn[data-view="aiOperations"]');
-              const home=page.locator('[data-home-target="aiOperations"]');
-              const entryVisible=(await nav.isVisible())||(await home.isVisible());
-              if(!entryVisible)throw new Error(role+' cannot see AI Operations entry point');
-              await page.evaluate(()=>window.YardivoRoleStableFinal?.open?.('aiOperations'));
-              await page.waitForTimeout(180);
-              await page.evaluate(async()=>{window.YardOnAIOperations?.applyVisibility?.();await window.YardOnAIOperations?.refresh?.()});
-              await page.waitForTimeout(260);
-              if(!await page.locator('#aiOperations').isVisible())throw new Error(role+' AI Operations view not visible');
-              if(await page.locator('#aiOperations .yaio-job').count()<3)throw new Error(role+' plan board missing jobs');
-              if(!await page.getByText('Supplier C',{exact:true}).first().isVisible())throw new Error(role+' supplier plan row missing');
-              await page.evaluate(()=>document.querySelector('[data-yaio-tab="parking"]')?.click());
-              await page.waitForTimeout(80);
-              if(!await page.getByText('P23',{exact:true}).first().isVisible())throw new Error(role+' actual parking P23 missing');
-              await page.evaluate(()=>document.querySelector('[data-yaio-tab="decisions"]')?.click());
-              await page.waitForTimeout(80);
-              if(!await page.getByText('R2 je zauzeta dulje od plana.',{exact:true}).isVisible())throw new Error(role+' AI decision missing');
-              if(['inventory','manager'].includes(role)){
-                if(await page.locator('[data-yaio-decision-action="approve"]').count()<1)throw new Error(role+' AI approve action missing');
-                if(await page.locator('[data-yaio-decision-action="reject"]').count()<1)throw new Error(role+' AI reject action missing');
-              }
+              await page.waitForTimeout(500);
+              const state=await page.evaluate(async()=>{
+                const items=['aiOperations','smartReplanning'];
+                const hidden=items.every(id=>!
+                  document.querySelector('.nav-btn[data-view="'+id+'"]')&&
+                  !document.querySelector('[data-home-target="'+id+'"]'));
+                const shellHidden=items.every(id=>{
+                  const el=document.getElementById(id);
+                  return !el||getComputedStyle(el).display==='none';
+                });
+                // Allow first authorization reconciliation to complete before measuring
+                // repeated background syncs (do not count legitimate initial menu setup).
+                window.dispatchEvent(new CustomEvent('yardivo:data-synced'));
+                await new Promise(resolve=>setTimeout(resolve,650));
+                const nodes=[document.querySelector('.nav'),document.getElementById('homeMenuGrid')].filter(Boolean);
+                let changed=0;const names={};const transitions=[];let round=0;
+                const watchers=nodes.map(node=>{
+                  const watcher=new MutationObserver(ms=>{const menuChanges=ms.filter(m=>{
+                      const el=m.target;
+                      if(m.type==='childList')return el?.id==='homeMenuGrid'||el?.classList?.contains('nav');
+                      return el?.matches?.('.nav-btn,.home-menu-card');
+                    });
+                    changed+=menuChanges.length;menuChanges.forEach(m=>{const k=(m.target?.dataset?.view||m.target?.dataset?.homeTarget||m.target?.id||m.target?.className||'?')+':'+m.attributeName;names[k]=(names[k]||0)+1;if(m.target?.dataset?.view==='epal')transitions.push({round,attr:m.attributeName,old:m.oldValue,now:m.target.getAttribute(m.attributeName)})})});
+                  watcher.observe(node,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden'],attributeOldValue:true});
+                  return watcher;
+                });
+                for(let i=0;i<4;i++){
+                  round=i+1;
+                  window.dispatchEvent(new CustomEvent('yardivo:data-synced'));
+                  await new Promise(resolve=>setTimeout(resolve,200));
+                }
+                await new Promise(resolve=>setTimeout(resolve,700));
+                watchers.forEach(w=>w.disconnect());
+                return {hidden,shellHidden,changed,top:Object.entries(names).sort((a,b)=>b[1]-a[1]).slice(0,15),transitions};
+              });
+              if(!state.hidden||!state.shellHidden)throw new Error(role+' duplicate AI/SMART section was displayed');
+              if(state.changed>0)throw new Error(role+' menu flickered on repeated syncs: '+state.changed+' DOM mutations '+JSON.stringify(state.top)+' transitions '+JSON.stringify(state.transitions));
               if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
               await context.close();
             }
