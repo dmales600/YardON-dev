@@ -38,7 +38,9 @@ jobs:
         with:
           deno-version: v2.x
       - name: Type-check supplier Edge Function
-        run: deno check supabase/functions/yardivo-supplier-deliveries/index.ts
+        run: |
+          deno check supabase/functions/yardivo-supplier-deliveries/index.ts
+          deno check supabase/functions/yardivo-supplier-time-ops/index.ts
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
