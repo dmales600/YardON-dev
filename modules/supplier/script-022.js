@@ -78,9 +78,10 @@ function yardonRefreshMasterSupplierList(){
   const names=(Array.isArray(m?.suppliers)?m.suppliers:[])
     .filter(x=>x&&x.active!==false&&String(x.name||'').trim())
     .map(x=>String(x.name).trim());
-  suppliers.splice(0,suppliers.length,...new Set(names));
+  const canonical=[...new Set(names)];
+  if(canonical.length!==suppliers.length||canonical.some((name,i)=>suppliers[i]!==name))suppliers.splice(0,suppliers.length,...canonical);
 }
-function renderSuppliers(q=''){yardonRefreshMasterSupplierList();const term=String(q||'').toLowerCase().trim();const data=suppliers.filter(s=>s.toLowerCase().includes(term));document.getElementById('supplierCount').textContent=`${data.length} / ${suppliers.length} dobavljača`;document.getElementById('supplierGrid').innerHTML=data.map(s=>{const idx=suppliers.indexOf(s),cnt=announcements.filter(a=>a.supplier===s).length,inc=incidents.filter(i=>i.supplier===s).length;return `<div class="card supplier-click-card supplier-card" role="button" tabindex="0" data-supplier-index="${idx}" data-supplier-name="${s.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"><h3>${s}</h3><div class="meta">Dobavljač #${String(idx+1).padStart(3,'0')}<br>Status: <span style="color:var(--green)">AKTIVAN</span><br>Najave: <strong>${cnt}</strong> · Incidenti: <strong>${inc}</strong></div><button type="button" class="supplier-info-btn" tabindex="-1">INFO I POVIJEST</button></div>`}).join('')}
+function renderSuppliers(q=''){yardonRefreshMasterSupplierList();const term=String(q||'').toLowerCase().trim();const data=suppliers.filter(s=>s.toLowerCase().includes(term));document.getElementById('supplierCount').textContent=`${data.length} / ${suppliers.length} dobavljača`;const supplierHost=document.getElementById('supplierGrid');if(!supplierHost)return;const nextSupplierHtml=data.map(s=>{const idx=suppliers.indexOf(s),cnt=announcements.filter(a=>a.supplier===s).length,inc=incidents.filter(i=>i.supplier===s).length;return `<div class="card supplier-click-card supplier-card" role="button" tabindex="0" data-supplier-index="${idx}" data-supplier-name="${s.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"><h3>${s}</h3><div class="meta">Dobavljač #${String(idx+1).padStart(3,'0')}<br>Status: <span style="color:var(--green)">AKTIVAN</span><br>Najave: <strong>${cnt}</strong> · Incidenti: <strong>${inc}</strong></div><button type="button" class="supplier-info-btn" tabindex="-1">INFO I POVIJEST</button></div>`}).join('');if(supplierHost.innerHTML!==nextSupplierHtml)supplierHost.innerHTML=nextSupplierHtml;}
 
 // FIX KLIK DOBAVLJAČA - event delegation na stvarni supplierGrid
 document.getElementById('supplierGrid')?.addEventListener('click',function(e){
@@ -1931,10 +1932,10 @@ function receivingFilteredData(){
     .sort((a,b)=>String(a.time).localeCompare(String(b.time)));
 }
 function renderReceiving(){
-  syncAllAnnouncementIdentities();
+  // Rendering must be read-only: identity migration/save belongs to data ingestion, not paint.
   const host=document.getElementById('receivingList');if(!host)return;
   const data=receivingFilteredData();
-  const allForDay=canonicalOperationalAnnouncements(announcements).filter(a=>a.date===receivingDateValue()&&(a.warehouse||yardivoCanonicalWarehouseV583())===receivingWarehouseValue());
+  const allForDay=canonicalOperationalAnnouncements(announcements).filter(a=>a.date===receivingDateValue()&&(a.warehouse||yardivoCanonicalWarehouseV583())===receivingWarehouseValue()&&yardonMasterSupplierAllowed(a.supplier));
   const counts={'U dolasku':0,'U dvorištu':0,'Na rampi':0,'Zaprimljeno':0,'Odbijen':0};
   allForDay.forEach(a=>counts[receivingStatus(a)]++);
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&el.textContent!==String(v))el.textContent=String(v)};
@@ -3263,6 +3264,7 @@ function tick(){
   const dateEl=document.getElementById('date');if(dateEl)dateEl.textContent=n.toLocaleDateString('hr-HR');
 }
 tick();setInterval(tick,1000);populateSuppliers();populateAnnouncementControls();populateIncidentControls();refreshRecommendation();
-document.addEventListener('DOMContentLoaded',()=>{render();setInterval(render,180000);});
+// Render once on startup. Realtime/Supabase context events own later changes.
+document.addEventListener('DOMContentLoaded',()=>{render()},{once:true});
 
   
