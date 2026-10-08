@@ -113,3 +113,19 @@ test('existing invalid overlapping reservations are warned, not secretly realloc
  assert.equal(result.assignments[0].plannedStart,'09:00');
  assert.equal(result.assignments[1].plannedStart,'09:30');
 });
+
+test('two delayed trucks never receive the same proposed ramp slot',()=>{
+ const input=[
+  job('late-A','10:00',{plannedDock:1,plannedStart:'10:00',plannedEnd:'10:30',etaTime:'11:00'}),
+  job('late-B','10:00',{plannedDock:2,plannedStart:'10:00',plannedEnd:'10:30',etaTime:'11:00'}),
+  job('reserved','11:00',{plannedDock:1,plannedStart:'11:00',plannedEnd:'11:30'})
+ ];
+ const result=run(input);
+ assert.equal(result.proposals.length,2);
+ const proposed=result.proposals.map(p=>({id:p.id,ramp:p.proposed.dock,
+  start:minuteOf(p.proposed.start),end:minuteOf(p.proposed.end)}));
+ for(let i=0;i<proposed.length;i++)for(let j=i+1;j<proposed.length;j++){
+  const a=proposed[i],b=proposed[j];
+  assert(!(a.ramp===b.ramp&&a.start<b.end&&b.start<a.end),'Two proposed slots conflict');
+ }
+});
