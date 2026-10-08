@@ -2,6 +2,7 @@ name: YardOn Full User Flow QA
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     paths:
       - ".github/workflows/yardon-full-user-flow-qa.yml"

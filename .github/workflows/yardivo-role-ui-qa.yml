@@ -3,6 +3,7 @@ name: YARDIVO role UI QA
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     paths:
       - ".github/workflows/yardivo-role-ui-qa.yml"
@@ -91,7 +92,10 @@ jobs:
                   try{currentSession=window.currentSession}catch(_){}
                   document.documentElement.dataset.yardivoRole=role;
                   document.body.dataset.yardivoRole=role;
-                  document.body.classList.remove('yardivo-role-switching');
+                  // Simulate a completed authenticated transition, not a prelogin splash.
+                  document.documentElement.classList.remove('yardivo-booting','yardivo-login-ready');
+                  document.documentElement.classList.add('yardivo-welcome-complete','yardivo-app-authenticated');
+                  document.body.classList.remove('yardivo-role-switching','yardivo-prelogin','yardivo-welcome-active');
                   [...document.body.classList].filter(x=>/^yv-role-.*-v583$/.test(x)).forEach(x=>document.body.classList.remove(x));
                   document.body.classList.add('yv-role-'+role+'-v583');
                   const ov=document.getElementById('loginOverlay'); if(ov)ov.style.setProperty('display','none','important');
