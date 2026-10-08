@@ -50,6 +50,11 @@ function setChromeForView(view){
 
 function apply(){
  const r=role();if(!r)return;
+ // Central RoleVisibility owns sidebar/home display. This controller owns routing.
+ if(r!=='manager'&&window.YardivoRoleVisibility?.owner==='modules/auth/role-visibility.js'){
+   window.YardivoRoleVisibility.apply();
+   return;
+ }
  document.body.dataset.yardivoRole=r;
  document.documentElement.dataset.yardivoRole=r;
 
@@ -218,49 +223,23 @@ window.addEventListener('load',()=>setTimeout(()=>{
 
 
 
-function stabilizeGateSidebar(){
- if(role()!=='gate')return;
- const order=['homeMenu','checkin','unannounced','myYard','docks'];
+/* Preserve role-specific order without reparenting DOM on every click.
+   Visibility is enforced by modules/auth/role-visibility.js. */
+function reorderSidebarForRole(requiredRole,order){
+ if(role()!==requiredRole)return;
  const buttons=[...document.querySelectorAll('.nav-btn[data-view]')];
- const parent=buttons[0]?.parentElement;
- if(!parent)return;
- const byView=new Map(buttons.map(b=>[b.dataset.view,b]));
- order.forEach(v=>{const b=byView.get(v);if(b)parent.appendChild(b)});
- buttons.forEach(b=>{
-   const ok=order.includes(b.dataset.view);
-   b.classList.toggle('role-hidden',!ok);
-   if(ok){
-     b.style.removeProperty('display');
-     b.style.removeProperty('visibility');
-     b.style.removeProperty('opacity');
-     b.removeAttribute('hidden');
-     b.removeAttribute('aria-disabled');
-   }else{
-     b.style.setProperty('display','none','important');
-   }
- });
+ const parent=buttons[0]?.parentElement;if(!parent)return;
+ const byView=new Map(buttons.filter(x=>x.parentElement===parent).map(x=>[x.dataset.view,x]));
+ const expected=order.filter(id=>byView.has(id));
+ const actual=buttons.filter(x=>x.parentElement===parent&&expected.includes(x.dataset.view)).map(x=>x.dataset.view);
+ if(expected.length===actual.length&&expected.every((id,i)=>id===actual[i]))return;
+ expected.forEach(id=>parent.appendChild(byView.get(id)));
 }
-
+function stabilizeGateSidebar(){
+ reorderSidebarForRole('gate',['homeMenu','checkin','unannounced','myYard','docks']);
+}
 function stabilizeInventorySidebar(){
- if(role()!=='inventory')return;
- const order=['homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','incidents','documentArchive','unannounced','epal','myYard','reports','settings'];
- const nav=document.querySelector('.sidebar nav,.sidebar .nav,.sidebar-nav,#sidebarNav,.nav-menu');
- const buttons=[...document.querySelectorAll('.nav-btn[data-view]')];
- const parent=nav || buttons[0]?.parentElement;
- if(!parent)return;
- const byView=new Map(buttons.map(b=>[b.dataset.view,b]));
- order.forEach(v=>{const b=byView.get(v);if(b)parent.appendChild(b)});
- buttons.forEach(b=>{
-   const ok=order.includes(b.dataset.view);
-   b.classList.toggle('role-hidden',!ok);
-   if(ok){
-     b.style.removeProperty('display');
-     b.style.removeProperty('visibility');
-     b.removeAttribute('hidden');
-   }else{
-     b.style.setProperty('display','none','important');
-   }
- });
+ reorderSidebarForRole('inventory',['homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','incidents','documentArchive','unannounced','epal','myYard','reports','settings']);
 }
 
 const baseApply=apply;
