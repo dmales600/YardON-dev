@@ -142,15 +142,31 @@ function renderAll(){
   renderAllQueued=true;
   requestAnimationFrame(()=>{
     renderAllQueued=false;
-    const fns=['reloadAnnouncementsFromPersistentStorage','render','renderAnnouncements','renderAnnouncementSchedule','renderReceiving','renderDailyMap','renderWeeklyMap','renderOverview','renderIncidents','renderOperationsPro','renderControlTower','renderUnannounced','renderEpal'];
-    for(const n of fns){try{if(typeof window[n]==='function')window[n]()}catch(_){} }
+    try{if(typeof window.reloadAnnouncementsFromPersistentStorage==='function')window.reloadAnnouncementsFromPersistentStorage()}catch(_){}
+    const active=document.querySelector('.view.active')?.id||'';
+    const renderers={
+      dashboard:['renderDashboardSimple'],
+      announcements:['renderAnnouncements','renderAnnouncementSchedule'],
+      receiving:['renderReceiving'],
+      dailyMap:['renderDailyMap'],
+      weeklyMap:['renderWeeklyMap'],
+      overview:['renderOverview'],
+      incidents:['renderIncidents'],
+      controlTower:['renderControlTower'],
+      controltower:['renderControlTower'],
+      unannounced:['renderUnannounced'],
+      epal:['renderEpal'],
+      docks:['renderRampe'],
+      ramps:['renderRampe'],
+      operations:['renderOperationsPro']
+    };
+    for(const n of (renderers[active]||[])){try{if(typeof window[n]==='function')window[n]()}catch(_){}}
+    /* Home/menu is intentionally static during background sync. */
     try{window.YardivoNotifications?.render?.()}catch(_){}
-    try{window.YardivoMyYard?.render?.()}catch(_){}
-    /* WebGL refresh only when its view is actually visible. */
-    try{
-      const my=document.getElementById('myYard');
-      if(my?.classList.contains('active'))window.YardivoMyYardWebGL?.refresh?.();
-    }catch(_){}
+    if(active==='myYard'){
+      try{window.YardivoMyYard?.render?.()}catch(_){}
+      try{window.YardivoMyYardWebGL?.refresh?.()}catch(_){}
+    }
   });
 }
 function bootstrapSignature(d){
