@@ -18,7 +18,7 @@ vm.runInNewContext(displayCode+';globalThis.showNumber=displayAnnouncementId;',c
 const existing={supplierDeliveryId:validUUID,announcementId:'SUPDEL-'+validUUID};
 assert.equal(ctx.showNumber(existing),'NAJ799593','Supabase client_id should win');
 assert.equal(ctx.showNumber({...existing,publicAnnouncementId:'NAJ123456'}),'NAJ123456');
-assert.equal(ctx.showNumber({announcementId:'SUPDEL-'+validUUID}),'—','do not expose technical UUID when no mapping');
+assert.equal(ctx.showNumber({announcementId:'SUPDEL-00000000-0000-4000-8000-000000000000'}),'—','do not expose technical UUID when no mapping');
 assert(supplierSrc.includes('publicAnnouncementId:String(x?.client_id||x?.clientId'),'new supplier notification must carry client_id');
 assert(src.includes("field('Broj najave',displayAnnouncementId(n))"),'reader must show public booking number');
 // Logged-out history is recorded but never replayed as live speech.
