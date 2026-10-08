@@ -338,8 +338,7 @@ function openReader(id,mark=true){
   // A notification may arrive before supplier rows hydrate. Resolve the public
   // NAJ number on demand and update only that field, never the entire reader.
   if(displayAnnouncementId(n)==='—'&&n.supplierDeliveryId&&window.YardivoSupplierLiveSync?.call){
-    void Promise.resolve(window.YardivoSupplierLiveSync.call('list_internal')).then(rows=>{
-      const hit=(Array.isArray(rows)?rows:[]).find(x=>String(x?.id||'')===String(n.supplierDeliveryId));
+    void Promise.resolve(window.YardivoSupplierLiveSync.call('notification_reference',{id:String(n.supplierDeliveryId)})).then(hit=>{
       const number=canonicalSupplierAnnouncementNumber(hit?.client_id);
       if(!number)return;
       // Preserve the resolved canonical client ID so re-opening old notifications
