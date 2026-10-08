@@ -131,8 +131,8 @@ function supplierScores(){
 }
 
 function renderControlTower(){
- const view=document.getElementById('controlTower'),nav=document.querySelector('[data-view="controlTower"]');
- if(nav&&nav.style.getPropertyValue('display')!==(allowed()?'flex':'none'))nav.style.setProperty('display',allowed()?'flex':'none','important');
+ const view=document.getElementById('controlTower');
+ // RBAC authority owns navigation; CT renderer must never repaint the menu.
  if(!view||!allowed())return;
  const wh=selectedWh(),day=scopeA().filter(a=>a.date===today()),now=new Date();
  const ms=day.map(a=>({a,m:metrics(a,now)}));
@@ -201,12 +201,15 @@ document.addEventListener('change',e=>{if(e.target?.id==='globalWarehouse')setTi
 window.addEventListener('yardivo:context-changed',()=>setTimeout(renderControlTower,0));
 
 function homeCard(){
- const grid=document.getElementById('homeMenuGrid');if(!grid)return;
- let card=grid.querySelector('[data-home-target="controlTower"]');
- if(!allowed()){if(card&&card.style.getPropertyValue('display')!=='none')card.style.setProperty('display','none','important');return}
- if(!card){card=document.createElement('div');card.className='home-menu-card';card.dataset.homeTarget='controlTower';card.setAttribute('role','button');card.setAttribute('tabindex','0');card.innerHTML='<div class="home-menu-icon">◉</div><h3>Control Tower</h3><p>Real-time SLA, dwell time i operativni rizici.</p><div class="home-menu-open">OTVORI →</div>';grid.appendChild(card)}
- if(card.style.getPropertyValue('display')!=='flex')card.style.setProperty('display','flex','important');
- card.onclick=()=>window.openAppView?.('controlTower');
+ const grid=document.getElementById('homeMenuGrid');
+ const mayOpen=window.YardivoRoleVisibility?.allowed?.('controlTower')??allowed();
+ if(!grid||!allowed()||!mayOpen||grid.querySelector('[data-home-target="controlTower"]'))return;
+ const card=document.createElement('button');
+ card.type='button';
+ card.className='home-menu-card';
+ card.dataset.homeTarget='controlTower';
+ card.innerHTML='<div class="home-menu-icon">◉</div><h3>Control Tower</h3><p>Real-time SLA, dwell time i operativni rizici.</p><div class="home-menu-open">OTVORI →</div>';
+ grid.appendChild(card);
 }
 
 window.addEventListener('load',()=>setTimeout(()=>{ensureReadability();homeCard();ensureSettings();renderControlTower();decorateSupplierProfile()},500));
