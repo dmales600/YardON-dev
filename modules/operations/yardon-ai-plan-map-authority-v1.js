@@ -55,19 +55,24 @@ function applyInternalRows(serverRows){
  }
 }
 function applyPlan(plan){
- if(!Array.isArray(plan))return;
- const local=rows();
+ if(!Array.isArray(plan))return false;
+ let changed=false;const local=rows();
  for(const p of plan){
   const matches=local.filter(x=>String(x?.supplierDeliveryId||'')===String(p?.supplier_delivery_id||'')||String(x?.id||'')===String(p?.id||''));
   for(const a of matches){
-   a.plannedDock=p.planned_dock?('R'+p.planned_dock):null;
-   a.aiPlannedDock=a.plannedDock;
-   a.aiPlannedStart=p.planned_start||null;
-   a.aiPlannedEnd=p.planned_end||null;
-   a.aiPlanUpdatedAt=new Date().toISOString();
-   a.aiPlanSource='AI_OPERATIONS';
+   const nextDock=p.planned_dock?('R'+p.planned_dock):null;
+   const nextStart=p.planned_start||null,nextEnd=p.planned_end||null;
+   const nextSource=p.effective_plan_source||p.planning_source||'AI_OPERATIONS';
+   const nextAt=p.effective_plan_at||p.planned_at||a.aiPlanUpdatedAt||null;
+   if(String(a.plannedDock||'')!==String(nextDock||'')||String(a.aiPlannedDock||'')!==String(nextDock||'')||
+      String(a.aiPlannedStart||'')!==String(nextStart||'')||String(a.aiPlannedEnd||'')!==String(nextEnd||'')||
+      String(a.aiPlanSource||'')!==String(nextSource||'')||String(a.aiPlanUpdatedAt||'')!==String(nextAt||'')){
+     a.plannedDock=nextDock;a.aiPlannedDock=nextDock;a.aiPlannedStart=nextStart;a.aiPlannedEnd=nextEnd;
+     a.aiPlanUpdatedAt=nextAt;a.aiPlanSource=nextSource;changed=true;
+   }
   }
  }
+ return changed;
 }
 
 const inflight=new Map(),lastCall=new Map();
@@ -82,9 +87,11 @@ async function planDay(date,warehouse,force=false){
    const c=await window.YardivoAuth?.client?.();if(!c?.functions?.invoke)return null;
    const {data,error}=await c.functions.invoke('yardivo-ai-operations',{body:{action:'plan_day',date:String(date),warehouse:String(warehouse)}});
    if(error)throw error;if(data?.ok===false)throw new Error(data.error||'AI plan nije dostupan.');
-   const out=data?.data??data;applyPlan(out?.plan||[]);
-   try{await window.YardivoSupplierLiveSync?.pullInternal?.(true)}catch(_){}
-   return out;
+   const out=data?.data??data;
+   const planChanged=applyPlan(out?.plan||[]);
+   let supplierChanged=false;
+   try{supplierChanged=!!(await window.YardivoSupplierLiveSync?.pullInternal?.(true))}catch(_){}
+   return out&&typeof out==='object'?{...out,__yardonClientChanged:planChanged||supplierChanged}:out;
   }catch(e){console.warn('YardOn AI plan day',e);return null}
   finally{inflight.delete(key)}
  })();inflight.set(key,p);return p;
@@ -100,14 +107,14 @@ function maybePlanVisible(force=false){
  const d=document.getElementById('dailyMap');if(!d?.classList.contains('active')&&!d?.classList.contains('manager-force-active'))return;
  const {date,warehouse}=currentDaily();if(!date||!warehouse||warehouse==='ALL')return;
  const needs=rows().some(a=>String(a?.date||'')===String(date)&&String(a?.warehouse||'')===String(warehouse)&&!actualNo(a)&&!plannedNo(a)&&!['odbijen','rejected','cancelled','canceled','zaprimljeno','completed'].includes(norm(a?.status)));
- if(needs||force)void planDay(date,warehouse,force).then(out=>{if(out&&typeof window.renderDailyMap==='function')window.renderDailyMap()});
+ if(needs||force)void planDay(date,warehouse,force).then(out=>{if(out?.__yardonClientChanged&&typeof window.renderDailyMap==='function')window.renderDailyMap()});
 }
 function scheduleFromRows(serverRows){
  if(!internal()||!Array.isArray(serverRows))return;
  applyInternalRows(serverRows);
  const today=window.yardivoLocalDateV583?.()||new Date().toISOString().slice(0,10),todo=new Map();
  for(const x of serverRows){const st=norm(x?.status),d=String(x?.delivery_date||'').slice(0,10),w=String(x?.warehouse||'');if(d>=today&&['confirmed','arrival','dock','receiving'].includes(st)&&!dockNo(x?.planned_dock)&&w)todo.set(d+'|'+w,{d,w})}
- let delay=200;for(const x of [...todo.values()].slice(0,6)){setTimeout(()=>void planDay(x.d,x.w,true).then(out=>{if(out&&document.getElementById('dailyMap')?.classList.contains('active'))window.renderDailyMap?.()}),delay);delay+=250}
+ let delay=200;for(const x of [...todo.values()].slice(0,6)){setTimeout(()=>void planDay(x.d,x.w,true).then(out=>{if(out?.__yardonClientChanged&&document.getElementById('dailyMap')?.classList.contains('active'))window.renderDailyMap?.()}),delay);delay+=250}
 }
 
 function withPlannedDock(fn,ctx,args){
