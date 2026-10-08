@@ -21,17 +21,12 @@ function ready(v){const b=document.getElementById('gateAllowEntryBtn');if(!b)ret
 let gateId=null, contextId=null;
 
 function applyHome(){
- const r=role(); document.querySelectorAll('[data-home-target]').forEach(card=>{
-   const t=card.dataset.homeTarget||'', txt=(card.textContent||'').toLowerCase();
-   const alert=txt.includes('upozoren')||txt.includes('obavijest')||txt.includes('notifik');
-   let ok=r==='admin'||!!HOME[r]?.has(t);
-   if(t==='aiOperations'&&!aiControlEnabled())ok=false;
-   if(r==='gate'&&alert)ok=false;
-   card.style.setProperty('display',ok?'':'none',ok?'':'important');
-   card.classList.toggle('role-hidden',!ok);
-   if(ok){card.removeAttribute('hidden');card.removeAttribute('aria-disabled')}
- });
+ // Compatibility API only: Home card visibility has a single canonical owner.
+ // Do not loop through cards or overwrite styles after each data sync.
+ if(role()==='manager')window.YardivoManagerFinalV4?.syncMenu?.();
+ else window.YardivoRoleVisibility?.apply?.();
 }
+
 window.refreshHomeMenuForCurrentRole=applyHome;
 
 function driverOpen(id){
