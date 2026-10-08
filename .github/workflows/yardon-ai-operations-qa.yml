@@ -175,27 +175,28 @@ jobs:
                 window.dispatchEvent(new CustomEvent('yardivo:data-synced'));
                 await new Promise(resolve=>setTimeout(resolve,650));
                 const nodes=[document.querySelector('.nav'),document.getElementById('homeMenuGrid')].filter(Boolean);
-                let changed=0;const names={};
+                let changed=0;const names={};const transitions=[];let round=0;
                 const watchers=nodes.map(node=>{
                   const watcher=new MutationObserver(ms=>{const menuChanges=ms.filter(m=>{
                       const el=m.target;
                       if(m.type==='childList')return el?.id==='homeMenuGrid'||el?.classList?.contains('nav');
                       return el?.matches?.('.nav-btn,.home-menu-card');
                     });
-                    changed+=menuChanges.length;menuChanges.forEach(m=>{const k=(m.target?.dataset?.view||m.target?.dataset?.homeTarget||m.target?.id||m.target?.className||'?')+':'+m.attributeName;names[k]=(names[k]||0)+1})});
-                  watcher.observe(node,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
+                    changed+=menuChanges.length;menuChanges.forEach(m=>{const k=(m.target?.dataset?.view||m.target?.dataset?.homeTarget||m.target?.id||m.target?.className||'?')+':'+m.attributeName;names[k]=(names[k]||0)+1;if(m.target?.dataset?.view==='epal')transitions.push({round,attr:m.attributeName,old:m.oldValue,now:m.target.getAttribute(m.attributeName)})})});
+                  watcher.observe(node,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden'],attributeOldValue:true});
                   return watcher;
                 });
                 for(let i=0;i<4;i++){
+                  round=i+1;
                   window.dispatchEvent(new CustomEvent('yardivo:data-synced'));
                   await new Promise(resolve=>setTimeout(resolve,200));
                 }
                 await new Promise(resolve=>setTimeout(resolve,700));
                 watchers.forEach(w=>w.disconnect());
-                return {hidden,shellHidden,changed,top:Object.entries(names).sort((a,b)=>b[1]-a[1]).slice(0,15)};
+                return {hidden,shellHidden,changed,top:Object.entries(names).sort((a,b)=>b[1]-a[1]).slice(0,15),transitions};
               });
               if(!state.hidden||!state.shellHidden)throw new Error(role+' duplicate AI/SMART section was displayed');
-              if(state.changed>0)throw new Error(role+' menu flickered on repeated syncs: '+state.changed+' DOM mutations '+JSON.stringify(state.top));
+              if(state.changed>0)throw new Error(role+' menu flickered on repeated syncs: '+state.changed+' DOM mutations '+JSON.stringify(state.top)+' transitions '+JSON.stringify(state.transitions));
               if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
               await context.close();
             }
