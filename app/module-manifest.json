@@ -2,7 +2,7 @@
   "version": "2026-10-08-active-runtime",
   "strategy": "index.html is the sole ordered source for browser script loading. This manifest documents ONLY those active scripts. Never use stale byte sizes or checksums as runtime truth.",
   "entrypoint": "index.html",
-  "script_count": 327,
+  "script_count": 326,
   "scripts": [
     {
       "id": "yardivo-canonical-warehouse-helper-v583",
@@ -838,11 +838,6 @@
       "id": "yardivo-manager-assignment-system-v583",
       "path": "modules/supplier/yardivo-manager-assignment-system-v583.js",
       "category": "supplier"
-    },
-    {
-      "id": "yardivo-manager-section-reconciler-v583",
-      "path": "services/runtime/yardivo-manager-section-reconciler-v583.js",
-      "category": "services"
     },
     {
       "id": "yardivo-admin-user-creation-redesign-v583",
@@ -1818,7 +1813,6 @@
       "modules/services/yardivo-gate-and-users-final-v3-20260901-js.js",
       "services/runtime/yardivo-login-feedback-password-v2-20260901-js.js",
       "services/runtime/yardivo-login-change-password-v2-20260901-js.js",
-      "services/runtime/yardivo-manager-section-reconciler-v583.js",
       "modules/services/yardivo-v583-ux-ramps-docs-weekload-hours.js",
       "modules/services/yardivo-v583-executive-context-control-tower.js",
       "modules/services/yardivo-full-data-v583.js",
