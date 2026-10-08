@@ -58,4 +58,33 @@ check('Reception and Gate navigation use one canonical visibility authority',()=
  assert(reception.includes("window.YardivoRoleVisibility?.owner!=='modules/auth/role-visibility.js'"));
  assert(reception.includes('HIDDEN_VIEWS.forEach(id=>{'));
 });
+check('Dock planning rejects stale non-Master supplier bookings',()=>{
+ const source=extract(script,'function yardonPlanningAnnouncements(){','window.YardivoPlanningMasterAnnouncements=yardonPlanningAnnouncements;');
+ const ctx={announcements:[{supplier:'Dobavljač 244',id:244},{supplier:'dobavljač2',id:2}],
+ canonicalOperationalAnnouncements:rows=>rows,
+ yardonMasterSupplierAllowed:name=>name==='dobavljač2'};
+ vm.runInNewContext(source+';globalThis.getPlanningRows=yardonPlanningAnnouncements;',ctx);
+ const rows=ctx.getPlanningRows();
+ assert.equal(rows.length,1);
+ assert.equal(rows[0].id,2);
+ for(const name of ['isSlobodna','slotWarehouseLoad','rampDayLoad']){
+   const source=extract(script,'function '+name+'(',name==='isSlobodna'?'let currentAnnouncementRecommendation':name==='slotWarehouseLoad'?'function rampDayLoad(':'function recommendSlot(');
+   assert(source.includes('yardonPlanningAnnouncements()'),name+' uses raw announcements');
+ }
+});
+check('Smart AI consumes the same canonical planning rows',()=>{
+ const smart=read('modules/services/yardivo-smart-replanning-v1.js');
+ assert(smart.includes("function A(){try{return window.YardivoPlanningMasterAnnouncements?.()||[]}"));
+});
+check('Live notifications cannot revive obsolete supplier 244',()=>{
+ const notif=read('modules/notifications/yardivo-v583-notifications-master-supplier-sanitizer.js');
+ const src=extract(notif,'function hasRetiredSupplierMention(n,active){','function storage(){');
+ const ctx={aliases:()=>new Set(['dobavljač2']),norm:x=>String(x||'').toLowerCase(),afterCutoff:()=>true,supplierLike:n=>!!n.supplier,candidate:n=>n.supplier||''};
+ vm.runInNewContext(src+';globalThis.cleanNotifications=clean;',ctx);
+ const list=[{supplier:'dobavljač2',body:'Sukob sa Dobavljač 244 na R1'},
+             {supplier:'dobavljač2',body:'Stigao na R1'}];
+ const cleaned=ctx.cleanNotifications(list);
+ assert.equal(cleaned.length,1);
+ assert.equal(cleaned[0].body,'Stigao na R1');
+});
 console.log('YARDON_FRONTEND_STABILITY_PASS '+tests+'/'+tests);

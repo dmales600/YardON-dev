@@ -1027,6 +1027,14 @@ function yardonMasterSupplierAllowed(name){
   }catch(_){return false}
 }
 
+/* Canonical operational rows for capacity, ramps and smart replanning.
+   Retired/unknown suppliers from stale local stores must not reserve slots. */
+function yardonPlanningAnnouncements(){
+ const rows=Array.isArray(announcements)?announcements:[];
+ return canonicalOperationalAnnouncements(rows).filter(a=>yardonMasterSupplierAllowed(a?.supplier));
+}
+window.YardivoPlanningMasterAnnouncements=yardonPlanningAnnouncements;
+
 function renderDailyMap(){
   const host=document.getElementById('dailyMapBoard');if(!host)return;
   const date=dailyMapDateValue();
@@ -2109,17 +2117,17 @@ function isSlobodna(date,dock,start,duration,ignoreId=null,warehouse=null){
   const ws=toMin(w.receptionStart),we=toMin(w.receptionEnd);
   if(start<ws || start+duration>we)return false;
   if(typeof isRampBlocked==='function' && isRampBlocked(wh,date,dock,start,duration))return false;
-  return !announcements.some(a=>a.id!==ignoreId && (a.warehouse||yardivoCanonicalWarehouseV583())===wh && a.date===date && Number(a.dock)===Number(dock) && overlaps(start,duration,toMin(a.time),Number(a.duration)));
+  return !yardonPlanningAnnouncements().some(a=>a.id!==ignoreId && (a.warehouse||yardivoCanonicalWarehouseV583())===wh && a.date===date && Number(a.dock)===Number(dock) && overlaps(start,duration,toMin(a.time),Number(a.duration)));
 }
 let currentAnnouncementRecommendation=null;
 let editingAnnouncementId=null;
 function slotWarehouseLoad(date,warehouse,start,duration){
   // Procjena gužve: prosječan broj paleta koje se preklapaju s kandidatom.
-  const overlapsList=announcements.filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===warehouse&&a.date===date&&overlaps(start,duration,toMin(a.time),Number(a.duration)));
+  const overlapsList=yardonPlanningAnnouncements().filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===warehouse&&a.date===date&&overlaps(start,duration,toMin(a.time),Number(a.duration)));
   return overlapsList.reduce((s,a)=>s+Number(a.pallets||0),0);
 }
 function rampDayLoad(date,warehouse,dock){
-  return announcements.filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===warehouse&&a.date===date&&Number(a.dock)===Number(dock)).reduce((s,a)=>s+Number(a.duration||0),0);
+  return yardonPlanningAnnouncements().filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===warehouse&&a.date===date&&Number(a.dock)===Number(dock)).reduce((s,a)=>s+Number(a.duration||0),0);
 }
 function recommendSlot(date,duration,warehouse=null,ignoreId=null){
   const wh=warehouse||document.getElementById('annWarehouse')?.value||yardivoCanonicalWarehouseV583(),w=WAREHOUSES[wh];
