@@ -1252,11 +1252,10 @@ setInterval(()=>{
     const run=()=>{
       try{renderAfter14NoShowAlerts()}catch(_){}
       try{
-        if((id==='dashboard'||id==='home')&&typeof renderDashboardSimple==='function')renderDashboardSimple();
-        else if((id==='announcements'||id==='schedule')&&typeof renderAnnouncementSchedule==='function')renderAnnouncementSchedule();
-        else if(id==='dailyMap'&&typeof renderDailyMap==='function')renderDailyMap();
-        else if(id==='weeklyMap'&&typeof renderWeeklyMap==='function')renderWeeklyMap();
+        // Time-based status badges can update without recreating any map grid.
+        if(id==='dailyMap')window.YardivoDailyMapLiveStatus?.refresh?.();
         else if(id==='receiving'&&typeof renderReceiving==='function')renderReceiving();
+        // All other sections refresh on actual data changes, not on an idle timer.
       }catch(_){}
     };
     if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:1200});
