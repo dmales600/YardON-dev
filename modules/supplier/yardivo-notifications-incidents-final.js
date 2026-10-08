@@ -14,32 +14,19 @@
 
   function applyNotifAccess(){
     const r=role();
-    document.body.dataset.ymsRole=r;
-    const managerDecision=window.yardivoManagerSectionAllowed?.('operations');
-    const show=r==='manager'?managerDecision===true:NOTIF_ROLES.has(r);
-
-    const nav=document.querySelector('[data-view="operations"]');
-    if(nav)nav.style.setProperty('display',show?'flex':'none','important');
-    /* Header bell visibility is owned by YardivoHeaderBellFinalV583. */
-
-    // Add Notifikacije to home menu for the allowed roles if there isn't already a card.
+    if(document.body.dataset.ymsRole!==r)document.body.dataset.ymsRole=r;
+    const show=r==='manager'
+      ? window.yardivoManagerSectionAllowed?.('operations')===true
+      : ['admin','inventory','reception'].includes(r);
     const grid=document.getElementById('homeMenuGrid');
-    if(grid){
-      let card=grid.querySelector('[data-home-target="operations"]');
-      if(show && !card){
-        card=document.createElement('div');
-        card.className='home-menu-card';
-        card.dataset.homeTarget='operations';
-        card.setAttribute('role','button');
-        card.setAttribute('tabindex','0');
-        card.innerHTML='<div class="home-menu-icon">🔔</div><h3>Notifikacije</h3><p>Operativne promjene, kašnjenja, ulasci, zaprimanja i incidenti.</p><div class="home-menu-open">OTVORI →</div>';
-        grid.appendChild(card);
-      }
-      if(card){
-        card.style.setProperty('display',show?'flex':'none','important');
-        card.onclick=()=>{ if(show) window.openAppView?.('operations'); };
-      }
-    }
+    if(!grid||!show||grid.querySelector('[data-home-target="operations"]'))return;
+    const card=document.createElement('button');
+    card.className='home-menu-card';
+    card.dataset.homeTarget='operations';
+    card.type='button';
+    card.innerHTML='<div class="home-menu-icon">🔔</div><h3>Notifikacije</h3><p>Operativne promjene, kašnjenja, ulasci, zaprimanja i incidenti.</p><div class="home-menu-open">OTVORI →</div>';
+    grid.appendChild(card);
+    // Navigation is delegated to YardivoRoleStableFinal; no onclick overrides.
   }
 
   function allAnnouncements(){
