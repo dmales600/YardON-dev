@@ -127,10 +127,9 @@ function updateWarehouseFilter(){
   sel.disabled=false;
 }
 function render(){
-  const view=document.getElementById('epal'),nav=document.querySelector('[data-view="epal"]');
-  if(nav)nav.style.setProperty('display',allowed()?'flex':'none','important');
-  if(!view)return;
-  if(!allowed()){view.style.display='none';return}
+  const view=document.getElementById('epal');
+  if(!view||!allowed())return;
+  // RoleVisibility owns this navigation and page visibility.
   updateWarehouseFilter();
   const tx=filteredTransactions(),bal=balances(),today=localDate();
   const debtSuppliers=bal.filter(x=>x.balance>0).length;
@@ -144,7 +143,11 @@ function render(){
   document.getElementById('epalKpiOutToday').textContent=outToday;
 
   const badge=document.getElementById('epalDebtBadge');
-  if(badge){badge.textContent=debtSuppliers;badge.style.display=debtSuppliers?'inline-flex':'none'}
+  if(badge){
+    const value=String(debtSuppliers),display=debtSuppliers?'inline-flex':'none';
+    if(badge.textContent!==value)badge.textContent=value;
+    if(badge.style.display!==display)badge.style.display=display;
+  }
 
   const bb=document.getElementById('epalBalanceBody');
   bb.innerHTML=bal.length?bal.map(x=>{
