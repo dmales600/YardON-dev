@@ -2,10 +2,14 @@ name: YardOn AI Operations QA
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     paths:
       - ".github/workflows/yardon-ai-operations-qa.yml"
       - "index.html"
+      - "modules/supplier/script-022.js"
+      - "modules/master-data/yardivo-master-data-registry.js"
+      - ".github/qa/yardon-frontend-stability.test.cjs"
       - "styles/yardon-ai-operations-v1.css"
       - "modules/ai/yardon-ai-operations-v1.js"
       - "modules/legacy/yardivo-v583-timeline-next-arrivals-js.js"
@@ -61,6 +65,13 @@ jobs:
           grep -q 'data-view="aiOperations"' index.html
           grep -q 'id="aiOperations"' index.html
           grep -q 'yardon-ai-operations-v1.js' index.html
+      - name: Frontend stability regression
+        run: |
+          node --check modules/supplier/script-022.js
+          node --check modules/master-data/script-024.js
+          node --check modules/master-data/yardivo-master-data-registry.js
+          node --check modules/ai/yardon-ai-operations-v1.js
+          node .github/qa/yardon-frontend-stability.test.cjs
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
