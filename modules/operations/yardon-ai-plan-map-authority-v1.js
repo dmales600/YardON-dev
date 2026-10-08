@@ -58,14 +58,15 @@ function applyPlan(plan){
  if(!Array.isArray(plan))return;
  const local=rows();
  for(const p of plan){
-  const a=local.find(x=>String(x?.supplierDeliveryId||'')===String(p?.supplier_delivery_id||'')||String(x?.id||'')===String(p?.id||''));
-  if(!a)continue;
-  a.plannedDock=p.planned_dock?('R'+p.planned_dock):null;
-  a.aiPlannedDock=a.plannedDock;
-  a.aiPlannedStart=p.planned_start||null;
-  a.aiPlannedEnd=p.planned_end||null;
-  a.aiPlanUpdatedAt=new Date().toISOString();
-  a.aiPlanSource='AI_OPERATIONS';
+  const matches=local.filter(x=>String(x?.supplierDeliveryId||'')===String(p?.supplier_delivery_id||'')||String(x?.id||'')===String(p?.id||''));
+  for(const a of matches){
+   a.plannedDock=p.planned_dock?('R'+p.planned_dock):null;
+   a.aiPlannedDock=a.plannedDock;
+   a.aiPlannedStart=p.planned_start||null;
+   a.aiPlannedEnd=p.planned_end||null;
+   a.aiPlanUpdatedAt=new Date().toISOString();
+   a.aiPlanSource='AI_OPERATIONS';
+  }
  }
 }
 
