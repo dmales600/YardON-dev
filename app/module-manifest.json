@@ -2,7 +2,7 @@
   "version": "2026-10-08-active-runtime",
   "strategy": "index.html is the sole ordered source for browser script loading. This manifest documents ONLY those active scripts. Never use stale byte sizes or checksums as runtime truth.",
   "entrypoint": "index.html",
-  "script_count": 332,
+  "script_count": 327,
   "scripts": [
     {
       "id": "yardivo-canonical-warehouse-helper-v583",
@@ -33,31 +33,6 @@
       "id": "yardivo-rbac-session-migration",
       "path": "services/runtime/phase5-005-yardivo-rbac-session-migration.js",
       "category": "services"
-    },
-    {
-      "id": "script-unnamed-6",
-      "path": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
-      "category": "https:"
-    },
-    {
-      "id": "script-unnamed-7",
-      "path": "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
-      "category": "https:"
-    },
-    {
-      "id": "script-unnamed-8",
-      "path": "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
-      "category": "https:"
-    },
-    {
-      "id": "script-unnamed-9",
-      "path": "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
-      "category": "https:"
-    },
-    {
-      "id": "script-unnamed-10",
-      "path": "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js",
-      "category": "https:"
     },
     {
       "id": "yardivo-smart-prepaint-state",
@@ -1871,13 +1846,6 @@
       "services/runtime/phase5-310-yardivo-map-live-delay-refresh-v1.js",
       "services/runtime/phase5-318-yardivo-delay-label-sync-v10.js"
     ],
-    "https:": [
-      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
-      "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
-      "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
-      "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
-      "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
-    ],
     "gate": [
       "modules/gate/runtime/yardivo-early-runtime-helpers.js",
       "modules/gate/phase2-024-yardivo-driver-form-final-binding.js",
@@ -2044,5 +2012,28 @@
       "path": "assets/yardivo-logo.svg",
       "embedded_png_copies_removed": 3
     }
-  }
+  },
+  "third_party_script_count": 5,
+  "third_party_scripts": [
+    {
+      "id": "script-unnamed-6",
+      "url": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    },
+    {
+      "id": "script-unnamed-7",
+      "url": "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
+    },
+    {
+      "id": "script-unnamed-8",
+      "url": "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"
+    },
+    {
+      "id": "script-unnamed-9",
+      "url": "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+    },
+    {
+      "id": "script-unnamed-10",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+    }
+  ]
 }
