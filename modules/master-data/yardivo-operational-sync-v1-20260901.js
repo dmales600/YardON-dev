@@ -43,13 +43,24 @@ function weekForDate(iso){
   return {year:x.getUTCFullYear(),week:Math.ceil((((x-y0)/86400000)+1)/7)};
 }
 
+let refreshQueued=false;
 function refreshAll(){
-  try{if(typeof renderReceiving==='function')renderReceiving()}catch(e){console.warn('Receiving sync',e)}
-  try{if(typeof renderDailyMap==='function')renderDailyMap()}catch(e){console.warn('Daily map sync',e)}
-  try{if(typeof renderWeeklyMap==='function')renderWeeklyMap()}catch(e){console.warn('Weekly map sync',e)}
-  try{window.YardivoMyYard?.render?.()}catch(e){console.warn('My Yard sync',e)}
-  try{window.YardivoMyYardWebGL?.refresh?.()}catch(e){console.warn('My Yard WebGL sync',e)}
-  try{window.YardivoWarRoomExactMyYard?.refresh?.()}catch(_){}
+  if(refreshQueued)return;
+  refreshQueued=true;
+  requestAnimationFrame(()=>{
+    refreshQueued=false;
+    const active=document.querySelector('.view.active')?.id||'';
+    try{
+      if(active==='receiving'&&typeof renderReceiving==='function')renderReceiving();
+      else if(active==='dailyMap'&&typeof renderDailyMap==='function')renderDailyMap();
+      else if(active==='weeklyMap'&&typeof renderWeeklyMap==='function')renderWeeklyMap();
+      else if(active==='myYard'){
+        window.YardivoMyYard?.render?.();
+        window.YardivoMyYardWebGL?.refresh?.();
+        window.YardivoWarRoomExactMyYard?.refresh?.();
+      }
+    }catch(e){console.warn('Operational view sync',e)}
+  });
 }
 
 function applyDate(date,source){
@@ -162,10 +173,7 @@ document.addEventListener('click',e=>{
 },true);
 
 /* Receiving setter ownership lives in modules/receiving/service.js. */
-window.addEventListener('yardivo:receiving-status-changed',()=>{
-  setTimeout(refreshAll,0);
-  setTimeout(refreshAll,900);
-});
+window.addEventListener('yardivo:receiving-status-changed',()=>setTimeout(refreshAll,0));
 if(typeof window.setContextAnnouncementStatus==='function'){
   const originalContext=window.setContextAnnouncementStatus;
   window.setContextAnnouncementStatus=function(){
@@ -177,7 +185,12 @@ if(typeof window.setContextAnnouncementStatus==='function'){
 
 /* Any completed Supabase synchronization refreshes all four consumers from the
    same announcements array, so none of the views keeps a stale status. */
-window.addEventListener('yardivo:data-synced',refreshAll);
+window.addEventListener('yardivo:data-synced',e=>{
+  /* Core/supplier sync already refreshes the active screen. Avoid a second full repaint. */
+  const source=String(e?.detail?.source||'');
+  if(source==='online-v2'||source==='supplier')return;
+  refreshAll();
+});
 window.addEventListener('yardivo:welcome-complete',()=>{
   setTimeout(()=>{
     applyDate(sharedDate(),'startup');
