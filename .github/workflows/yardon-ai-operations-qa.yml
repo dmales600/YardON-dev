@@ -73,6 +73,7 @@ jobs:
           node --check modules/ai/yardon-ai-operations-v1.js
           node .github/qa/yardon-frontend-stability.test.cjs
           node .github/qa/yardon-ui-single-owner.test.cjs
+          node .github/qa/yardon-active-manifest.test.cjs
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
