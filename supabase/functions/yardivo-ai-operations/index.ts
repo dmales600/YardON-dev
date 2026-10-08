@@ -216,8 +216,6 @@ async function resolveChange(decisionId:string,approve:boolean,p:any){
 Deno.serve(async(req:Request)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:CORS});if(req.method!=="POST")return J({ok:false,error:"Method not allowed"},405);
  try{const p=await profile(req),b=await req.json().catch(()=>({})),action=String(b.action||"snapshot").toLowerCase();if(action==="health")return J({ok:true,provider:"gemini",geminiKeyPresent:Boolean(geminiKey()),model:geminiModel()});
-  const aiCfg=await readState("yardivo_auto_replan_cfg_v1",{enabled:false,mode:"PAUSED"});
-  if(aiCfg?.enabled!==true||String(aiCfg?.mode||"").toUpperCase()==="PAUSED")return J({ok:false,error:"AI upravljanje YardOnom je isključeno od strane Admina.",code:"AI_CONTROL_OFF"},403);
   if(action==="smart_activity"){
     const m=await master(),allowed=new Set(allowedWarehouses(p,m).map((w:any)=>String(w.id)));
     const data=await readState("yardivo_ai_operations_plan_log_v1",[]);
@@ -225,6 +223,8 @@ Deno.serve(async(req:Request)=>{
       .sort((a:any,b:any)=>String(b?.resolvedAt||b?.at||"").localeCompare(String(a?.resolvedAt||a?.at||""))).slice(0,500);
     return J({ok:true,data:{events}});
   }
+  const aiCfg=await readState("yardivo_auto_replan_cfg_v1",{enabled:false,mode:"PAUSED"});
+  if(aiCfg?.enabled!==true||String(aiCfg?.mode||"").toUpperCase()==="PAUSED")return J({ok:false,error:"AI upravljanje YardOnom je isključeno od strane Admina.",code:"AI_CONTROL_OFF"},403);
   if(["approve_change","reject_change"].includes(action)){const d=await resolveChange(String(b.decision_id||""),action==="approve_change",p);return J({ok:true,data:{decision:d}})}
   if(!["snapshot","plan_day"].includes(action))return J({ok:false,error:"Nepoznata akcija."},400);
   const date=safeDate(b.date||new Date().toISOString().slice(0,10)),m=await master(),supplierDir=supplierDirectory(m),allowed=allowedWarehouses(p,m),requested=String(b.warehouse||"").trim(),selected=requested?allowed.filter((w:any)=>String(w.id)===requested):allowed;if(requested&&!selected.length)throw new Error("Skladište nije dodijeljeno ovom accountu.");const whIds=selected.map((w:any)=>String(w.id));if(!whIds.length)return J({ok:true,data:{date,warehouses:[],plan:[],passes:[],decisions:[],summary:{total:0,assigned:0,waiting:0,no_capacity:0,utilization_pct:0},generated_at:new Date().toISOString()}});
