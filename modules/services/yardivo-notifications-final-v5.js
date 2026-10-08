@@ -298,12 +298,29 @@ function reader(){
   return m;
 }
 function field(k,v){return v===undefined||v===null||v===''?'':`<div class="y5-reader-field"><small>${esc(k)}</small><strong>${esc(v)}</strong></div>`}
+function displayAnnouncementId(n){
+  // Supplier-facing client_id is the public reference; SUPDEL-UUID is internal only.
+  const explicit=[n?.publicAnnouncementId,n?.clientId,n?.client_id,n?.bookingNumber]
+    .map(x=>String(x||'').trim()).find(x=>/^NAJ[0-9]{6}$/i.test(x));
+  if(explicit)return explicit.toUpperCase();
+  const sid=String(n?.supplierDeliveryId||'').trim(),raw=String(n?.announcementId||'').trim();
+  if(/^NAJ[0-9]{6}$/i.test(raw))return raw.toUpperCase();
+  try{
+    const live=window.YardivoSupplierLiveSync?.internalRows?.()||[];
+    const hit=live.find(x=>String(x?.id||'')===sid||String(x?.id||'')===raw.replace(/^SUPDEL-/,''));
+    const client=String(hit?.client_id||'').trim();
+    if(/^NAJ[0-9]{6}$/i.test(client))return client.toUpperCase();
+  }catch(_){}
+  // Do not misrepresent a technical UUID as a supplier-facing booking number.
+  return '—';
+}
+
 function openReader(id,mark=true){
   const n=load().find(x=>String(x.id)===String(id));if(!n)return;
   if(mark)markRead(id,false);
   const m=reader(),h=m.querySelector('.y5-reader-head'),b=m.querySelector('.y5-reader-body');
   h.innerHTML=`<div><h3>${esc(n.title||'Notifikacija')}</h3><small>${fmt(n.at||n.createdAt)}</small></div><button type="button" class="y5-reader-close">×</button>`;
-  b.innerHTML=`<div class="y5-reader-message">${esc(n.body||'')}</div><div class="y5-reader-grid">${field('Skladište',resolvedWarehouse(n))}${field('Kategorija',notificationClass(n)==='ANNOUNCEMENT'?'NAJAVA / TERMIN':notificationClass(n)==='OPERATIONAL'?'OPERATIVA':'OSTALO')}${field('Tip',n.event)}${field('Dobavljač',n.supplier)}${field('Tablice',n.plate)}${field('Najava ID',n.announcementId)}${field('Status','PROČITANO')}</div>`;
+  b.innerHTML=`<div class="y5-reader-message">${esc(n.body||'')}</div><div class="y5-reader-grid">${field('Skladište',resolvedWarehouse(n))}${field('Kategorija',notificationClass(n)==='ANNOUNCEMENT'?'NAJAVA / TERMIN':notificationClass(n)==='OPERATIONAL'?'OPERATIVA':'OSTALO')}${field('Tip',n.event)}${field('Dobavljač',n.supplier)}${field('Tablice',n.plate)}${field('Broj najave',displayAnnouncementId(n))}${field('Status','PROČITANO')}</div>`;
   h.querySelector('.y5-reader-close').onclick=closeReader;
   m.classList.add('open');document.body.style.overflow='hidden';
   render();
