@@ -55,6 +55,7 @@ check('Reception and Gate navigation use one canonical visibility authority',()=
  const reception=read('modules/supplier/yardivo-v583-reception-ui-scope-clean-js.js');
  assert(roleStable.includes("window.YardivoRoleVisibility.apply();"));
  assert(roleStable.includes("if(expected.length===actual.length&&expected.every((id,i)=>id===actual[i]))return;"));
- assert(reception.includes("window.YardivoRoleVisibility?.owner==='modules/auth/role-visibility.js'"));
+ assert(reception.includes("window.YardivoRoleVisibility?.owner!=='modules/auth/role-visibility.js'"));
+ assert(reception.includes('HIDDEN_VIEWS.forEach(id=>{'));
 });
 console.log('YARDON_FRONTEND_STABILITY_PASS '+tests+'/'+tests);
