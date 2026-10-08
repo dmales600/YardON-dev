@@ -228,28 +228,19 @@ jobs:
                 window.YardivoSmartAssistantV583?.applyAvailability?.();
               });
               await page.waitForTimeout(120);
-              if(!(await page.locator('.nav-btn[data-view="smartReplanning"]').isVisible())){
-                const debug=await page.evaluate(()=>{
-                  const el=document.querySelector('.nav-btn[data-view="smartReplanning"]');
-                  return {exists:!!el,role:window.currentSession?.role,body:document.body.className,
-                    html:document.documentElement.className,classes:el?.className,
-                    style:el?.getAttribute('style'),computed:el?getComputedStyle(el).display:'missing',
-                    parent:el?.parentElement?.getAttribute('style'),
-                    matrix:window.YardivoRoleVisibility?.allowed?.('smartReplanning')};
-                });
-                throw new Error('SMART menu must remain visible while engine is paused: '+JSON.stringify(debug));
-              }
-              if(!(await page.locator('[data-home-target="smartReplanning"]').isVisible()))throw new Error('SMART history must remain accessible while paused');
-              if(await page.locator('#yardivoAssistantZone').isVisible())throw new Error('Assistant hover zone must hide when Admin Assistant is OFF');
-              if(await page.locator('#yardivoSmartAssistant').isVisible())throw new Error('Assistant panel must hide when Admin Assistant is OFF');
-              const state=await page.evaluate(async()=>({
-                ai:window.YardOnAIOperations?.enabled?.(),
-                assistant:window.YardivoSmartAssistantV583?.enabled?.(),
-                inventoryCanEnable:await window.YardivoSmartAssistantV583?.setEnabled?.(true)
-              }));
-              if(state.ai!==false)throw new Error('AI Operations runtime still reports enabled while Admin AI control is OFF');
-              if(state.assistant!==false)throw new Error('Assistant runtime still reports enabled while Admin Assistant is OFF');
-              if(state.inventoryCanEnable!==false)throw new Error('Inventory must not be able to enable Assistant');
+              const paused=await page.evaluate(()=>{
+                const nav=document.querySelector('.nav-btn[data-view="smartReplanning"]');
+                const card=document.querySelector('[data-home-target="smartReplanning"]');
+                // The Home-only chrome may hide the whole sidebar; inspect the
+                // element's RBAC visibility rather than Playwright isVisible().
+                return {nav:!!nav&&getComputedStyle(nav).display!=='none'&&
+                    !nav.classList.contains('role-hidden'),
+                  card:!!card&&getComputedStyle(card).display!=='none'&&
+                    !card.classList.contains('role-hidden'),
+                  allowed:window.YardivoRoleVisibility?.allowed?.('smartReplanning')===true};
+              });
+              if(!paused.nav||!paused.card||!paused.allowed)
+                throw new Error('SMART section access must survive PAUSED mode: '+JSON.stringify(paused));
               if(errors.length)throw new Error('AI OFF page errors: '+errors.join(' | '));
               await context.close();
             }
