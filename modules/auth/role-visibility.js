@@ -43,7 +43,7 @@ function aiControlEnabled(){
 }
 function allowed(r,v){
   const id=String(v||'');
-  if(id==='aiOperations'&&!aiControlEnabled())return false;
+  if(id==='aiOperations'||id==='smartReplanning')return false;
   if(r==='admin')return true;
   return !!MATRIX[r]?.has(id);
 }
@@ -98,6 +98,12 @@ function apply(){
   document.documentElement.dataset.yardivoRole=r;
   document.body.classList.remove('yardivo-role-switching');
   ensureRoleCards(r);
+  // ManagerFinalV4 owns manager navigation. Never let two controllers
+  // overwrite display/visibility after background sync or a home click.
+  if(r==='manager'){
+    if(roleChanged)try{window.dispatchEvent(new CustomEvent('yardivo:role-ui-applied',{detail:{role:r}}))}catch(_){}
+    return;
+  }
 
   document.querySelectorAll('.nav-btn[data-view]').forEach(el=>{
     allowed(r,el.dataset.view)?show(el,'nav'):hide(el);
