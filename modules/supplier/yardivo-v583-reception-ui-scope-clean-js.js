@@ -175,6 +175,10 @@ function hideViews(){
   document.body.classList.toggle('yv-role-reception-v583',rec);
   if(!rec)return;
 
+  // RoleVisibility is the canonical owner of nav/home-card display.
+  // The Reception scope module only manages location and warehouse selection.
+  if(window.YardivoRoleVisibility?.owner==='modules/auth/role-visibility.js')return;
+
   document.querySelectorAll('[data-view]').forEach(el=>{
     if(HIDDEN_VIEWS.has(String(el.dataset.view||''))&&el.style.display!=='none'){
       el.classList.add('role-hidden');el.hidden=true;el.style.setProperty('display','none','important');
