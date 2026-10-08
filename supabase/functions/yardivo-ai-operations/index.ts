@@ -230,9 +230,76 @@ async function resolveChange(decisionId:string,approve:boolean,p:any){
  return d;
 }
 
+
+/** Read-only, warehouse-scoped preview for a supplier request.
+ * A suggested ramp is not a final/physical ramp assignment.
+ */
+async function previewSupplierRequest(p:any,id:string){
+ if(!["admin","inventory"].includes(String(p.role||"")))throw new Error("Samo Zalihe i Admin mogu pregledati SMART prijedlog.");
+ if(!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(id))throw new Error("Neispravan ID najave.");
+ const {data:delivery,error:de}=await db.from("yardivo_supplier_deliveries")
+  .select("id,client_id,supplier_name,supplier_username,warehouse,delivery_date,requested_time,pallets,duration_minutes,status,dock,planned_dock,planned_start")
+  .eq("id",id).maybeSingle();
+ if(de)throw de;if(!delivery)throw new Error("Najava nije pronađena.");
+ if(!["pending","revision_requested","proposal_sent"].includes(String(delivery.status||"").toLowerCase()))
+  throw new Error("Najava više nije na čekanju. Osveži popis.");
+ const m=await master(),allowed=allowedWarehouses(p,m),w=allowed.find((w:any)=>String(w.id)===String(delivery.warehouse));
+ if(!w)throw new Error("Nema ovlasti za skladište najave.");
+ const supplier=canonicalSupplier(delivery.supplier_name||delivery.supplier_username,supplierDirectory(m));
+ if(!supplier)throw new Error("Dobavljač nije aktivan u Master podacima.");
+ const date=safeDate(delivery.delivery_date),time=String(delivery.requested_time||"").slice(0,5),at=mins(time);
+ if(!Number.isFinite(at)||at<0||at>=1440)throw new Error("Najava nema ispravan termin.");
+ const ramps=rampList(w);
+ if(!ramps.length)return {id,warehouse:String(w.id),date,time,supplier,provisional:true,readOnly:true,
+   candidate:null,reason:"Nema aktivnih rampi u Master podacima."};
+ // Fail closed if the occupancy query is truncated.
+ const busy:any[]=[];
+ for(let offset=0;offset<=2500;offset+=500){
+  const query=await db.from("yardivo_supplier_deliveries")
+   .select("id,status,dock,planned_dock,slot_start,slot_end,planned_start,planned_end,requested_time,duration_minutes,pallets")
+   .eq("warehouse",delivery.warehouse).eq("delivery_date",date).neq("id",id)
+   .order("id",{ascending:true}).range(offset,offset+499);
+  if(query.error)throw query.error;
+  busy.push(...(query.data||[]));
+  if((query.data||[]).length<500)break;
+  if(offset===2500)throw new Error("Previše najava za sigurno izračunavanje. Potreban ručni pregled.");
+ }
+ const occupancy=busy.filter((x:any)=>!["rejected","cancelled","canceled","completed"].includes(String(x.status||"").toLowerCase()))
+  .map((x:any)=>{const dock=dockNum(x.dock||x.planned_dock);
+   const start=mins(String(x.slot_start||x.planned_start||x.requested_time||"").slice(11,16)||String(x.requested_time||"").slice(0,5));
+   const duration=Math.max(15,Number(x.duration_minutes||60));
+   const end=Number.isFinite(mins(String(x.slot_end||x.planned_end||"").slice(11,16)))?
+       mins(String(x.slot_end||x.planned_end||"").slice(11,16)):start+duration;
+   return {dock,start,end};})
+  .filter((x:any)=>x.dock&&Number.isFinite(x.start)&&Number.isFinite(x.end));
+ const candidates:any[]=[];
+ for(const ramp of ramps){
+  const start=Math.max(at,mins(ramp.from)),duration=round15(Math.max(30,Number(delivery.duration_minutes||0),
+   (Math.max(1,Number(delivery.pallets||1))/Math.max(1,Number(ramp.pallets_per_hour||33)))*60));
+  for(let t=Math.ceil(start/15)*15;t+duration<=mins(ramp.to)&&t<=at+180;t+=15){
+   if(occupancy.some((b:any)=>b.dock===ramp.number&&t<b.end&&b.start<t+duration))continue;
+   candidates.push({dock:ramp.number,time:hh(t),end:hh(t+duration),minutesFromRequest:t-at});
+   break;
+  }
+ }
+ candidates.sort((a:any,b:any)=>a.minutesFromRequest-b.minutesFromRequest||a.dock-b.dock);
+ const candidate=candidates[0]||null;
+ return {id,client_id:String(delivery.client_id||""),warehouse:String(w.id),date,time,supplier,provisional:true,readOnly:true,
+  candidate,
+  reason:candidate?(candidate.minutesFromRequest===0?
+   "SMART pregled: na R"+candidate.dock+" postoji slobodan okvir prema trenutačnim podacima.":
+   "SMART pregled: traženi termin je zauzet; prvi raspoloživi okvir je R"+candidate.dock+" u "+candidate.time+"."):
+   "Nema potvrđene slobodne rampe u sljedeća tri sata. Odaberite drugi termin.",
+  generated_at:new Date().toISOString()};
+}
+
 Deno.serve(async(req:Request)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:CORS});if(req.method!=="POST")return J({ok:false,error:"Method not allowed"},405);
  try{const p=await profile(req),b=await req.json().catch(()=>({})),action=String(b.action||"snapshot").toLowerCase();if(action==="health")return J({ok:true,provider:"gemini",geminiKeyPresent:Boolean(geminiKey()),model:geminiModel()});
+  if(action==="preview_request"){
+    const preview=await previewSupplierRequest(p,String(b.delivery_id||""));
+    return J({ok:true,data:preview});
+  }
   if(action==="smart_activity"){
     if(!["admin","inventory","reception"].includes(String(p.role)))throw new Error("Nema ovlasti za YARD ON SMART povijest.");
     const m=await master(),allowed=new Set(allowedWarehouses(p,m).map((w:any)=>String(w.id)));
