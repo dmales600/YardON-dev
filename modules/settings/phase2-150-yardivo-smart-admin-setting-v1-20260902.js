@@ -55,7 +55,7 @@ function apply(c=cfg()){
   if(!assistant)document.body?.classList.remove('yv-assistant-open');
   try{window.YardivoSmartReplanning?.applyState?.()}catch(_){}
   try{window.YardivoSmartOperationalVisibilityV583?.apply?.()}catch(_){}
-  try{window.YardOnAIOperations?.applyVisibility?.()}catch(_){}
+  // SMART Center owns one view; legacy AI Operations UI is retired.
   try{window.YardivoSmartAssistantV583?.applyAvailability?.()}catch(_){}
   render();
 }
