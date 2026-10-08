@@ -72,9 +72,14 @@ check('Dock planning rejects stale non-Master supplier bookings',()=>{
    assert(source.includes('yardonPlanningAnnouncements()'),name+' uses raw announcements');
  }
 });
-check('Smart AI consumes the same canonical planning rows',()=>{
- const smart=read('modules/services/yardivo-smart-replanning-v1.js');
- assert(smart.includes("function A(){try{return window.YardivoPlanningMasterAnnouncements?.()||[]}"));
+check('Only server-backed SMART plans valid Master supplier deliveries',()=>{
+ const smart=read('modules/smart/yardon-smart-center-v1.js');
+ const backend=read('supabase/functions/yardivo-ai-operations/index.ts');
+ assert(smart.includes("functions.invoke('yardivo-ai-operations'"));
+ assert(backend.includes('supplierDirectory(m)'));
+ assert(backend.includes('canonicalSupplier('));
+ assert(backend.includes('filter((x:any)=>!!x.supplier)'));
+ assert(!read('index.html').includes('src="modules/services/yardivo-smart-replanning-v1.js'));
 });
 check('Live notifications cannot revive obsolete supplier 244',()=>{
  const notif=read('modules/notifications/yardivo-v583-notifications-master-supplier-sanitizer.js');
