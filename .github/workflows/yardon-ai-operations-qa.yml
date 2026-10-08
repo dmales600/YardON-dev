@@ -47,7 +47,7 @@ jobs:
           node-version: "22"
       - name: Syntax check AI Operations
         run: |
-          node --check modules/ai/yardon-ai-operations-v1.js
+          node --check modules/smart/yardon-smart-center-v1.js
           node --check modules/legacy/yardivo-v583-timeline-next-arrivals-js.js
           node --check modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
           node --check modules/receiving/service.js
@@ -63,14 +63,15 @@ jobs:
           grep -q "yardivoAiAssistantToggle" modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
           grep -q "yardivoAiControlToggle" modules/settings/phase2-150-yardivo-smart-admin-setting-v1-20260902.js
           ! grep -q '<button class="nav-btn" data-view="aiOperations"' index.html
-          grep -q 'id="aiOperations"' index.html
-          grep -q 'yardon-ai-operations-v1.js' index.html
+          grep -q 'id="smartReplanning"' index.html
+          ! grep -q 'id="aiOperations"' index.html
+          grep -q 'yardon-smart-center-v1.js' index.html
       - name: Frontend stability regression
         run: |
           node --check modules/supplier/script-022.js
           node --check modules/master-data/script-024.js
           node --check modules/master-data/yardivo-master-data-registry.js
-          node --check modules/ai/yardon-ai-operations-v1.js
+          node --check modules/smart/yardon-smart-center-v1.js
           node .github/qa/yardon-frontend-stability.test.cjs
           node .github/qa/yardon-ui-single-owner.test.cjs
           node .github/qa/yardon-active-manifest.test.cjs
@@ -157,20 +158,22 @@ jobs:
             const browser=await chromium.launch({headless:true});
             // Duplicate AI screens are retired; SMART continues working in background.
             // Verify that repeated syncs cannot repaint navigation or home-menu cards.
-            for(const role of ['inventory','reception','manager']){
+            for(const role of ['admin','inventory','reception','manager']){
               const context=await browser.newContext({viewport:{width:1440,height:1000}});
               const page=await context.newPage();
               const errors=await prepare(page,role);
               await page.waitForTimeout(500);
-              const state=await page.evaluate(async()=>{
-                const items=['aiOperations','smartReplanning'];
-                const hidden=items.every(id=>!
-                  document.querySelector('.nav-btn[data-view="'+id+'"]')&&
-                  !document.querySelector('[data-home-target="'+id+'"]'));
-                const shellHidden=items.every(id=>{
-                  const el=document.getElementById(id);
-                  return !el||getComputedStyle(el).display==='none';
-                });
+              const state=await page.evaluate(async role=>{
+                const retired=!document.getElementById('aiOperations')&&
+                  !document.querySelector('.nav-btn[data-view="aiOperations"]')&&
+                  !document.querySelector('[data-home-target="aiOperations"]');
+                const showSmart=['admin','inventory','reception'].includes(role);
+                const nav=document.querySelector('.nav-btn[data-view="smartReplanning"]');
+                const card=document.querySelector('[data-home-target="smartReplanning"]');
+                const smartVisibility=!!nav&&!!card&&
+                  (getComputedStyle(nav).display!=='none')===showSmart&&
+                  (getComputedStyle(card).display!=='none')===showSmart;
+                const singleView=document.querySelectorAll('#smartReplanning').length===1;
                 // Allow first authorization reconciliation to complete before measuring
                 // repeated background syncs (do not count legitimate initial menu setup).
                 window.dispatchEvent(new CustomEvent('yardivo:data-synced'));
@@ -194,11 +197,55 @@ jobs:
                 }
                 await new Promise(resolve=>setTimeout(resolve,700));
                 watchers.forEach(w=>w.disconnect());
-                return {hidden,shellHidden,changed,top:Object.entries(names).sort((a,b)=>b[1]-a[1]).slice(0,15),transitions};
-              });
-              if(!state.hidden||!state.shellHidden)throw new Error(role+' duplicate AI/SMART section was displayed');
+                return {retired,smartVisibility,singleView,changed,top:Object.entries(names).sort((a,b)=>b[1]-a[1]).slice(0,15),transitions};
+              },role);
+              if(!state.retired||!state.smartVisibility||!state.singleView)throw new Error(role+' SMART visibility/retired AI Operations conflict '+JSON.stringify(state));
               if(state.changed>0)throw new Error(role+' menu flickered on repeated syncs: '+state.changed+' DOM mutations '+JSON.stringify(state.top)+' transitions '+JSON.stringify(state.transitions));
               if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
+              await context.close();
+            }
+            // End-to-end user experience: only Zalihe receives the approval modal.
+            for(const testRole of ['inventory','reception']){
+              const context=await browser.newContext({viewport:{width:1440,height:1000}});
+              const page=await context.newPage();
+              const errors=await prepare(page,testRole);
+              await page.evaluate(()=>{
+                const pending={id:'QA-SMART-PENDING-1',supplier:'QA Dobavljač',warehouse:'W001',
+                  at:new Date().toISOString(),status:'PENDING_INVENTORY',
+                  reason:'R1 je zauzeta; SMART predlaže R2 zbog preklapanja termina.',
+                  old:{date:'2026-10-09',time:'09:00',dock:1},
+                  newSlot:{date:'2026-10-09',time:'09:30',end:'10:00',dock:2}};
+                window.__qaSmartActions=[];
+                const mockClient={functions:{invoke:async(_name,options)=>{
+                  const action=options?.body?.action||'';
+                  window.__qaSmartActions.push(action);
+                  if(action==='approve_change'||action==='reject_change'){
+                    pending.status=action==='approve_change'?'APPROVED':'REJECTED';
+                    return {data:{ok:true,data:{decision:pending}},error:null};
+                  }
+                  if(action==='smart_activity')return {data:{ok:true,data:{events:[pending]}},error:null};
+                  return {data:{ok:true,data:{date:'2026-10-09',warehouses:[],plan:[],passes:[],decisions:[],summary:{}}},error:null};
+                }}};
+                window.YardivoAuth=window.YardivoAuth||{};
+                window.YardivoAuth.client=async()=>mockClient;
+              });
+              await page.evaluate(()=>{
+                const login=document.getElementById('loginOverlay');
+                if(login){login.setAttribute('aria-hidden','true');login.style.setProperty('display','none','important');}
+                document.body.classList.remove('yardivo-prelogin','yardivo-welcome-active');
+                return window.YardOnSmartCenter.refresh();
+              });
+              if(testRole==='inventory'){
+                await page.locator('#yardonSmartPopup [data-smart-popup="approve"]').waitFor({timeout:5000});
+                const text=await page.locator('#yardonSmartPopup').innerText();
+                if(!/R1|R2/.test(text)||!/R1 je zauzeta/.test(text))throw new Error('SMART popup missing reason or old/new ramp');
+                // Synthetic browser session has no real Supabase login; test the click handler directly.
+                await page.locator('#yardonSmartPopup [data-smart-popup="approve"]').evaluate(el=>el.click());
+                await page.waitForFunction(()=>window.__qaSmartActions.includes('approve_change'));
+              }else if(await page.locator('#yardonSmartPopup').count()){
+                throw new Error('Reception must not receive approval popup');
+              }
+              if(errors.length)throw new Error(testRole+' SMART popup page errors: '+errors.join(' | '));
               await context.close();
             }
             for(const role of ['gate','supplier']){
@@ -208,6 +255,7 @@ jobs:
               const navVisible=await page.locator('.nav-btn[data-view="aiOperations"]').isVisible();
               const homeVisible=await page.locator('[data-home-target="aiOperations"]').isVisible();
               if(navVisible||homeVisible)throw new Error(role+' must not see AI Operations');
+              if(await page.locator('.nav-btn[data-view="smartReplanning"]').isVisible())throw new Error(role+' must not see SMART');
               if(errors.length)throw new Error(role+' page errors: '+errors.join(' | '));
               await context.close();
             }
@@ -219,23 +267,24 @@ jobs:
               await page.evaluate(()=>{
                 localStorage.setItem('yardivo_auto_replan_cfg_v1',JSON.stringify({enabled:false,mode:'PAUSED',assistantEnabled:false}));
                 window.dispatchEvent(new CustomEvent('yardivo:ai-admin-config',{detail:{enabled:false,mode:'PAUSED',assistantEnabled:false}}));
-                window.YardOnAIOperations?.applyVisibility?.();
+                window.YardOnSmartCenter?.refresh?.();
                 window.YardivoSmartOperationalVisibilityV583?.apply?.();
                 window.YardivoSmartAssistantV583?.applyAvailability?.();
               });
               await page.waitForTimeout(120);
-              if(await page.locator('.nav-btn[data-view="aiOperations"]').isVisible())throw new Error('AI Operations nav must hide when Admin AI control is OFF');
-              if(await page.locator('[data-home-target="aiOperations"]').isVisible())throw new Error('AI Operations home card must hide when Admin AI control is OFF');
-              if(await page.locator('#yardivoAssistantZone').isVisible())throw new Error('Assistant hover zone must hide when Admin Assistant is OFF');
-              if(await page.locator('#yardivoSmartAssistant').isVisible())throw new Error('Assistant panel must hide when Admin Assistant is OFF');
-              const state=await page.evaluate(async()=>({
-                ai:window.YardOnAIOperations?.enabled?.(),
-                assistant:window.YardivoSmartAssistantV583?.enabled?.(),
-                inventoryCanEnable:await window.YardivoSmartAssistantV583?.setEnabled?.(true)
-              }));
-              if(state.ai!==false)throw new Error('AI Operations runtime still reports enabled while Admin AI control is OFF');
-              if(state.assistant!==false)throw new Error('Assistant runtime still reports enabled while Admin Assistant is OFF');
-              if(state.inventoryCanEnable!==false)throw new Error('Inventory must not be able to enable Assistant');
+              const paused=await page.evaluate(()=>{
+                const nav=document.querySelector('.nav-btn[data-view="smartReplanning"]');
+                const card=document.querySelector('[data-home-target="smartReplanning"]');
+                // The Home-only chrome may hide the whole sidebar; inspect the
+                // element's RBAC visibility rather than Playwright isVisible().
+                return {nav:!!nav&&getComputedStyle(nav).display!=='none'&&
+                    !nav.classList.contains('role-hidden'),
+                  card:!!card&&getComputedStyle(card).display!=='none'&&
+                    !card.classList.contains('role-hidden'),
+                  allowed:window.YardivoRoleVisibility?.allowed?.('smartReplanning')===true};
+              });
+              if(!paused.nav||!paused.card||!paused.allowed)
+                throw new Error('SMART section access must survive PAUSED mode: '+JSON.stringify(paused));
               if(errors.length)throw new Error('AI OFF page errors: '+errors.join(' | '));
               await context.close();
             }

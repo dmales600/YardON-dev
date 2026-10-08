@@ -1,9 +1,9 @@
 (()=>{'use strict';
-if(window.__YARDON_AI_OPERATIONS_V1__)return;
-window.__YARDON_AI_OPERATIONS_V1__=true;
+if(window.__YARDON_SMART_CENTER_V1__)return;
+window.__YARDON_SMART_CENTER_V1__=true;
 
 const $=id=>document.getElementById(id);
-let snapshot=null,activeTab='plan',loading=false,lastWarehouse='';
+let snapshot=null,activeTab='decisions',loading=false,lastWarehouse='',activityEvents=[],lastPopup='',backgroundBusy=false;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const role=()=>{let r=String(window.currentSession?.role||window.currentSession?.app_role||'').toLowerCase().trim();if(r==='zalihe'||r.includes('zalih'))r='inventory';if(r==='prijam')r='reception';if(r==='voditelj'||r==='management')r='manager';return r};
 function aiEnabled(){
@@ -13,23 +13,11 @@ function aiEnabled(){
   return c.enabled===true&&String(c.mode||'').toUpperCase()!=='PAUSED';
  }catch(_){return false}
 }
-const canView=()=>aiEnabled()&&['admin','manager','inventory','reception'].includes(role());
+const canView=()=>['admin','inventory','reception'].includes(role());
 function applyVisibility(){
- // YARDIVO SMART is the sole planner in the user-facing system.
- // Keep AI Operations service code for compatibility but never expose its page.
- document.querySelector('.nav-btn[data-view="aiOperations"]')?.remove();
- document.querySelector('[data-home-target="aiOperations"]')?.remove();
- const view=$('aiOperations');
- if(view){
-   const wasActive=view.classList.contains('active')||view.classList.contains('manager-force-active');
-   if(wasActive){
-     view.classList.remove('active','manager-force-active');
-     window.YardivoRoleStableFinal?.open?.('homeMenu');
-   }
-   if(!view.hidden)view.hidden=true;
-   if(view.style.getPropertyValue('display')!=='none')view.style.setProperty('display','none','important');
- }
- return false;
+ // One visible SMART section. RoleVisibility owns menu permissions.
+ // Do not hide the section when engine is paused: history must remain accessible.
+ return canView();
 }
 
 const pad=n=>String(n).padStart(2,'0');
@@ -41,28 +29,28 @@ function dockNum(v){const n=Number(String(v||'').replace(/\D/g,''));return Numbe
 function warehouseName(id){return snapshot?.warehouses?.find(w=>String(w.id)===String(id))?.name||id||'—'}
 
 async function invoke(body){
- if(!aiEnabled())throw new Error('AI upravljanje YardOnom je isključeno od strane Admina.');
+ if(!aiEnabled()&&body?.action!=='smart_activity')throw new Error('YARD ON SMART je pauziran u postavkama.');
  const c=await window.YardivoAuth?.client?.();
  if(!c)throw new Error('Online prijava nije spremna.');
  const {data,error}=await c.functions.invoke('yardivo-ai-operations',{body});
  if(error)throw error;
- if(data?.ok===false)throw new Error(data.error||'AI Operations nije dostupan.');
+ if(data?.ok===false)throw new Error(data.error||'YARD ON SMART nije dostupan.');
  return data?.data??data;
 }
 
 function shell(){
  if(!applyVisibility())return;
- const root=$('aiOperations');if(!root)return;
+ const root=$('smartReplanning');if(!root)return;
  if(!$('yaioDate'))$('yaioControls').innerHTML=`
    <label>DATUM<input id="yaioDate" type="date"></label>
    <label>SKLADIŠTE<select id="yaioWarehouse"><option value="">Sva dostupna skladišta</option></select></label>
    <button class="primary" id="yaioRefresh" type="button">✦ IZRAČUNAJ PLAN</button>
    <span class="yaio-updated" id="yaioUpdated">Plan još nije izračunat.</span>`;
  if(!$('yaioTabs').children.length)$('yaioTabs').innerHTML=`
-   <button class="yaio-tab active" data-yaio-tab="plan" type="button">PLAN PO RAMPAMA</button>
+   <button class="yaio-tab" data-yaio-tab="plan" type="button">PLAN PO RAMPAMA</button>
    <button class="yaio-tab" data-yaio-tab="live" type="button">LIVE DANAS</button>
    <button class="yaio-tab" data-yaio-tab="parking" type="button">PARKING & QUEUE</button>
-   <button class="yaio-tab" data-yaio-tab="decisions" type="button">AI ODLUKE</button>`;
+   <button class="yaio-tab active" data-yaio-tab="decisions" type="button">PRIJEDLOZI I POVIJEST</button>`;
  if(!$('yaioDate').value)$('yaioDate').value=localDate(1);
  bind();
 }
@@ -82,49 +70,90 @@ function bind(){
    if(e.target?.id==='yaioDate')void refresh(true);
  },true);
  window.addEventListener('yardivo:view-opened',e=>{
-   if(e.detail?.view==='aiOperations'){
+   if(e.detail?.view==='smartReplanning'){
      setTitle();
      shell();
      if(!snapshot)void refresh(false);else render();
    }
  });
- window.addEventListener('yardivo:login',()=>{snapshot=null;setTimeout(()=>{if($('aiOperations')?.classList.contains('active'))void refresh(false)},120)});
- window.addEventListener('yardivo:data-synced',()=>{if($('aiOperations')?.classList.contains('active'))setTimeout(()=>void refresh(false),100)});
+ window.addEventListener('yardivo:login',()=>{snapshot=null;setTimeout(()=>{if($('smartReplanning')?.classList.contains('active'))void refresh(false)},120)});
+ window.addEventListener('yardivo:data-synced',()=>{if($('smartReplanning')?.classList.contains('active'))setTimeout(()=>void refresh(false),100)});
 }
 
 function setTitle(){
- const t=$('pageTitle');if(t)t.textContent='AI Operations';
+ const t=$('pageTitle');if(t)t.textContent='YARD ON SMART';
 }
 
+async function loadActivity(){
+ if(!canView())return [];
+ const data=await invoke({action:'smart_activity'});
+ activityEvents=Array.isArray(data?.events)?data.events:[];
+ renderActivity();
+ maybePopup();
+ return activityEvents;
+}
+function statusLabel(code){
+ return ({PENDING_INVENTORY:'ČEKA ODLUKU ZALIHA',APPROVED:'ODOBRENO',REJECTED:'ODBIJENO',
+ AI_PLANNED:'POČETNA DODJELA',NO_SAFE_SLOT:'NEMA SIGURNOG TERMINA',
+ APPLIED:'PROVEDENO',PENDING_SUPPLIER:'ČEKA DOBAVLJAČA'})[code]||String(code||'ZABILJEŽENO');
+}
+function slotText(x){
+ if(!x)return '—';
+ return [x.date||'',x.time||'',x.dock?'R'+x.dock:''].filter(Boolean).join(' · ')||'—';
+}
+function renderActivity(){
+ const host=$('yardonSmartActivity');if(!host)return;
+ const pending=activityEvents.filter(x=>x.status==='PENDING_INVENTORY');
+ const body='<section class="yaio-card"><div class="yaio-card-head"><div><h3>SMART ZAPIS AKCIJA</h3><small>Svi bitni SMART prijedlozi, dodjele, odluke i vrijeme izvršenja, po dostupnim skladištima.</small></div><span class="yaio-pill">'+activityEvents.length+' zapisa · '+pending.length+' čeka</span></div>'+
+ '<div class="ys-activity-list">'+(activityEvents.length?activityEvents.slice(0,150).map(e=>
+ '<div class="ys-event"><div><strong>'+esc(e.supplier||e.problemType||'YARD ON SMART')+'</strong> · '+esc(statusLabel(e.status))+
+ '<div><small>'+esc(e.reason||'')+'</small></div><div><small>'+esc(slotText(e.old))+' → '+esc(slotText(e.newSlot))+'</small></div>'+
+ (e.resolvedBy?'<div><small>Odluka: '+esc(e.resolvedBy)+' · '+esc(e.resolvedAt?new Date(e.resolvedAt).toLocaleString('hr-HR'):'')+'</small></div>':'')+
+ '</div><small>'+esc(e.at?new Date(e.at).toLocaleString('hr-HR'):'')+'</small></div>').join(''):'<div class="yaio-empty">Nema SMART aktivnosti. Nova baza je prazna dok se ne unesu najave.</div>')+'</div></section>';
+ if(host.innerHTML!==body)host.innerHTML=body;
+ const badge=$('yardonSmartPendingBadge');
+ if(badge){
+  const n=pending.length,v=n?String(n):'0',display=n?'inline-flex':'none';
+  if(badge.textContent!==v)badge.textContent=v;
+  if(badge.style.display!==display)badge.style.display=display;
+ }
+}
 async function refresh(force=false){
- if(!applyVisibility()||loading)return;
+ if(!canView()||loading)return;
  shell();
- const date=$('yaioDate')?.value||localDate(1);
- const warehouse=$('yaioWarehouse')?.value||lastWarehouse||'';
+ const date=$('yaioDate')?.value||localDate(1),warehouse=$('yaioWarehouse')?.value||lastWarehouse||'';
  loading=true;
- const root=$('yaioBody');if(root)root.innerHTML='<div class="yaio-loader">AI Operations učitava operativne podatke i računa plan…</div>';
+ const root=$('yaioBody'),state=$('yardonSmartEngineStatus');
+ if(state)state.textContent=aiEnabled()?'SMART AKTIVAN · Izračun i prijedlozi prolaze kroz Supabase':'SMART PAUZIRAN · Povijest je dostupna, ali novi planovi se ne izračunavaju.';
  try{
+   await loadActivity();
+   if(!aiEnabled()){
+     snapshot={date,warehouses:[],plan:[],passes:[],decisions:activityEvents,summary:{}};
+     if(root)root.innerHTML='<div class="yaio-empty">SMART je trenutno pauziran. Admin ga može uključiti u Master postavkama.</div>';
+     return;
+   }
+   if(root&&force)root.innerHTML='<div class="yaio-loader">YARD ON SMART računa operativni plan…</div>';
    const data=await invoke({action:'snapshot',date,warehouse});
    snapshot=data||{date,warehouses:[],plan:[],passes:[],decisions:[],summary:{}};
    lastWarehouse=warehouse;
    populateWarehouses();
+   await loadActivity();
    render();
  }catch(e){
-   snapshot=null;
-   if(root)root.innerHTML='<div class="yaio-error"><strong>AI Operations nije uspio učitati plan.</strong><br>'+esc(e?.message||e)+'</div>';
+   if(root)root.innerHTML='<div class="yaio-error"><strong>SMART nije učitao plan.</strong><br>'+esc(e?.message||e)+'</div>';
    const u=$('yaioUpdated');if(u)u.textContent='Greška pri učitavanju.';
  }finally{loading=false}
 }
 
 async function resolveDecision(id,action){
  if(!id||!['approve','reject'].includes(action))return;
- if(!['admin','inventory','manager'].includes(role()))return alert('Samo Admin, Zalihe ili Manager mogu odlučiti o AI zahtjevu.');
+ if(role()!=='inventory')return alert('Samo Zalihe mogu odobriti ili odbiti SMART prijedlog.');
  const approve=action==='approve';
- if(!confirm(approve?'ODOBRITI AI prijedlog promjene?':'ODBITI AI prijedlog promjene?'))return;
+ if(!confirm(approve?'Odobriti predloženu promjenu rampe i termina?':'Odbiti predloženu promjenu?'))return;
  try{
    await invoke({action:approve?'approve_change':'reject_change',decision_id:id});
    await refresh(true);
- }catch(e){alert('AI zahtjev nije obrađen:\n\n'+String(e?.message||e))}
+ }catch(e){alert('SMART zahtjev nije obrađen:\n\n'+String(e?.message||e))}
 }
 
 function populateWarehouses(){
@@ -276,23 +305,69 @@ function renderParking(){
 }
 
 function renderDecisions(){
- const ds=(snapshot.decisions||[]).slice().sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
- const canDecide=['admin','inventory','manager'].includes(role());
- return '<section class="yaio-card"><div class="yaio-card-head"><div><h3>AI ODLUKE I REPLAN</h3><small>Zabilježene odluke za odabrani datum: vrijeme, izvršitelj, prethodno i novo stanje te odobrenje. Prijedlog nije isto što i izvršena promjena.</small></div><span class="yaio-pill">'+ds.length+'</span></div><div class="yaio-decisions">'+
+ const ds=activityEvents.slice().sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
+ const canDecide=role()==='inventory';
+ return '<section class="yaio-card"><div class="yaio-card-head"><div><h3>YARD ON SMART · PRIJEDLOZI I ODLUKE</h3><small>Zabilježene odluke za odabrani datum: vrijeme, izvršitelj, prethodno i novo stanje te odobrenje. Prijedlog nije isto što i izvršena promjena.</small></div><span class="yaio-pill">'+ds.length+'</span></div><div class="yaio-decisions">'+
  (ds.length?ds.map(x=>{
    const before=x.old?[x.old.date,x.old.time,x.old.dock?'R'+x.old.dock:''].filter(Boolean).join(' '):'—';
    const after=x.newSlot?[x.newSlot.date,x.newSlot.time,x.newSlot.dock?'R'+x.newSlot.dock:''].filter(Boolean).join(' '):'—';
    const pending=String(x.status||'')==='PENDING_INVENTORY';
    const actions=pending&&canDecide?'<div class="yaio-decision-actions"><button class="primary" type="button" data-yaio-decision-action="approve" data-yaio-decision-id="'+esc(x.id||'')+'">ODOBRI</button><button class="secondary" type="button" data-yaio-decision-action="reject" data-yaio-decision-id="'+esc(x.id||'')+'">ODBIJ</button></div>':'';
-   return '<div class="yaio-decision"><div><strong>'+esc(x.supplier||'Dobavljač')+'</strong><br><small>'+esc(x.problemType||x.status||'AI')+'</small><br><small>'+esc(x.at?new Date(x.at).toLocaleString('hr-HR'):'Vrijeme nije zabilježeno')+' · '+esc(x.actor||'Sustav')+'</small></div><div><strong>'+esc(before)+' → '+esc(after)+'</strong><br><small>'+esc(x.reason||'')+'</small></div><div><span class="yaio-pill '+(['NO_SAFE_SLOT','REJECTED'].includes(x.status)?'bad':['PENDING_INVENTORY','PENDING_SUPPLIER'].includes(x.status)?'warn':'ok')+'">'+esc(x.status||'PRIJEDLOG')+'</span>'+actions+'</div></div>';
- }).join(''):'<div class="yaio-empty">Nema spremljenih AI odluka za ovaj datum.</div>')+
+   return '<div class="yaio-decision"><div><strong>'+esc(x.supplier||'Dobavljač')+'</strong><br><small>'+esc(x.problemType||x.status||'AI')+'</small><br><small>'+esc(x.at?new Date(x.at).toLocaleString('hr-HR'):'Vrijeme nije zabilježeno')+' · '+esc(x.actor||'YARD ON SMART')+'</small></div><div><strong>'+esc(before)+' → '+esc(after)+'</strong><br><small>'+esc(x.reason||'')+'</small>'+(x.resolvedBy?'<br><small>Odluku donio: '+esc(x.resolvedBy)+' · '+esc(x.resolvedAt?new Date(x.resolvedAt).toLocaleString('hr-HR'):'')+'</small>':'')+'</div><div><span class="yaio-pill '+(['NO_SAFE_SLOT','REJECTED'].includes(x.status)?'bad':['PENDING_INVENTORY','PENDING_SUPPLIER'].includes(x.status)?'warn':'ok')+'">'+esc(statusLabel(x.status||'PRIJEDLOG'))+'</span>'+actions+'</div></div>';
+ }).join(''):'<div class="yaio-empty">Nema spremljenih SMART prijedloga.</div>')+
  '</div></section>';
 }
 
-document.addEventListener('DOMContentLoaded',()=>{applyVisibility();shell();},{once:true});
-window.addEventListener('load',()=>{applyVisibility();shell();if($('aiOperations')?.classList.contains('active'))void refresh(false)},{once:true});
-window.addEventListener('yardivo:ai-admin-config',()=>{snapshot=null;applyVisibility();if(aiEnabled()&&$('aiOperations')?.classList.contains('active'))void refresh(true)});
-window.addEventListener('storage',e=>{if(e.key==='yardivo_auto_replan_cfg_v1'){snapshot=null;setTimeout(()=>{applyVisibility();if(aiEnabled()&&$('aiOperations')?.classList.contains('active'))void refresh(true)},10)}});
+let popupSeen=new Set();
+function maybePopup(){
+ if(role()!=='inventory'||!aiEnabled()||document.getElementById('yardonSmartPopup'))return;
+ const login=document.getElementById('loginOverlay');
+ if(login&&login.getAttribute('aria-hidden')!=='true'&&getComputedStyle(login).display!=='none')return;
+ const next=activityEvents.find(x=>x.status==='PENDING_INVENTORY'&&!popupSeen.has(String(x.id)));
+ if(!next)return;
+ lastPopup=String(next.id);popupSeen.add(lastPopup);
+ const overlay=document.createElement('div');overlay.id='yardonSmartPopup';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','SMART prijedlog promjene');
+ overlay.innerHTML='<div class="ys-modal"><h2>✦ YARD ON SMART predlaže promjenu</h2><p><strong>'+esc(next.supplier||'Dobavljač')+'</strong> · '+esc(next.warehouse||'')+'</p>'+
+ '<div class="ys-reason"><strong>Razlog:</strong> '+esc(next.reason||'Promjena rasporeda zbog kapaciteta.')+'</div>'+
+ '<div class="ys-slots"><div><small>POSTOJEĆI TERMIN</small><p><strong>'+esc(slotText(next.old))+'</strong></p></div><div><small>PREDLOŽENI TERMIN</small><p><strong>'+esc(slotText(next.newSlot))+'</strong></p></div></div>'+
+ '<p><small>Prijedlog u '+esc(next.at?new Date(next.at).toLocaleString('hr-HR'):'')+'. Bez tvoje potvrde raspored ostaje nepromijenjen.</small></p>'+
+ '<div class="ys-actions"><button type="button" data-smart-popup="later">Kasnije</button><button class="secondary" type="button" data-smart-popup="reject">Odbij</button><button class="primary" type="button" data-smart-popup="approve">Odobri promjenu</button></div></div>';
+ document.body.appendChild(overlay);
+ overlay.querySelectorAll('[data-smart-popup]').forEach(btn=>btn.addEventListener('click',async()=>{
+  const choice=btn.dataset.smartPopup;
+  if(choice==='later'){overlay.remove();return}
+  overlay.querySelectorAll('button').forEach(x=>x.disabled=true);
+  try{
+   await invoke({action:choice==='approve'?'approve_change':'reject_change',decision_id:lastPopup});
+   overlay.remove();
+   await loadActivity();
+   if($('smartReplanning')?.classList.contains('active'))await refresh(true);
+  }catch(e){
+   alert('SMART odluka nije spremljena: '+String(e?.message||e));
+   overlay.querySelectorAll('button').forEach(x=>x.disabled=false);
+  }
+ }));
+}
+async function backgroundSmart(){
+ if(backgroundBusy||!canView()||!aiEnabled()||document.visibilityState==='hidden')return;
+ backgroundBusy=true;
+ try{
+   // Both dates are checked. The server deduplicates pending proposals.
+   for(const date of [localDate(0),localDate(1)]){
+     await invoke({action:'snapshot',date});
+   }
+   await loadActivity();
+   if($('smartReplanning')?.classList.contains('active')&&!loading)await refresh(false);
+ }catch(e){console.warn('YARD ON SMART background plan',String(e?.message||e))}
+ finally{backgroundBusy=false}
+}
+document.addEventListener('DOMContentLoaded',()=>{applyVisibility();shell()},{once:true});
+window.addEventListener('load',()=>{applyVisibility();shell();if($('smartReplanning')?.classList.contains('active'))void refresh(false);void backgroundSmart()},{once:true});
+window.addEventListener('yardivo:login',()=>{popupSeen.clear();activityEvents=[];setTimeout(()=>void backgroundSmart(),1500)});
+window.addEventListener('yardivo:ai-admin-config',()=>{snapshot=null;applyVisibility();if($('smartReplanning')?.classList.contains('active'))void refresh(true)});
+window.addEventListener('storage',e=>{if(e.key==='yardivo_auto_replan_cfg_v1'){snapshot=null;setTimeout(()=>{applyVisibility();if($('smartReplanning')?.classList.contains('active'))void refresh(true)},10)}});
 setTimeout(shell,250);
-window.YardOnAIOperations={refresh:()=>refresh(true),render:render,recommendations,applyVisibility,enabled:aiEnabled};
+setInterval(()=>{void backgroundSmart()},60000);
+window.YardivoSmartReplanning={scanNow:()=>backgroundSmart(),render:render,logs:()=>activityEvents,applyState:()=>{applyVisibility();void backgroundSmart()}};
+window.YardOnSmartCenter={refresh:()=>refresh(true),render,activity:()=>activityEvents,enabled:aiEnabled};
 })();

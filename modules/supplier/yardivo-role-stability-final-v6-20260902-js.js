@@ -4,8 +4,8 @@
 const MATRIX={
  admin:'ALL',
  manager:new Set(['homeMenu','dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']),
- inventory:new Set(['homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','incidents','documentArchive','unannounced','epal','myYard','reports','settings']),
- reception:new Set(['homeMenu','aiOperations','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard']),
+ inventory:new Set(['smartReplanning','homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','incidents','documentArchive','unannounced','epal','myYard','reports','settings']),
+ reception:new Set(['smartReplanning','homeMenu','aiOperations','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard']),
  gate:new Set(['homeMenu','checkin','unannounced','myYard','docks'])
 };
 function norm(r){
@@ -27,7 +27,7 @@ function managerAccess(){
  }catch(_){return {sections:[]}}
 }
 function allowed(v){
- if(v==='aiOperations'||v==='smartReplanning')return false;
+ if(v==='aiOperations')return false;
  const r=role();
  if(r==='admin')return true;
  if(r==='manager'){
@@ -106,6 +106,7 @@ function renderView(view){
  const calls={
    dashboard:['renderDashboardSimple','renderDashboard'],
    receiving:['renderReceiving'],
+   smartReplanning:['yardonSmartOpenView'],
    dailyMap:['renderDailyMap'],
    weeklyMap:['renderWeeklyMap'],
    suppliers:['renderSuppliers'],

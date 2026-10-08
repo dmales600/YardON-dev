@@ -8,7 +8,9 @@ Designed & Developed by YardOn
 <!-- YardOn BUILD 20260908-dev-v1.0-maps-fullscreen-day-drilldown -->
 <html lang="hr">
 <head>
-<link id="yardon-canonical-navigation-visibility" rel="stylesheet" href="styles/yardon-navigation-single-owner.css?v=20261008-menuowner1">
+<link id="yardon-smart-appearance" rel="stylesheet" href="styles/yardon-ai-operations-v1.css?v=20261008-smart-center1">
+<link id="yardon-smart-popup" rel="stylesheet" href="styles/yardon-smart-center-v1.css?v=20261008-smart-center1">
+<link id="yardon-canonical-navigation-visibility" rel="stylesheet" href="styles/yardon-navigation-single-owner.css?v=20261008-smart-center2">
 <script id="yardivo-canonical-warehouse-helper-v583" src="./modules/master-data/runtime/phase5-001-yardivo-canonical-warehouse-helper-v583.js"></script>
 <meta content="20260912-dev-v1.0-master-runtime-sync-final" name="yardivo-build"/>
 <link href="./favicon-32.png?v=3" rel="icon" sizes="32x32" type="image/png"/>
@@ -204,6 +206,7 @@ Designed & Developed by YardOn
 <button class="nav-btn" data-view="weeklyMap"><span>▦</span> Tjedna mapa</button>
 <button class="nav-btn" data-view="overview"><span>▧</span> OVERVIEW</button>
 <button class="nav-btn" data-view="incidents"><span>!</span> INCIDENTI <b class="nav-badge" id="incidentBadge" style="display:none">0</b></button>
+<button class="nav-btn" data-view="smartReplanning"><span>✦</span> YARD ON SMART <b class="nav-badge" id="yardonSmartPendingBadge" style="display:none">0</b></button>
 <button class="nav-btn" data-view="operations"><span>🔔</span> Notifikacije <b class="nav-badge" id="opsAlertBadge">0</b></button>
 <button class="nav-btn" data-view="unannounced"><span>⚠</span> Nenajavljeni dolasci <b class="nav-badge" id="unannouncedNavBadge" style="display:none">0</b></button>
 <button class="nav-btn" data-view="epal"><span>▦</span> Stanje europaleta <b class="nav-badge" id="epalDebtBadge" style="display:none">0</b></button>
@@ -282,6 +285,7 @@ Designed & Developed by YardOn
 <small>OTVORI →</small>
 </button>
 
+<button class="home-menu-card" data-home-target="smartReplanning" type="button"><span class="icon">✦</span><h3>YARD ON SMART</h3><p>AI prijedlozi rampi i termina, potvrde Zaliha i povijest aktivnosti.</p><small>OTVORI →</small></button>
 <button class="home-menu-card" data-home-target="dailyMap" type="button">
 <span class="icon">▤</span>
 <h3>Dnevna mapa</h3>
@@ -1288,18 +1292,20 @@ AUTOMATSKA PREPORUKA</small>
 </div>
 </div>
 </section>
-<section class="view" id="aiOperations" hidden aria-hidden="true" style="display:none!important">
+<section class="view" id="smartReplanning">
 <div class="yaio-head">
 <div>
-<h1>✦ AI OPERATIONS</h1>
-<p>Predplan za sutra, stvarno stanje rampi, parking queue i preporuke za promjenu rasporeda. AI plan je operativni prijedlog; stvarna dodjela rampe ostaje kontrolirana YardOn statusima.</p>
+<h1>✦ YARD ON SMART</h1>
+<p>Jedno mjesto za SMART plan, predložene promjene rampi i termina, odluke Zaliha i zapis svih značajnih SMART akcija.</p>
 </div>
 <span class="yaio-engine-badge"><i></i> HARD RULES + OPTIMIZER</span>
 </div>
 <div class="yaio-toolbar" id="yaioControls"></div>
 <div class="yaio-tabs" id="yaioTabs"></div>
 <div class="yaio-kpis" id="yaioKpis"></div>
-<div id="yaioBody"><div class="yaio-empty">Odaberi AI Operations za izračun plana.</div></div>
+<div class="yardon-smart-state" id="yardonSmartEngineStatus" aria-live="polite"></div>
+<div class="yardon-smart-activity" id="yardonSmartActivity"></div>
+<div id="yaioBody"><div class="yaio-empty">YARD ON SMART prikazuje prijedloge i operativnu povijest.</div></div>
 </section>
 </main>
 </div>
@@ -1530,8 +1536,8 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-operational-drilldown-v1" src="modules/legacy/yardivo-operational-drilldown-v1.js?v=20260925"></script>
 <script id="yardivo-inventory-drag-reschedule-v1" src="modules/services/yardivo-inventory-drag-reschedule-v1.js?v=20260925"></script>
 <script id="yardivo-expanded-schedule-map-v1" src="modules/services/yardivo-expanded-schedule-map-v1.js?v=20260925"></script>
-<script id="yardivo-smart-replanning-v1" src="modules/services/yardivo-smart-replanning-v1.js?v=20261008-menuowner1"></script>
-<script id="yardon-ai-operations-v1" src="modules/ai/yardon-ai-operations-v1.js?v=20261008-menuowner1"></script>
+<!-- Legacy browser-local SMART planner disabled: server-backed SMART Center is the sole proposal owner. -->
+<script id="yardon-smart-center-v1" src="modules/smart/yardon-smart-center-v1.js?v=20261008-smart-center2"></script>
 <script id="yardivo-live-yard-truck-modal-v5-2" src="modules/master-data/phase2-078-yardivo-live-yard-truck-modal-v5-2.js"></script>
 <script id="yardivo-ann-map-availability-v3" src="modules/services/yardivo-ann-map-availability-v3.js?v=20260925"></script>
 <script id="yardivo-overview-methodology-note-v2" src="./modules/supplier/runtime/phase5-080-yardivo-overview-methodology-note-v2.js"></script>
@@ -1703,7 +1709,7 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-v581-user-profile-scope-fix" src="./modules/master-data/runtime/phase5-144-yardivo-v581-user-profile-scope-fix.js"></script>
 <script id="yardivo-gate-and-users-final-v3-20260901-js" src="modules/services/yardivo-gate-and-users-final-v3-20260901-js.js?v=20260925"></script>
 
-<script id="yardivo-role-stability-final-v6-20260902-js" src="modules/supplier/yardivo-role-stability-final-v6-20260902-js.js?v=20261008-menuowner1"></script>
+<script id="yardivo-role-stability-final-v6-20260902-js" src="modules/supplier/yardivo-role-stability-final-v6-20260902-js.js?v=20261008-smart-center2"></script>
 
 
 <script id="yardivo-login-feedback-password-v2-20260901-js" src="./services/runtime/yardivo-login-feedback-password-v2-20260901-js.js"></script>
@@ -2194,7 +2200,7 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-v583-master-users-stability-hotfix" src="modules/supplier/yardivo-v583-master-users-stability-hotfix.js?v=20260925"></script>
 <!-- YardOn v1.0 · MAPS FOLLOW HEADER + SMART IN MASTER + DWELL WHITE · FINAL AUTHORITY · 2026-09-18 -->
 
-<script id="yardivo-v583-maps-header-smart-master-final-js" src="modules/services/yardivo-v583-maps-header-smart-master-final-js.js?v=20261008-menuowner1"></script>
+<script id="yardivo-v583-maps-header-smart-master-final-js" src="modules/services/yardivo-v583-maps-header-smart-master-final-js.js?v=20261008-smart-center2"></script>
 <!-- YardOn v1.0 · HOME 13 NO-FLICKER + MASTER SCOPE + RESPONSIBLE DELETE + USERS CONTRAST · FINAL HOTFIX · 2026-09-18 -->
 
 <script id="yardivo-v583-home13-master-scope-users-ui-hotfix-js" src="modules/supplier/yardivo-v583-home13-master-scope-users-ui-hotfix-js.js?v=20260925"></script>
@@ -2202,7 +2208,7 @@ AUTOMATSKA PREPORUKA</small>
 
 
 
-<script id="yardivo-v583-supplier-booking-rebuilt-clean-authority" src="modules/supplier/yardivo-v583-supplier-booking-rebuilt-clean-authority.js?v=20260925"></script><script id="yardivo-v583-smart-operational-visibility-final-authority" src="./modules/master-data/runtime/yardivo-v583-smart-operational-visibility-final-authority.js?v=20261008-menuowner1"></script><script id="yardivo-v583-supplier-inbox-stable-health-final-authority" src="modules/supplier/yardivo-v583-supplier-inbox-stable-health-final-authority.js?v=20260925"></script><script id="yardivo-v583-header-bell-final-authority" src="./modules/master-data/runtime/yardivo-v583-header-bell-final-authority.js"></script><script id="yardivo-v583-notifications-master-supplier-sanitizer" src="modules/notifications/yardivo-v583-notifications-master-supplier-sanitizer.js?v=20261008-deep3"></script><script id="yardivo-v583-global-visible-master-names" src="./modules/master-data/runtime/yardivo-v583-global-visible-master-names.js"></script><script id="yardivo-v583-deep-ui-stability-final-authority" src="./modules/supplier/runtime/phase5-277-yardivo-v583-deep-ui-stability-final-authority.js"></script><script id="yardivo-v583-hard-ui-stability-final-authority" src="./services/runtime/yardivo-v583-hard-ui-stability-final-authority.js"></script>
+<script id="yardivo-v583-supplier-booking-rebuilt-clean-authority" src="modules/supplier/yardivo-v583-supplier-booking-rebuilt-clean-authority.js?v=20260925"></script><script id="yardivo-v583-smart-operational-visibility-final-authority" src="./modules/master-data/runtime/yardivo-v583-smart-operational-visibility-final-authority.js?v=20261008-smart-center2"></script><script id="yardivo-v583-supplier-inbox-stable-health-final-authority" src="modules/supplier/yardivo-v583-supplier-inbox-stable-health-final-authority.js?v=20260925"></script><script id="yardivo-v583-header-bell-final-authority" src="./modules/master-data/runtime/yardivo-v583-header-bell-final-authority.js"></script><script id="yardivo-v583-notifications-master-supplier-sanitizer" src="modules/notifications/yardivo-v583-notifications-master-supplier-sanitizer.js?v=20261008-deep3"></script><script id="yardivo-v583-global-visible-master-names" src="./modules/master-data/runtime/yardivo-v583-global-visible-master-names.js"></script><script id="yardivo-v583-deep-ui-stability-final-authority" src="./modules/supplier/runtime/phase5-277-yardivo-v583-deep-ui-stability-final-authority.js"></script><script id="yardivo-v583-hard-ui-stability-final-authority" src="./services/runtime/yardivo-v583-hard-ui-stability-final-authority.js"></script>
 
 <script id="yardivo-v583-reception-ui-scope-clean-js" src="modules/supplier/yardivo-v583-reception-ui-scope-clean-js.js?v=20261008-deep2"></script>
 
@@ -2398,6 +2404,6 @@ AUTOMATSKA PREPORUKA</small>
 <script id="yardivo-v583-notification-login-ai-voice-guard-20260924" src="./modules/notifications/runtime/phase5-328-yardivo-v583-notification-login-ai-voice-guard-20260924.js"></script>
 <script id="yardivo-v583-login-ai-welcome-20260924" src="modules/ai/yardivo-v583-login-ai-welcome-20260924.js?v=20260925"></script>\n<script id="yardivo-v583-chat-realtime-signal-final" src="modules/chat/yardivo-v583-chat-realtime-signal-final.js?v=20260929-free-plan1"></script>
 
-<script id="yardivo-role-visibility-authority" src="modules/auth/role-visibility.js?v=20261008-menuowner2"></script>
+<script id="yardivo-role-visibility-authority" src="modules/auth/role-visibility.js?v=20261008-smart-center2"></script>
 </body>
 </html>

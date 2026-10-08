@@ -2,7 +2,7 @@
   "version": "2026-10-08-active-runtime",
   "strategy": "index.html is the sole ordered source for browser script loading. This manifest documents ONLY those active scripts. Never use stale byte sizes or checksums as runtime truth.",
   "entrypoint": "index.html",
-  "script_count": 326,
+  "script_count": 325,
   "scripts": [
     {
       "id": "yardivo-canonical-warehouse-helper-v583",
@@ -380,14 +380,9 @@
       "category": "services"
     },
     {
-      "id": "yardivo-smart-replanning-v1",
-      "path": "modules/services/yardivo-smart-replanning-v1.js",
-      "category": "services"
-    },
-    {
-      "id": "yardon-ai-operations-v1",
-      "path": "modules/ai/yardon-ai-operations-v1.js",
-      "category": "ai"
+      "id": "yardon-smart-center-v1",
+      "path": "modules/smart/yardon-smart-center-v1.js",
+      "category": "smart"
     },
     {
       "id": "yardivo-live-yard-truck-modal-v5-2",
@@ -1637,6 +1632,8 @@
   ],
   "css": {
     "files": [
+      "styles/yardon-ai-operations-v1.css",
+      "styles/yardon-smart-center-v1.css",
       "styles/yardon-navigation-single-owner.css",
       "styles/yardivo-runtime.css",
       "styles/yardon-supplier-modern-v1.css"
@@ -1796,7 +1793,6 @@
       "modules/services/yardivo-notifications-final-v5.js",
       "modules/services/yardivo-inventory-drag-reschedule-v1.js",
       "modules/services/yardivo-expanded-schedule-map-v1.js",
-      "modules/services/yardivo-smart-replanning-v1.js",
       "modules/services/yardivo-ann-map-availability-v3.js",
       "modules/services/yardivo-final-yard-v27.js",
       "services/runtime/yardivo-v28-mode-switch-guard.js",
@@ -1976,12 +1972,8 @@
       "modules/legacy/yardivo-v583-map-fullscreen-day-drilldown-js.js",
       "modules/legacy/yardivo-v583-timeline-next-arrivals-js.js"
     ],
-    "ai": [
-      "modules/ai/yardon-ai-operations-v1.js",
-      "modules/ai/yardivo-v583-minimap-assistant-ux-fix-final-js.js",
-      "modules/ai/runtime/phase5-288-yardivo-v583-real-ai-assistant-dom-final-js.js",
-      "modules/ai/yardivo-v583-ai-assistant-supabase-v2-final.js",
-      "modules/ai/yardivo-v583-login-ai-welcome-20260924.js"
+    "smart": [
+      "modules/smart/yardon-smart-center-v1.js"
     ],
     "sync": [
       "modules/sync/phase2-137-yardivo-notification-delete-read-style-v1-20260901-js.js",
@@ -1989,6 +1981,12 @@
     ],
     "analytics": [
       "modules/analytics/yardivo-overview-reset-empty-fix-v1-20260901-js.js"
+    ],
+    "ai": [
+      "modules/ai/yardivo-v583-minimap-assistant-ux-fix-final-js.js",
+      "modules/ai/runtime/phase5-288-yardivo-v583-real-ai-assistant-dom-final-js.js",
+      "modules/ai/yardivo-v583-ai-assistant-supabase-v2-final.js",
+      "modules/ai/yardivo-v583-login-ai-welcome-20260924.js"
     ],
     "chat": [
       "modules/chat/yardivo-v583-help-chat.js",

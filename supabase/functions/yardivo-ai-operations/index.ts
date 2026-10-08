@@ -145,7 +145,7 @@ async function persistPlan(plan:any[],p:any){
     problemType:String(oldDock||"")!==String(nextDock||"")?"AI_RAMP_CHANGE_REQUEST":"AI_TIME_CHANGE_REQUEST",
     old:{date:x.date,time:oldStart?oldStart.slice(11,16):x.time,dock:dockNum(oldDock)},
     newSlot:{date:x.date,time:x.planned_start||x.time,end:x.planned_end||"",dock:x.planned_dock||null},
-    reason:changeReason(x,oldDock,oldStart,nextDock,nextStart),status:"PENDING_INVENTORY",actor:"YardOn AI"
+    reason:changeReason(x,oldDock,oldStart,nextDock,nextStart),status:"PENDING_INVENTORY",actor:"YARD ON SMART"
    };
    if(!log.some((z:any)=>sameDecision(z,req))){log.push(req);changes.push(req)}
    continue;
@@ -158,7 +158,7 @@ async function persistPlan(plan:any[],p:any){
    continue;
   }
 
-  await updatePersistedPlan(id,x,p,"AI_OPERATIONS");
+  await updatePersistedPlan(id,x,p,"YARDON_SMART");
   const assigned={id:`AI-PLAN-${x.id}-${Date.now()}-${changes.length}`,at:now,supplier:x.supplier,announcementId:x.id,supplierDeliveryId:id,warehouse:x.warehouse,problemType:"AI_PLAN_ASSIGNMENT",old:{date:x.date,time:x.time,dock:null},newSlot:{date:x.date,time:x.planned_start||x.time,end:x.planned_end||"",dock:x.planned_dock||null},reason:`YardOn AI je početno planirao R${x.planned_dock} za ${x.planned_start} prema terminu, trajanju i raspoloživom kapacitetu rampi.`,status:"AI_PLANNED",actor:"YardOn AI"};
   log.push(assigned);changes.push(assigned);
  }
@@ -179,19 +179,52 @@ async function effectivePlan(plan:any[]){
 }
 
 async function resolveChange(decisionId:string,approve:boolean,p:any){
- if(!["admin","inventory","manager"].includes(String(p.role||"")))throw new Error("Samo Admin, Zalihe ili Manager mogu odlučiti o AI promjeni.");
+ if(String(p.role||"")!=="inventory")throw new Error("Samo Zalihe mogu odobriti ili odbiti promjenu koju predlaže YARD ON SMART.");
  let log=await readState("yardivo_ai_operations_plan_log_v1",[]);if(!Array.isArray(log))log=[];
  const i=log.findIndex((x:any)=>String(x?.id||"")===String(decisionId||""));if(i<0)throw new Error("AI zahtjev nije pronađen.");
- const d=log[i];if(String(d?.status||"")!=="PENDING_INVENTORY")throw new Error("AI zahtjev je već riješen.");
+ const d=log[i];if(String(d?.status||"")!=="PENDING_INVENTORY")throw new Error("SMART zahtjev je već riješen.");
+ const wh=String(d?.warehouse||""),accessible=allowedWarehouses(p,await master());
+ if(!wh||!accessible.some((w:any)=>String(w.id)===wh))throw new Error("Nema ovlasti za skladište ovog SMART prijedloga.");
+
  if(approve){
   const id=String(d?.supplierDeliveryId||"");if(!id)throw new Error("Nedostaje delivery ID.");
-  const {data:delivery,error}=await db.from("yardivo_supplier_deliveries").select("id,status").eq("id",id).maybeSingle();if(error)throw error;
+  const {data:delivery,error}=await db.from("yardivo_supplier_deliveries").select("id,status,warehouse,planned_dock,planned_start,planned_end").eq("id",id).maybeSingle();if(error)throw error;
   if(!delivery||["rejected","completed","cancelled","canceled"].includes(String(delivery.status||"").toLowerCase()))throw new Error("Dostava više nije aktivna.");
+  if(String(delivery.warehouse||"")!==wh)throw new Error("Dostava je premještena u drugo skladište.");
+  const actualDock=dockNum(delivery.planned_dock),expectedDock=dockNum(d?.old?.dock);
+  if(actualDock!==expectedDock)throw new Error("Rampa je promijenjena nakon izrade prijedloga. Zatraži novi SMART plan.");
+  if(delivery.planned_start&&d?.old?.time&&new Date(delivery.planned_start).toISOString().slice(11,16)!==String(d.old.time).slice(0,5))
+   throw new Error("Termin se promijenio nakon izrade prijedloga. Zatraži novi SMART plan.");
+  const targetDock=dockNum(d?.newSlot?.dock);
+  if(!targetDock||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(String(d?.newSlot?.date||""))||!/^[0-2][0-9]:[0-5][0-9]$/.test(String(d?.newSlot?.time||"")))
+   throw new Error("Neispravan novi SMART termin.");
+  const whConfig=accessible.find((w:any)=>String(w.id)===wh);
+  if(!rampList(whConfig).some((r:any)=>Number(r.number)===targetDock))throw new Error("Predložena rampa više nije aktivna.");
+  if(log.some((z:any)=>z!==d&&String(z?.supplierDeliveryId)===id&&String(z?.status)==="APPROVED"&&String(z?.resolvedAt||"")>String(d?.at||"")))
+   throw new Error("Za ovu dostavu već postoji novija odobrena promjena.");
+  const {data:passes,error:passesError}=await db.from("yardivo_delivery_passes")
+    .select("id,state,checked_in_at").eq("supplier_delivery_id",id).limit(5);
+  if(passesError)throw passesError;
+  if((passes||[]).some((row:any)=>!!row.checked_in_at&&!["COMPLETED","REJECTED","CANCELLED","CANCELED"].includes(String(row.state||"").toUpperCase())))
+    throw new Error("Kamion je već prijavljen na porti; SMART ne smije mijenjati termin aktivne dostave.");
+  const start=isoSlot(String(d.newSlot.date),String(d.newSlot.time));
+  const end=isoSlot(String(d.newSlot.date),String(d.newSlot.end||""));
+  if(!start||!end||Date.parse(end)<=Date.parse(start))throw new Error("SMART nije naveo valjano trajanje novog termina.");
+  const {data:occupied,error:occupiedError}=await db.from("yardivo_supplier_deliveries")
+    .select("id,status,planned_dock,planned_start,planned_end").eq("warehouse",wh).eq("planned_dock","R"+targetDock).neq("id",id);
+  if(occupiedError)throw occupiedError;
+  if((occupied||[]).some((row:any)=>{
+    if(["rejected","completed","cancelled","canceled"].includes(String(row.status||"").toLowerCase()))return false;
+    const a=Date.parse(String(row.planned_start||"")),b=Date.parse(String(row.planned_end||""));
+    return Number.isFinite(a)&&Number.isFinite(b)&&a<Date.parse(end)&&Date.parse(start)<b;
+  }))throw new Error("SMART termin se u međuvremenu zauzeo. Potreban je novi prijedlog.");
+
+
   const x={date:String(d?.newSlot?.date||""),planned_dock:d?.newSlot?.dock||null,planned_start:String(d?.newSlot?.time||""),planned_end:String(d?.newSlot?.end||"")};
-  await updatePersistedPlan(id,x,p,"AI_OPERATIONS_APPROVED");
-  d.status="APPROVED";d.resolvedAt=new Date().toISOString();d.resolvedBy=String(p.username||p.role||"");
+  await updatePersistedPlan(id,x,p,"YARDON_SMART_APPROVED");
+  d.status="APPROVED";d.resolvedAt=new Date().toISOString();d.resolvedBy=String(p.username||p.role||"");d.resolvedRole="inventory";d.actor="YARD ON SMART";
  }else{
-  d.status="REJECTED";d.resolvedAt=new Date().toISOString();d.resolvedBy=String(p.username||p.role||"");
+  d.status="REJECTED";d.resolvedAt=new Date().toISOString();d.resolvedBy=String(p.username||p.role||"");d.resolvedRole="inventory";d.actor="YARD ON SMART";
  }
  log[i]=d;await writeState("yardivo_ai_operations_plan_log_v1",log,String(p.username||"yardivo-ai-operations"));
  return d;
@@ -200,6 +233,14 @@ async function resolveChange(decisionId:string,approve:boolean,p:any){
 Deno.serve(async(req:Request)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:CORS});if(req.method!=="POST")return J({ok:false,error:"Method not allowed"},405);
  try{const p=await profile(req),b=await req.json().catch(()=>({})),action=String(b.action||"snapshot").toLowerCase();if(action==="health")return J({ok:true,provider:"gemini",geminiKeyPresent:Boolean(geminiKey()),model:geminiModel()});
+  if(action==="smart_activity"){
+    if(!["admin","inventory","reception"].includes(String(p.role)))throw new Error("Nema ovlasti za YARD ON SMART povijest.");
+    const m=await master(),allowed=new Set(allowedWarehouses(p,m).map((w:any)=>String(w.id)));
+    const data=await readState("yardivo_ai_operations_plan_log_v1",[]);
+    const events=(Array.isArray(data)?data:[]).filter((x:any)=>allowed.has(String(x?.warehouse||"")))
+      .sort((a:any,b:any)=>String(b?.resolvedAt||b?.at||"").localeCompare(String(a?.resolvedAt||a?.at||""))).slice(0,500);
+    return J({ok:true,data:{events}});
+  }
   const aiCfg=await readState("yardivo_auto_replan_cfg_v1",{enabled:false,mode:"PAUSED"});
   if(aiCfg?.enabled!==true||String(aiCfg?.mode||"").toUpperCase()==="PAUSED")return J({ok:false,error:"AI upravljanje YardOnom je isključeno od strane Admina.",code:"AI_CONTROL_OFF"},403);
   if(["approve_change","reject_change"].includes(action)){const d=await resolveChange(String(b.decision_id||""),action==="approve_change",p);return J({ok:true,data:{decision:d}})}
