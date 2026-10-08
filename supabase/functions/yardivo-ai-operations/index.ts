@@ -303,7 +303,7 @@ Deno.serve(async(req:Request)=>{
   if(action==="record_request_review"){
     if(!["admin","inventory"].includes(String(p.role)))throw new Error("Nema ovlasti za SMART odluku.");
     const id=String(b.delivery_id||""),decision=String(b.decision||"");
-    if(!["confirmed","rejected"].includes(decision))throw new Error("Neispravna SMART odluka.");
+    if(!["confirmed","rejected","proposal_sent"].includes(decision))throw new Error("Neispravna SMART odluka.");
     const q=await db.from("yardivo_supplier_deliveries")
       .select("id,supplier_name,supplier_username,warehouse,delivery_date,requested_time,status,review_note")
       .eq("id",id).maybeSingle();
@@ -318,9 +318,9 @@ Deno.serve(async(req:Request)=>{
       const now=new Date().toISOString(),note=String(q.data.review_note||"");
       const m=note.match(/SMART PREVIEW R(\d+)/i);
       log.push({id:recordId,at:now,warehouse:String(q.data.warehouse),supplier:String(q.data.supplier_name||q.data.supplier_username||""),
-        supplierDeliveryId:id,status:decision==="confirmed"?"APPROVED":"REJECTED",problemType:"SUPPLIER_REQUEST_REVIEW",
+        supplierDeliveryId:id,status:decision==="confirmed"?"APPROVED":decision==="rejected"?"REJECTED":"PENDING_SUPPLIER",problemType:"SUPPLIER_REQUEST_REVIEW",
         actor:"YARD ON SMART",resolvedBy:String(p.username||p.role),resolvedRole:String(p.role),resolvedAt:now,
-        reason:decision==="confirmed"?"Zalihe su pregledale Dnevnu mapu i potvrdile zahtjev. Predviđena rampa može se promijeniti.":note.slice(0,350),
+        reason:decision==="confirmed"?"Zalihe su pregledale Dnevnu mapu i potvrdile zahtjev. Predviđena rampa može se promijeniti.":decision==="proposal_sent"?"Zalihe su pregledale Dnevnu mapu i poslale dobavljaču drugi termin na prihvat.":note.slice(0,350),
         old:{date:String(q.data.delivery_date||""),time:String(q.data.requested_time||"").slice(0,5)},
         newSlot:{date:String(q.data.delivery_date||""),time:String(q.data.requested_time||"").slice(0,5),dock:m?Number(m[1]):null}});
       await writeState("yardivo_ai_operations_plan_log_v1",log.slice(-500),String(p.username||"YARDON_SMART"));
