@@ -11,10 +11,15 @@ function syncOperationalSelection(){
   if(w)try{window.YardivoOperationalSync?.setWarehouse?.(w)}catch(_){}
 }
 function refreshMaps(){
-  try{renderAnnouncementSchedule?.()}catch(e){console.warn('Announcement map',e)}
-  if(expandedOpen())try{window.YardivoExpandedSchedule?.render?.()}catch(e){console.warn('Expanded map',e)}
-  try{renderDailyMap?.()}catch(e){console.warn('Daily map',e)}
-  try{renderWeeklyMap?.()}catch(e){console.warn('Weekly map',e)}
+  const active=document.querySelector('.view.active')?.id||'';
+  if(active==='announcements'){
+    try{renderAnnouncementSchedule?.()}catch(e){console.warn('Announcement map',e)}
+    if(expandedOpen())try{window.YardivoExpandedSchedule?.render?.()}catch(e){console.warn('Expanded map',e)}
+  }else if(active==='dailyMap'){
+    try{renderDailyMap?.()}catch(e){console.warn('Daily map',e)}
+  }else if(active==='weeklyMap'){
+    try{renderWeeklyMap?.()}catch(e){console.warn('Weekly map',e)}
+  }
 }
 function syncAndRefresh(){
   syncOperationalSelection();
@@ -43,14 +48,18 @@ function syncAndRefresh(){
 
 /* After a save/reschedule/status/data sync, all representations are redrawn
    from canonical announcements. */
-window.addEventListener('yardivo:data-synced',refreshMaps);
+window.addEventListener('yardivo:data-synced',e=>{
+  const source=String(e?.detail?.source||'');
+  /* Core and Supplier sync already refresh the active view once. */
+  if(source==='online-v2'||source==='supplier')return;
+  refreshMaps();
+});
 window.addEventListener('yardivo:overview-refresh',()=>{
   if(expandedOpen())try{window.YardivoExpandedSchedule?.render?.()}catch(_){}
 });
 document.addEventListener('click',e=>{
   if(e.target.closest?.('#saveManualAnnouncement,#useRecommendation,#checkAnnouncement')){
     setTimeout(refreshMaps,80);
-    setTimeout(refreshMaps,900);
   }
 },true);
 
