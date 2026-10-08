@@ -87,4 +87,16 @@ check('Live notifications cannot revive obsolete supplier 244',()=>{
  assert.equal(cleaned.length,1);
  assert.equal(cleaned[0].body,'Stigao na R1');
 });
+check('Missing migration marker never erases real warehouses',()=>{
+ const source=extract(master,'function load(){','let masterCloudWrite');
+ const payload={suppliers:[{id:'SUP001',name:'QA Dobavljač',active:true}],locations:[{id:'LOC001',name:'QA Lokacija',active:true}],warehouses:[{id:'W001',name:'QA Skladište',location_id:'LOC001',active:true}]};
+ const store=new Map([['yardivo_master_data_registry_v583',JSON.stringify(payload)]]);
+ const ctx={KEY:'yardivo_master_data_registry_v583',seed:{suppliers:[],locations:[],warehouses:[]},clone:x=>JSON.parse(JSON.stringify(x)),localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)}};
+ vm.runInNewContext(source+';globalThis.readMaster=load;',ctx);
+ const first=ctx.readMaster(),second=ctx.readMaster();
+ assert.equal(first.warehouses.length,1);
+ assert.equal(first.warehouses[0].id,'W001');
+ assert.equal(second.warehouses.length,1);
+ assert.equal(JSON.parse(store.get('yardivo_master_data_registry_v583')).warehouses[0].id,'W001');
+});
 console.log('YARDON_FRONTEND_STABILITY_PASS '+tests+'/'+tests);
