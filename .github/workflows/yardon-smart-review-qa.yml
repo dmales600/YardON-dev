@@ -41,3 +41,12 @@ jobs:
           deno check supabase/functions/yardivo-supplier-time-ops/index.ts
       - name: SMART workflow security, map and notification regression
         run: node .github/qa/yardon-smart-review.test.cjs
+      - name: Install Chromium QA dependencies
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Browser test SMART preview and approval flow
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-smart-review-http.log 2>&1 &
+          node .github/qa/yardon-smart-review-browser.test.cjs
