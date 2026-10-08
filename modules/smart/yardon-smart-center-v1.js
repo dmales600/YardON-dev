@@ -29,7 +29,7 @@ function dockNum(v){const n=Number(String(v||'').replace(/\D/g,''));return Numbe
 function warehouseName(id){return snapshot?.warehouses?.find(w=>String(w.id)===String(id))?.name||id||'—'}
 
 async function invoke(body){
- if(!aiEnabled()&&body?.action!=='smart_activity')throw new Error('YARD ON SMART je pauziran u postavkama.');
+ if(!aiEnabled()&&!['smart_activity','preview_request','record_request_review'].includes(body?.action))throw new Error('YARD ON SMART je pauziran u postavkama.');
  const c=await window.YardivoAuth?.client?.();
  if(!c)throw new Error('Online prijava nije spremna.');
  const {data,error}=await c.functions.invoke('yardivo-ai-operations',{body});
@@ -361,6 +361,124 @@ async function backgroundSmart(){
  }catch(e){console.warn('YARD ON SMART background plan',String(e?.message||e))}
  finally{backgroundBusy=false}
 }
+
+let currentRequestPreview=null,reviewBusy=false;
+function previewTarget(){
+ const p=currentRequestPreview;
+ return p?.candidate?{date:p.date,warehouse:p.warehouse,dock:p.candidate.dock,time:p.candidate.time}:null;
+}
+function clearRequestPreview(){
+ currentRequestPreview=null;
+ const panel=$('yardonSmartRequestReview');if(panel)panel.remove();
+ try{window.renderDailyMap?.()}catch(_){}
+}
+function proposalCell(){
+ const x=previewTarget();if(!x)return null;
+ return [...document.querySelectorAll('#dailyMapBoard .dmv-cell')].find(el=>
+  String(el.dataset.moveDate||'')===String(x.date)&&
+  String(el.dataset.moveWarehouse||'')===String(x.warehouse)&&
+  Number(el.dataset.moveDock)===Number(x.dock)&&
+  String(el.dataset.moveTime||'')===String(x.time))||null;
+}
+function confirmablePreview(){
+ const cell=proposalCell();
+ return !!cell&&!cell.classList.contains('dmv-booked')&&!cell.classList.contains('dmv-blocked');
+}
+function showRequestPanel(preview,message=''){
+ const board=$('dailyMapBoard');if(!board)return;
+ let panel=$('yardonSmartRequestReview');
+ if(!panel){panel=document.createElement('section');panel.id='yardonSmartRequestReview';panel.setAttribute('aria-live','polite');board.parentNode.insertBefore(panel,board)}
+ const c=preview.candidate,canConfirm=!!c&&confirmablePreview();
+ panel.innerHTML='<div class="ys-review-heading"><span class="ys-review-star">✦</span><div><strong>YARD ON SMART · PRIJEDLOG RAMPE</strong><small>'+esc(preview.supplier||'Dobavljač')+' · '+esc(preview.date)+' · '+esc(preview.time)+'</small></div><span class="ys-review-mode">NIJE KONAČNA DODJELA</span></div>'+
+ '<div class="ys-review-summary">'+(c?'<div><small>Predložena rampa</small><strong>R'+esc(c.dock)+'</strong></div><div><small>Predloženi termin</small><strong>'+esc(c.time)+'–'+esc(c.end)+'</strong></div>':'<strong>NEMA SIGURNOG SLOBODNOG OKVIRA</strong>')+
+ '<p>'+esc(preview.reason||'')+'</p></div>'+
+ (message?'<p class="ys-review-warning">'+esc(message)+'</p>':'')+
+ '<div class="ys-review-actions"><button type="button" data-smart-request="cancel">ZATVORI PREGLED</button>'+
+ '<button type="button" data-smart-request="reject">ODBIJ ZAHTJEV</button>'+
+ '<button type="button" class="primary" data-smart-request="approve" '+(canConfirm?'':'disabled')+'>✓ POTVRDI NAJAVU I POŠALJI QR</button></div>'+
+ '<small>Rampa je predviđena prema trenutačnoj zauzetosti. Stvarna rampa može se promijeniti na dan isporuke. Potvrda ne rezervira fizičku rampu.</small>';
+}
+async function previewRequest(id){
+ if(!['inventory','admin'].includes(role()))return;
+ if(reviewBusy)return;
+ reviewBusy=true;
+ try{
+  const preview=await invoke({action:'preview_request',delivery_id:String(id)});
+  currentRequestPreview=preview;
+  const nav=document.querySelector('.nav-btn[data-view="dailyMap"]');
+  const home=document.querySelector('[data-home-target="dailyMap"]');
+  if(nav)nav.click();else home?.click();
+  const date=$('dailyMapDate'),warehouse=$('dailyMapWarehouseSelect');
+  if(date)date.value=preview.date;
+  if(warehouse){
+   const option=[...warehouse.options].find(o=>o.value===String(preview.warehouse));
+   if(option)warehouse.value=option.value;
+  }
+  window.renderDailyMap?.();
+  showRequestPanel(preview);
+  if(preview.candidate&&!confirmablePreview())
+   showRequestPanel(preview,'Dnevna mapa ne potvrđuje da je predloženi okvir slobodan. Provjeri skladište i osvježi prijedlog.');
+  $('yardonSmartRequestReview')?.scrollIntoView({behavior:'smooth',block:'center'});
+ }catch(e){alert('SMART pregled nije moguć: '+String(e?.message||e))}
+ finally{reviewBusy=false}
+}
+async function resolveRequestReview(choice){
+ const p=currentRequestPreview;if(!p||reviewBusy)return;
+ if(choice==='cancel'){clearRequestPreview();return}
+ if(!['approve','reject'].includes(choice))return;
+ if(!['inventory','admin'].includes(role()))return;
+ reviewBusy=true;
+ const panel=$('yardonSmartRequestReview');
+ panel?.querySelectorAll('button').forEach(el=>el.disabled=true);
+ try{
+  if(choice==='approve'){
+   if(!p.candidate||!confirmablePreview())throw new Error('Predložena rampa nije slobodna u Dnevnoj mapi.');
+   const latest=await invoke({action:'preview_request',delivery_id:p.id});
+   if(!latest.candidate||latest.date!==p.date||latest.warehouse!==p.warehouse||
+      latest.candidate.dock!==p.candidate.dock||latest.candidate.time!==p.candidate.time)
+    throw new Error('Zauzetost ili preporuka se promijenila. Ponovno otvori SMART pregled.');
+   if(!window.confirm('Potvrditi dobavljačev zahtjev za '+p.date+' u '+p.time+'? R'+p.candidate.dock+' je samo predviđena rampa. QR će se poslati dobavljaču.'))return;
+   await window.YardivoSupplierLiveSync.call('internal_update',{
+    id:p.id,status:'confirmed',dock:null,smart_preview_ramp:Number(p.candidate.dock)
+   });
+   let qrOk=false,qrError='';
+   try{
+    if(!window.YardivoGateQrV583?.issueAfterSmartApproval)throw new Error('QR servis nije spreman.');
+    await window.YardivoGateQrV583.issueAfterSmartApproval(p.id);
+    qrOk=true;
+   }catch(e){qrError=String(e?.message||e)}
+   try{await invoke({action:'record_request_review',delivery_id:p.id,decision:'confirmed'})}catch(e){console.warn('SMART audit',e)}
+   clearRequestPreview();
+   await window.YardivoSupplierLiveSync?.pullInternal?.(true);
+   if(!qrOk)alert('Najava je POTVRĐENA, ali QR nije poslan: '+qrError+'. Otvori Najave dobavljača i pošalji QR iz potvrđene najave.');
+   else alert('Najava je potvrđena. QR je poslan dobavljaču. Predviđena rampa R'+p.candidate.dock+' može se promijeniti.');
+  }else{
+   const reason=window.prompt('Razlog odbijanja zahtjeva:','');
+   if(reason===null)return;
+   if(!reason.trim())throw new Error('Razlog odbijanja je obavezan.');
+   if(!window.confirm('Odbiti dobavljačevu najavu?'))return;
+   await window.YardivoSupplierLiveSync.call('internal_update',{id:p.id,status:'rejected',review_note:reason.trim()});
+   try{await invoke({action:'record_request_review',delivery_id:p.id,decision:'rejected'})}catch(e){console.warn('SMART audit',e)}
+   clearRequestPreview();
+   await window.YardivoSupplierLiveSync?.pullInternal?.(true);
+  }
+  void loadActivity();
+ }catch(e){alert('SMART odluka nije provedena: '+String(e?.message||e));if(currentRequestPreview)showRequestPanel(currentRequestPreview)}
+ finally{reviewBusy=false;panel?.querySelectorAll('button').forEach(el=>el.disabled=false)}
+}
+document.addEventListener('click',e=>{
+ const action=e.target.closest?.('[data-smart-request]');
+ if(action){
+  e.preventDefault();e.stopPropagation();
+  void resolveRequestReview(action.dataset.smartRequest);return;
+ }
+ const b=e.target.closest?.('[data-yv-smart-preview]');
+ if(b&&['inventory','admin'].includes(role())){
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  void previewRequest(b.dataset.yvSmartPreview);return;
+ }
+},true);
+
 document.addEventListener('DOMContentLoaded',()=>{applyVisibility();shell()},{once:true});
 window.addEventListener('load',()=>{applyVisibility();shell();if($('smartReplanning')?.classList.contains('active'))void refresh(false);void backgroundSmart()},{once:true});
 window.addEventListener('yardivo:login',()=>{popupSeen.clear();activityEvents=[];setTimeout(()=>void backgroundSmart(),1500)});
@@ -369,5 +487,5 @@ window.addEventListener('storage',e=>{if(e.key==='yardivo_auto_replan_cfg_v1'){s
 setTimeout(shell,250);
 setInterval(()=>{void backgroundSmart()},60000);
 window.YardivoSmartReplanning={scanNow:()=>backgroundSmart(),render:render,logs:()=>activityEvents,applyState:()=>{applyVisibility();void backgroundSmart()}};
-window.YardOnSmartCenter={refresh:()=>refresh(true),render,activity:()=>activityEvents,enabled:aiEnabled};
+window.YardOnSmartCenter={refresh:()=>refresh(true),render,activity:()=>activityEvents,enabled:aiEnabled,previewRequest,previewTarget,clearRequestPreview};
 })();
