@@ -21,15 +21,10 @@
  function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
  function updateBadge(){
-   const pending=records().filter(a=>a.approvalStatus==='PENDING').length;
-   const badge=document.getElementById('unannouncedNavBadge');
-   const nav=document.querySelector('[data-view="unannounced"]');
-   if(nav)nav.style.setProperty('display',allowed()?'flex':'none','important');
-   if(badge){
-     badge.textContent=pending;
-     badge.style.display=allowed()&&pending>0?'inline-flex':'none';
-   }
+   // Central badge authority is yardivo-unannounced-location-flicker-fix.
+   window.YardivoUnannouncedBadgeV583?.refresh?.();
  }
+
  function statusLabel(a){
    if(a.approvalStatus==='APPROVED')return ['approved','ODOBRENO'];
    if(a.approvalStatus==='REJECTED')return ['rejected','ODBIJENO'];
@@ -38,12 +33,8 @@
  function render(){
    const view=document.getElementById('unannounced');
    if(!view)return;
-   view.style.display='';
-   if(!allowed()){
-     view.style.display='none';
-     return;
-   }
-   view.style.display='';
+   // A background sync must never change visibility of another page.
+   if(!allowed()||(!view.classList.contains('active')&&!view.classList.contains('manager-force-active')))return;
    const all=records();
    const pending=all.filter(a=>a.approvalStatus==='PENDING').length;
    const approved=all.filter(a=>a.approvalStatus==='APPROVED').length;
@@ -109,24 +100,19 @@
 
  // Home menu card for allowed roles.
  function homeCard(){
-   const grid=document.getElementById('homeMenuGrid');if(!grid)return;
+   const grid=document.getElementById('homeMenuGrid');
+   if(!grid||!allowed())return;
    let card=grid.querySelector('[data-home-target="unannounced"]');
-   if(!allowed()){
-     if(card)card.style.setProperty('display','none','important');
-     return;
-   }
    if(!card){
-     card=document.createElement('div');
+     card=document.createElement('button');
+     card.type='button';
      card.className='home-menu-card';
      card.dataset.homeTarget='unannounced';
-     card.setAttribute('role','button');
-     card.setAttribute('tabindex','0');
      card.innerHTML='<div class="home-menu-icon">⚠</div><h3>Nenajavljeni dolasci</h3><p>Pregled zahtjeva za kamione bez najave.</p><div class="home-menu-open">OTVORI →</div>';
      grid.appendChild(card);
    }
-   card.style.setProperty('display','flex','important');
-   card.onclick=()=>window.openAppView?.('unannounced');
  }
+
  function refreshOwned(){
    homeCard();updateBadge();render();
  }
