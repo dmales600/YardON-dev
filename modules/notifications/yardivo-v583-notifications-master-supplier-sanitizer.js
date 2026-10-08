@@ -22,7 +22,7 @@ function candidate(n){
 }
 function hasRetiredSupplierMention(n,active){
  const text=[n?.title,n?.body].map(x=>String(x||'')).join(' ');
- const rx=/\\bDobavljač\\s+(\\d{1,3})\\b/gi;let m;
+ const rx=/\bDobavljač\s+(\d{1,3})\b/gi;let m;
  while((m=rx.exec(text))){
    const num=Number(m[1]);
    if(num>=1&&num<=262&&!active.has(norm('Dobavljač '+num))&&!active.has(norm('SUP'+String(num).padStart(3,'0'))))return true;
