@@ -15,19 +15,12 @@ try{
   }
 }catch(_){}
 
-function refreshVisibleMap(){
+function refreshVisibleMapStatus(){
   if(document.hidden)return;
-  const daily=document.getElementById('dailyMap');
-  const weekly=document.getElementById('weeklyMap');
-  try{
-    if(daily?.classList.contains('active')||daily?.classList.contains('manager-force-active')){
-      if(typeof renderDailyMap==='function')renderDailyMap();
-    }else if(weekly?.classList.contains('active')||weekly?.classList.contains('manager-force-active')){
-      if(typeof renderWeeklyMap==='function')renderWeeklyMap();
-    }
-  }catch(_){}
+  try{window.YardivoDailyMapLiveStatus?.refresh?.()}catch(_){}
 }
-window.__yardivoMapLiveDelayTimerV1=setInterval(refreshVisibleMap,15000);
-window.addEventListener('focus',refreshVisibleMap);
-window.addEventListener('yardivo:data-synced',refreshVisibleMap);
+if(window.__yardivoMapLiveDelayTimerV1)clearInterval(window.__yardivoMapLiveDelayTimerV1);
+/* Live delay/status updates must never rebuild the whole map. */
+window.__yardivoMapLiveDelayTimerV1=setInterval(refreshVisibleMapStatus,30000);
+window.addEventListener('focus',refreshVisibleMapStatus);
 })();
