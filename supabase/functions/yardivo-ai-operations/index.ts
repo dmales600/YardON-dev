@@ -310,7 +310,7 @@ Deno.serve(async(req:Request)=>{
     if(q.error)throw q.error;if(!q.data)throw new Error("Najava nije pronađena.");
     if(String(q.data.status||"").toLowerCase()!==decision)throw new Error("Stanje najave ne odgovara SMART odluci.");
     const accessible=allowedWarehouses(p,await master());
-    if(!accessible.some((w:any)=>String(w.id)===String(q.data.warehouse)))throw new Error("Nemate pristup skladištu.");
+    if(!accessible.some((w:any)=>String(w.id)===String(q.data?.warehouse||"")))throw new Error("Nemate pristup skladištu.");
     let log=await readState("yardivo_ai_operations_plan_log_v1",[]);
     if(!Array.isArray(log))log=[];
     const recordId="SMART-REQUEST-"+id+"-"+decision;
