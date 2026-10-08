@@ -44,6 +44,8 @@ function notificationFromRow(x){
     location:String(x?.location||x?.location_id||'').trim(),
     supplier:supplierLabel(x),
     supplierDeliveryId:id,
+    // Visible reference is the supplier's NAJxxxxxx client ID; keep UUID for joins.
+    publicAnnouncementId:String(x?.client_id||x?.clientId||'').trim(),
     announcementId:String(x?.announcement_id||x?.announcementId||'SUPDEL-'+id),
     roles:['admin','manager','inventory'],
     createdAt:String(atRaw||new Date().toISOString()),

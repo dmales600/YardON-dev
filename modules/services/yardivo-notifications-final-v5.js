@@ -4,7 +4,7 @@
 const KEY='yardivo_live_notifications_v1';
 const CUT_KEY='yardivo_notification_clear_cutoff_v583';
 const SEEN='yardivo_notification_seen_v5';
-let fp='',authSession=null;
+let fp='',authSession=null,sessionStartedAt=0;
 
 function sessionSnapshot(){
   try{
@@ -298,14 +298,44 @@ function reader(){
   return m;
 }
 function field(k,v){return v===undefined||v===null||v===''?'':`<div class="y5-reader-field"><small>${esc(k)}</small><strong>${esc(v)}</strong></div>`}
+function displayAnnouncementId(n){
+  // Supplier-facing client_id is the public reference; SUPDEL-UUID is internal only.
+  const explicit=[n?.publicAnnouncementId,n?.clientId,n?.client_id,n?.bookingNumber]
+    .map(x=>String(x||'').trim()).find(x=>/^NAJ[0-9]{6}$/i.test(x));
+  if(explicit)return explicit.toUpperCase();
+  const sid=String(n?.supplierDeliveryId||'').trim(),raw=String(n?.announcementId||'').trim();
+  if(/^NAJ[0-9]{6}$/i.test(raw))return raw.toUpperCase();
+  try{
+    const live=window.YardivoSupplierLiveSync?.internalRows?.()||[];
+    const hit=live.find(x=>String(x?.id||'')===sid||String(x?.id||'')===raw.replace(/^SUPDEL-/,''));
+    const client=String(hit?.client_id||'').trim();
+    if(/^NAJ[0-9]{6}$/i.test(client))return client.toUpperCase();
+  }catch(_){}
+  // Do not misrepresent a technical UUID as a supplier-facing booking number.
+  return '—';
+}
+
 function openReader(id,mark=true){
   const n=load().find(x=>String(x.id)===String(id));if(!n)return;
   if(mark)markRead(id,false);
   const m=reader(),h=m.querySelector('.y5-reader-head'),b=m.querySelector('.y5-reader-body');
   h.innerHTML=`<div><h3>${esc(n.title||'Notifikacija')}</h3><small>${fmt(n.at||n.createdAt)}</small></div><button type="button" class="y5-reader-close">×</button>`;
-  b.innerHTML=`<div class="y5-reader-message">${esc(n.body||'')}</div><div class="y5-reader-grid">${field('Skladište',resolvedWarehouse(n))}${field('Kategorija',notificationClass(n)==='ANNOUNCEMENT'?'NAJAVA / TERMIN':notificationClass(n)==='OPERATIONAL'?'OPERATIVA':'OSTALO')}${field('Tip',n.event)}${field('Dobavljač',n.supplier)}${field('Tablice',n.plate)}${field('Najava ID',n.announcementId)}${field('Status','PROČITANO')}</div>`;
+  b.innerHTML=`<div class="y5-reader-message">${esc(n.body||'')}</div><div class="y5-reader-grid">${field('Skladište',resolvedWarehouse(n))}${field('Kategorija',notificationClass(n)==='ANNOUNCEMENT'?'NAJAVA / TERMIN':notificationClass(n)==='OPERATIONAL'?'OPERATIVA':'OSTALO')}${field('Tip',n.event)}${field('Dobavljač',n.supplier)}${field('Tablice',n.plate)}${field('Broj najave',displayAnnouncementId(n))}${field('Status','PROČITANO')}</div>`;
   h.querySelector('.y5-reader-close').onclick=closeReader;
+  m.dataset.y5ReaderNotificationId=String(id);
   m.classList.add('open');document.body.style.overflow='hidden';
+  // A notification may arrive before supplier rows hydrate. Resolve the public
+  // NAJ number on demand and update only that field, never the entire reader.
+  if(displayAnnouncementId(n)==='—'&&n.supplierDeliveryId&&window.YardivoSupplierLiveSync?.call){
+    void Promise.resolve(window.YardivoSupplierLiveSync.call('list_internal')).then(rows=>{
+      const hit=(Array.isArray(rows)?rows:[]).find(x=>String(x?.id||'')===String(n.supplierDeliveryId));
+      const client=String(hit?.client_id||'').trim();
+      if(!/^NAJ[0-9]{6}$/i.test(client)||m.dataset.y5ReaderNotificationId!==String(id)||!m.classList.contains('open'))return;
+      const f=[...m.querySelectorAll('.y5-reader-field')].find(x=>x.querySelector('small')?.textContent==='Broj najave');
+      const display=f?.querySelector('strong');
+      if(display&&display.textContent!==client.toUpperCase())display.textContent=client.toUpperCase();
+    }).catch(()=>{});
+  }
   render();
 }
 function closeReader(){document.getElementById('yardivoNotifReaderV5')?.classList.remove('open');document.body.style.overflow=''}
@@ -364,7 +394,7 @@ function renderHistory(){
 function seen(){try{return new Set(JSON.parse(sessionStorage.getItem(SEEN)||'[]'))}catch(e){return new Set()}}
 function saveSeen(s){sessionStorage.setItem(SEEN,JSON.stringify([...s].slice(-300)))}
 function toast(n){
-  if(prelogin())return; // absolutely no toast on Welcome or Login
+  if(!sessionFresh(n))return; // old notices remain in written history only
   let st=document.getElementById('yardivoToastStack');if(!st){st=document.createElement('div');st.id='yardivoToastStack';document.body.appendChild(st)}
   const ua=String(n.event||'').toUpperCase()==='UNANNOUNCED_REQUEST';
   const t=document.createElement('div');t.className='y5-toast'+(ua?' ua':'');
@@ -374,10 +404,16 @@ function toast(n){
   try{window.dispatchEvent(new CustomEvent('yardivo:visible-toast',{detail:{notification:n,source:'notification-center'}}))}catch(_){}
   setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),250)},ua?4500:3000);
 }
+function sessionFresh(n){
+  // This is the receipt timestamp of the business notification, not when
+  // a delayed sync happened to download it.
+  const timestamp=notificationTimeMs(n);
+  return !prelogin()&&!!sessionStartedAt&&timestamp>=sessionStartedAt;
+}
 function baselineVisible(){
   if(prelogin())return;
   const s=seen();
-  all().forEach(n=>s.add(String(n.id)));
+  all().filter(n=>!sessionFresh(n)).forEach(n=>s.add(String(n.id)));
   saveSeen(s);
 }
 function ingest(n,{announce=true}={}){
@@ -388,13 +424,14 @@ function ingest(n,{announce=true}={}){
   if(!announce){
     const s=seen();s.add(id);saveSeen(s);
   }
-  const next=[...list.filter(x=>String(x?.id)!==id),n];
+  const fresh=notificationTimeMs(n)?n:{...n,at:new Date().toISOString(),createdAt:new Date().toISOString()};
+  const next=[...list.filter(x=>String(x?.id)!==id),fresh];
   save(next);
   render();
-  if(announce&&visible(n)&&!prelogin()){
+  if(announce&&visible(fresh)&&sessionFresh(fresh)){
     const s=seen();
     if(!s.has(id)){
-      s.add(id);saveSeen(s);toast(n);
+      s.add(id);saveSeen(s);toast(fresh);
     }
   }
   return true;
@@ -402,7 +439,9 @@ function ingest(n,{announce=true}={}){
 function checkNew(){
   if(prelogin())return;
   const s=seen();
-  unreadList().filter(n=>!s.has(String(n.id))).sort((a,b)=>String(a.at||a.createdAt||'').localeCompare(String(b.at||b.createdAt||''))).forEach(n=>{s.add(String(n.id));toast(n)});
+  unreadList().filter(n=>!s.has(String(n.id)))
+    .sort((a,b)=>String(a.at||a.createdAt||'').localeCompare(String(b.at||b.createdAt||'')))
+    .forEach(n=>{s.add(String(n.id));if(sessionFresh(n))toast(n)});
   saveSeen(s);
 }
 function fingerprint(){return JSON.stringify(load().map(n=>[n.id,n.readBy,n.at,n.createdAt]))}
@@ -445,6 +484,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeReader()});
 /* Welcome/Login phase tracking: no toast and no bell there. */
 window.addEventListener('load',()=>{
   setPhaseClasses();
+  if(!prelogin()&&!sessionStartedAt)sessionStartedAt=Date.now();
+  baselineVisible();
   setTimeout(()=>{
     setPhaseClasses();
     render();
@@ -456,7 +497,10 @@ function commitAuthSession(e){
 }
 window.addEventListener('yardivo:login',e=>{
   commitAuthSession(e);
+  sessionStartedAt=Date.now();
   try{sessionStorage.removeItem(SEEN)}catch(_){}
+  // Baseline immediately; do not race a pending data-synced/online-ready event.
+  baselineVisible();
   setTimeout(()=>{
     setPhaseClasses();
     render();
@@ -467,6 +511,8 @@ window.addEventListener('yardivo:login',e=>{
 });
 window.addEventListener('yardivo:session-ready',e=>{
   commitAuthSession(e);
+  if(!sessionStartedAt)sessionStartedAt=Date.now();
+  baselineVisible();
   setTimeout(()=>{setPhaseClasses();render();baselineVisible()},80);
 });
 ['yardivo:data-synced','yardivo:online-ready'].forEach(ev=>window.addEventListener(ev,()=>{
@@ -488,7 +534,7 @@ window.addEventListener('storage',e=>{
   setTimeout(()=>{if(prelogin())return;render();checkNew()},0);
 });
 window.addEventListener('yardivo:logout',()=>{
-  authSession=null;
+  authSession=null;sessionStartedAt=0;
   try{sessionStorage.removeItem(SEEN)}catch(_){}
   try{document.getElementById('yardivoToastStack')?.replaceChildren()}catch(_){}
   try{panel?.classList.remove('open')}catch(_){}
