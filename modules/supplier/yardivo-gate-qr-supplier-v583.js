@@ -231,5 +231,28 @@ document.addEventListener('click',e=>{
   const print=e.target.closest?.('[data-yardivo-print-gate-qr]');if(print){e.preventDefault();e.stopPropagation();openSupplierQrById(print.dataset.yardivoPrintGateQr,true);return}
 },true);
 window.addEventListener('yardivo:login',()=>{if(role()==='supplier')setTimeout(async()=>{try{await window.YardivoSupplierLiveSync?.pullSupplier?.()}catch(_){}scanSupplierQrNotifications()},500)});
+// SMART Review has already required an explicit Inventory approval. A second QR
+// preview dialog is unnecessary for this path; the same authenticated Edge
+// endpoint still checks the confirmed delivery and generates its own token.
+async function issueAfterSmartApproval(id){
+ if(!['inventory','admin'].includes(role()))throw new Error('Nema ovlasti za slanje QR koda.');
+ const raw=String(id||'');
+ if(!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(raw))throw new Error('Neispravan delivery ID.');
+ const announcementId='SUPDEL-'+raw;
+ const qr=await edge('issue',{announcementId});
+ if(!qr?.qrUrl||!qr?.token)throw new Error('QR DOCK nije izdan.');
+ await Promise.resolve(window.YardivoSupplierLiveSync?.pullInternal?.(true)).catch(()=>{});
+ window.dispatchEvent(new CustomEvent('yardivo:gate-qr-issued',{detail:{
+  id:raw,announcementId,sentAutomaticallyAfterSmart:true
+ }}));
+ return qr;
+}
+window.YardivoGateQrV583=Object.assign(window.YardivoGateQrV583||{},{
+ issueAfterSmartApproval,
+ qrMetaFromRow,
+ parseReviewNote,
+ cleanReviewNote,
+ inventoryButton
+});
 window.YARDIVO_DEV_BUILD='20260908-dev-v5.8.3-notification-warehouse-scope-fix';
 })();

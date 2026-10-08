@@ -1,0 +1,52 @@
+name: YARD ON SMART review and notification QA
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "modules/smart/yardon-smart-center-v1.js"
+      - "modules/supplier/script-022.js"
+      - "supabase/functions/yardivo-ai-operations/index.ts"
+      - "supabase/functions/yardivo-supplier-time-ops/index.ts"
+      - ".github/qa/yardon-smart-review.test.cjs"
+
+permissions:
+  contents: read
+
+jobs:
+  safe-smart-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Check JavaScript syntax
+        run: |
+          node --check modules/smart/yardon-smart-center-v1.js
+          node --check modules/supplier/script-022.js
+          node --check modules/supplier/yardivo-gate-qr-supplier-v583.js
+          node --check modules/supplier/yardivo-v582-supplier-planner-canonical-fix.js
+          node --check modules/supplier/yardivo-v583-inventory-supplier-actions-fix-20260923.js
+          node --check modules/master-data/yardivo-v548-full-operational-notifications.js
+      - name: Deno type-check SMART and supplier Edge services
+        run: |
+          deno check supabase/functions/yardivo-ai-operations/index.ts
+          deno check supabase/functions/yardivo-supplier-time-ops/index.ts
+      - name: SMART workflow security, map and notification regression
+        run: node .github/qa/yardon-smart-review.test.cjs
+      - name: Install Chromium QA dependencies
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Browser test SMART preview and approval flow
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/yardon-smart-review-http.log 2>&1 &
+          node .github/qa/yardon-smart-review-browser.test.cjs

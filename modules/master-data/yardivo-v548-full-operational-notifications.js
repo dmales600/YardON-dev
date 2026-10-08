@@ -57,6 +57,7 @@ function driver(a){return norm(a?.arrivalDriver||a?.plannedDriver||a?.driverName
 function state(a){
   return {
     id:idOf(a),
+    supplierDeliveryId:norm(a?.supplierDeliveryId||a?.supplierPortalId||''),
     supplier:norm(a?.supplier),
     orderNumber:norm(a?.orderNumber),
     date:norm(a?.date),
@@ -204,6 +205,10 @@ function scan(){
     const old=snap[s.id];
 
     if(initialized && !old){
+      // Supplier confirmation is already emitted by the authoritative
+      // Supabase supplier-time-ops service. Mirroring it into Daily Map
+      // must not create a second "NOVA NAJAVA" for Reception.
+      if(s.supplierDeliveryId||String(s.id).startsWith('SUPDEL-'))return;
       const ua=s.arrivalType.toUpperCase()==='UNANNOUNCED';
       push(
         ua?'UNANNOUNCED_CREATED':'ANNOUNCEMENT_CREATED',

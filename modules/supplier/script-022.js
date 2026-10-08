@@ -816,6 +816,32 @@ function yardivoStableHtml(el,html,key='yvStableHtml'){
   if(!el)return false;
   const sig=yardivoUiFingerprint(html);
   if(el.dataset[key]===sig)return false;
+  // Preserve 15-minute map cells when status/ETA/SMART preview changes.
+  // The old whole-grid innerHTML replacement caused noticeable white flashes
+  // and detached elements between repeated sync ticks.
+  if(key==='yvDailyMapSig'&&el.firstElementChild?.classList.contains('daily-map-vertical-grid')){
+    const draft=document.createElement('div');draft.innerHTML=html;
+    const fresh=draft.firstElementChild,old=el.firstElementChild;
+    const previous=[...old.children],next=fresh?[...fresh.children]:[];
+    if(fresh?.classList.contains('daily-map-vertical-grid')&&
+       previous.length===next.length&&
+       old.getAttribute('style')===fresh.getAttribute('style')){
+      next.forEach((node,i)=>{
+        const current=previous[i];if(current.outerHTML===node.outerHTML)return;
+        if(current.tagName===node.tagName&&
+           current.dataset.announcementId===node.dataset.announcementId&&
+           current.getAttribute('data-move-date')===node.getAttribute('data-move-date')&&
+           current.getAttribute('data-move-warehouse')===node.getAttribute('data-move-warehouse')&&
+           current.getAttribute('data-move-dock')===node.getAttribute('data-move-dock')&&
+           current.getAttribute('data-move-time')===node.getAttribute('data-move-time')){
+          for(const attr of [...current.attributes])if(!node.hasAttribute(attr.name))current.removeAttribute(attr.name);
+          for(const attr of [...node.attributes])if(current.getAttribute(attr.name)!==attr.value)current.setAttribute(attr.name,attr.value);
+          if(current.innerHTML!==node.innerHTML)current.innerHTML=node.innerHTML;
+        }else current.replaceWith(node);
+      });
+      el.dataset[key]=sig;return true;
+    }
+  }
   el.innerHTML=html;el.dataset[key]=sig;return true;
 }
 function yardivoStableText(el,value){
@@ -1083,6 +1109,8 @@ function renderDailyMap(){
   const latest=times.length?Math.max(...times)+60:configuredEnd;
   const we=Math.min(24*60,Math.max(configuredEnd,latest,22*60));
   const rows=Math.ceil((we-ws)/15);
+  const smartTarget=window.YardOnSmartCenter?.previewTarget?.();
+  const previewForDay=smartTarget&&String(smartTarget.date)===date&&String(smartTarget.warehouse)===wh?smartTarget:null;
 
   let out=`<div class="daily-map-vertical-grid" style="grid-template-columns:84px repeat(${w.ramps},minmax(145px,1fr))">`;
   out+='<div class="dmv-corner">VRIJEME</div>';
@@ -1104,7 +1132,10 @@ function renderDailyMap(){
         </div>`;
       }else if(block){
         out+=`<div class="dmv-cell dmv-blocked" data-move-date="${date}" data-move-warehouse="${wh}" data-move-dock="${dock}" data-move-time="${label}" data-move-blocked="1" title="${block.reason||'Blokirano'}">BLOKIRANO</div>`;
-      }else out+=`<div class="dmv-cell" data-move-date="${date}" data-move-warehouse="${wh}" data-move-dock="${dock}" data-move-time="${label}"></div>`;
+      }else{
+        const suggested=previewForDay&&Number(previewForDay.dock)===dock&&String(previewForDay.time)===label;
+        out+=`<div class="dmv-cell${suggested?' yv-smart-proposed-cell':''}" data-move-date="${date}" data-move-warehouse="${wh}" data-move-dock="${dock}" data-move-time="${label}"${suggested?' title="SMART prijedlog: slobodan okvir; nije rezervirana rampa"':''}>${suggested?'<span class="yv-smart-pulse">✦ SMART PRIJEDLOG</span>':''}</div>`;
+      }
     }
   }
   yardivoStableHtml(host,out+'</div>','yvDailyMapSig');

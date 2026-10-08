@@ -141,7 +141,12 @@ window.addEventListener('click',function(e){
   e.stopPropagation();
   e.stopImmediatePropagation();
 
-  if(approveBtn){void approve(approveBtn.dataset.v583ApproveRequest,true);return}
+  if(approveBtn){
+     // Do not bypass the SMART Daily Map review. Existing internal_update remains
+     // the canonical server confirmation action after a human reviews the slot.
+     if(!window.YardOnSmartCenter?.previewRequest)return alert('SMART pregled nije spreman. Pokušaj ponovno učitati aplikaciju.');
+     void window.YardOnSmartCenter.previewRequest(approveBtn.dataset.v583ApproveRequest);return;
+   }
   if(planBtn){void openPlan(planBtn.dataset.v580Plan);return}
   if(rejectBtn){void reject(rejectBtn.dataset.v580Reject);return}
   if(wantedBtn){

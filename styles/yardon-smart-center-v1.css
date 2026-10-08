@@ -14,3 +14,29 @@
 #yardonSmartActivity .ys-event small{opacity:.7}
 #yardonSmartEngineStatus{padding:8px 0;font-weight:600}
 @media(max-width:600px){#yardonSmartPopup .ys-slots{grid-template-columns:1fr}}
+
+/* SMART review is one small panel above the Daily Map, not a second AI page. */
+#yardonSmartRequestReview{margin:12px 0 18px;border:1px solid rgba(67,206,242,.55);border-radius:16px;
+ padding:18px 20px;background:linear-gradient(125deg,#0c2634,#102f3a 65%,#153b43);
+ color:#eaffff;box-shadow:0 12px 32px #061c2830}
+#yardonSmartRequestReview .ys-review-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#yardonSmartRequestReview .ys-review-star{font-size:26px;color:#5ce1ea}
+#yardonSmartRequestReview .ys-review-heading>div{display:grid;gap:3px;flex:1;min-width:200px}
+#yardonSmartRequestReview .ys-review-heading small,#yardonSmartRequestReview>small{color:#a3c7d3;font-size:12px}
+#yardonSmartRequestReview .ys-review-mode{border:1px solid #48b2ca;padding:5px 8px;border-radius:8px;font-size:10px}
+#yardonSmartRequestReview .ys-review-summary{display:flex;align-items:center;flex-wrap:wrap;gap:18px;margin:13px 0}
+#yardonSmartRequestReview .ys-review-summary>div{padding:10px 14px;border-radius:10px;background:#173e4b;display:grid;gap:4px}
+#yardonSmartRequestReview .ys-review-summary strong{font-size:20px}
+#yardonSmartRequestReview .ys-review-summary p{flex:1;min-width:170px;font-size:13px}
+#yardonSmartRequestReview .ys-review-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin:13px 0}
+#yardonSmartRequestReview button{cursor:pointer;border-radius:10px;padding:10px 13px;font-weight:700}
+#yardonSmartRequestReview button[disabled]{opacity:.42;cursor:not-allowed}
+#yardonSmartRequestReview .ys-review-warning{color:#ffd091;font-weight:650}
+#dailyMapBoard .yv-smart-proposed-cell{position:relative;outline:3px solid #37d8cf!important;
+ outline-offset:-3px;background:rgba(21,187,167,.18)!important;box-shadow:inset 0 0 0 2px #35dfbe80;
+ z-index:1}
+#dailyMapBoard .yv-smart-pulse{display:grid;place-content:center;height:100%;min-height:30px;
+ color:#e5fffb;font-size:10px;font-weight:850;text-align:center;letter-spacing:.04em;
+ animation:yv-smart-soft-glow 1.7s ease-in-out infinite}
+@keyframes yv-smart-soft-glow{0%,100%{opacity:.78}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){#dailyMapBoard .yv-smart-pulse{animation:none}}

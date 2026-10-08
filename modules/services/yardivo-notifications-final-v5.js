@@ -119,6 +119,18 @@ function notificationSectionAllowed(){
   return typeof fn==='function' ? fn('operations')===true : false;
 }
 function eventAllowedForRole(n,r){
+  // Supplier-directed confirmations/QR events belong ONLY to their recipient.
+  // Never expose these to another Supplier, Inventory, Reception or other roles.
+  const targetId=String(n?.targetSupplierAuthUserId||'').trim();
+  const targetName=String(n?.targetSupplierUsername||'').trim().toLowerCase();
+  if(targetId||targetName){
+    if(r!=='supplier')return false;
+    const sess=sessionSnapshot()||{};
+    const selfId=String(sess.authUserId||sess.auth_user_id||sess.userId||'').trim();
+    const selfName=String(sess.username||sess.user||'').trim().toLowerCase();
+    return !!((targetId&&selfId&&targetId===selfId)||
+      (targetName&&selfName&&targetName===selfName));
+  }
   if(r==='admin')return true;
   if(r==='manager')return notificationSectionAllowed();
 
@@ -240,6 +252,10 @@ function warehouseMatchesActive(n){
 function visible(n){
   const r=role();
   if(!eventAllowedForRole(n,r))return false;
+  // Supplier auth identity is checked above. The Supplier portal does not
+  // have an active warehouse selector, so warehouseMatchesActive would hide
+  // otherwise valid private notifications.
+  if(r==='supplier')return true;
 
   const cls=notificationClass(n);
   const wh=resolvedWarehouse(n);
