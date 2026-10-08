@@ -1,4 +1,6 @@
 import { createClient } from "jsr:@supabase/supabase-js@2.116.0";
+// Separate tested scheduling core; preview actions never write to deliveries.
+import {planStableDay,planSevenDays} from "../_shared/yardon-stable-planner-v1.mjs";
 
 const CORS={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
 const J=(x:any,s=200)=>new Response(JSON.stringify(x),{status:s,headers:{...CORS,"Content-Type":"application/json","Cache-Control":"no-store"}});
@@ -197,9 +199,81 @@ async function resolveChange(decisionId:string,approve:boolean,p:any){
  return d;
 }
 
+
+/**
+ * Seven-day STABLE PLAN preview.
+ * Uses Master supplier + warehouse authority and existing persisted bookings;
+ * never changes a delivery or a ramp while calculating the preview.
+ * Exposed as "stable_preview_day" / "stable_preview_week" (read-only).
+ */
+async function stablePreview(p:any,b:any,weekly:boolean){
+ if(!["admin","inventory","reception"].includes(String(p.role||"")))
+  throw new Error("Nema ovlasti za STABLE PLAN pregled.");
+ const zone="Europe/Zagreb";
+ const now=new Date();
+ const part=new Intl.DateTimeFormat("en-GB",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(now);
+ const partVal=(type:string)=>part.find(x=>x.type===type)?.value||"";
+ const today=partVal("year")+"-"+partVal("month")+"-"+partVal("day");
+ const nowTime=partVal("hour")+":"+partVal("minute");
+ const start=safeDate(String(b.start_date||b.date||today));
+ const end=new Date(Date.parse(start+"T12:00:00Z")+(weekly?6:0)*86400000).toISOString().slice(0,10);
+ const m=await master(),directory=supplierDirectory(m),available=allowedWarehouses(p,m),warehouse=String(b.warehouse||"").trim();
+ const selected=warehouse?available.filter((w:any)=>String(w.id)===warehouse):available;
+ if(warehouse&&!selected.length)throw new Error("Nemate pravo pristupa tom skladištu.");
+ if(!selected.length)return {startDate:start,endDate:end,days:[],mode:"STABLE_PREVIEW",readOnly:true};
+ const whIds=selected.map((w:any)=>String(w.id));
+ // Never silently truncate a busy 7-day schedule at PostgREST's default
+ // row limit; incomplete data could produce a false "free dock" recommendation.
+ const deliveryRows:any[]=[];
+ for(let offset=0;offset<10000;offset+=500){
+  const q=await db.from("yardivo_supplier_deliveries")
+   .select("id,supplier_username,supplier_name,warehouse,delivery_date,requested_time,pallets,duration_minutes,status,planned_dock,planned_start,planned_end")
+   .gte("delivery_date",start).lte("delivery_date",end).in("warehouse",whIds)
+   .order("delivery_date",{ascending:true}).order("id",{ascending:true})
+   .range(offset,offset+499);
+  if(q.error)throw q.error;
+  deliveryRows.push(...(q.data||[]));
+  if((q.data||[]).length<500)break;
+  if(offset+500>=10000)throw new Error("Plan ima previše dostava za siguran izračun; ne prikazuj nepotpun raspored.");
+ }
+ const deliveries=deliveryRows.filter((d:any)=>
+  !!canonicalSupplier(d.supplier_name||d.supplier_username,directory));
+ const ids=deliveries.map((d:any)=>String(d.id));
+ let checked=new Set<string>();
+ if(ids.length){
+  const q=await db.from("yardivo_delivery_passes")
+   .select("supplier_delivery_id,checked_in_at").in("supplier_delivery_id",ids).not("checked_in_at","is",null);
+  if(q.error)throw q.error;
+  checked=new Set((q.data||[]).map((row:any)=>String(row.supplier_delivery_id)));
+ }
+ const full=selected.map((w:any)=>({
+  id:String(w.id),name:String(w.name||w.id),
+  reception_from:String(w.reception_from||"06:00"),
+  reception_to:String(w.reception_to||"18:00"),
+  ramp_settings:rampList(w),
+  deliveries:deliveries.filter((d:any)=>String(d.warehouse)===String(w.id)).map((d:any)=>({
+   id:String(d.id),supplier:canonicalSupplier(d.supplier_name||d.supplier_username,directory),
+   warehouse:String(d.warehouse),date:String(d.delivery_date).slice(0,10),
+   requestedTime:String(d.requested_time||"").slice(0,8),
+   pallets:Number(d.pallets||0),durationMinutes:d.duration_minutes,
+   status:String(d.status||""),
+   plannedDock:d.planned_dock,plannedStart:d.planned_start,plannedEnd:d.planned_end,
+   checkedInAt:checked.has(String(d.id))?true:null
+  }))
+ }));
+ const result=planSevenDays({startDate:start,warehouses:full,timeZone:zone,today,nowTime,freezeMinutes:120,maxShiftMinutes:300,lateThresholdMinutes:15});
+ const visible=weekly?result.days:result.days.filter((x:any)=>x.date===start);
+ return {startDate:start,endDate:weekly?end:start,days:visible,mode:"STABLE_PREVIEW",readOnly:true,
+  warnings:["Plan je pregled. Ništa se ne mijenja u bazi bez potvrđene implementacije i odobrenja Zaliha."]};
+}
+
 Deno.serve(async(req:Request)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:CORS});if(req.method!=="POST")return J({ok:false,error:"Method not allowed"},405);
  try{const p=await profile(req),b=await req.json().catch(()=>({})),action=String(b.action||"snapshot").toLowerCase();if(action==="health")return J({ok:true,provider:"gemini",geminiKeyPresent:Boolean(geminiKey()),model:geminiModel()});
+  if(action==="stable_preview_day"||action==="stable_preview_week"){
+    const result=await stablePreview(p,b,action==="stable_preview_week");
+    return J({ok:true,data:result});
+  }
   const aiCfg=await readState("yardivo_auto_replan_cfg_v1",{enabled:false,mode:"PAUSED"});
   if(aiCfg?.enabled!==true||String(aiCfg?.mode||"").toUpperCase()==="PAUSED")return J({ok:false,error:"AI upravljanje YardOnom je isključeno od strane Admina.",code:"AI_CONTROL_OFF"},403);
   if(["approve_change","reject_change"].includes(action)){const d=await resolveChange(String(b.decision_id||""),action==="approve_change",p);return J({ok:true,data:{decision:d}})}
