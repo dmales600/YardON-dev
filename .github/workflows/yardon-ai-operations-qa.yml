@@ -229,7 +229,12 @@ jobs:
                 window.YardivoAuth=window.YardivoAuth||{};
                 window.YardivoAuth.client=async()=>mockClient;
               });
-              await page.evaluate(()=>window.YardOnSmartCenter.refresh());
+              await page.evaluate(()=>{
+                const login=document.getElementById('loginOverlay');
+                if(login){login.setAttribute('aria-hidden','true');login.style.setProperty('display','none','important');}
+                document.body.classList.remove('yardivo-prelogin','yardivo-welcome-active');
+                return window.YardOnSmartCenter.refresh();
+              });
               if(testRole==='inventory'){
                 await page.locator('#yardonSmartPopup [data-smart-popup="approve"]').waitFor({timeout:5000});
                 const text=await page.locator('#yardonSmartPopup').innerText();
