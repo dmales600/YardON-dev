@@ -395,7 +395,7 @@ function showRequestPanel(preview,message=''){
  (message?'<p class="ys-review-warning">'+esc(message)+'</p>':'')+
  '<div class="ys-review-actions"><button type="button" data-smart-request="cancel">ZATVORI PREGLED</button>'+
  '<button type="button" data-smart-request="reject">ODBIJ ZAHTJEV</button>'+
- '<button type="button" class="primary" data-smart-request="approve" '+(canConfirm?'':'disabled')+'>✓ POTVRDI NAJAVU I POŠALJI QR</button></div>'+
+ '<button type="button" class="primary" data-smart-request="approve" '+(canConfirm?'':'disabled')+'>'+(c&&c.time!==preview.time?'↗ POŠALJI DRUGI TERMIN DOBAVLJAČU':'✓ POTVRDI NAJAVU I POŠALJI QR')+'</button></div>'+
  '<small>Rampa je predviđena prema trenutačnoj zauzetosti. Stvarna rampa može se promijeniti na dan isporuke. Potvrda ne rezervira fizičku rampu.</small>';
 }
 async function previewRequest(id){
@@ -437,6 +437,19 @@ async function resolveRequestReview(choice){
    if(!latest.candidate||latest.date!==p.date||latest.warehouse!==p.warehouse||
       latest.candidate.dock!==p.candidate.dock||latest.candidate.time!==p.candidate.time)
     throw new Error('Zauzetost ili preporuka se promijenila. Ponovno otvori SMART pregled.');
+   if(latest.candidate.time!==p.time){
+     if(!window.confirm('Traženi termin nije slobodan. Poslati dobavljaču prijedlog '+p.date+' u '+p.candidate.time+' na pregled? QR se još NEĆE izdati.'))return;
+     await window.YardivoSupplierLiveSync.call('internal_update',{
+      id:p.id,status:'proposal_sent',requested_time:p.candidate.time,
+      proposed_date:p.date,proposed_time:p.candidate.time,proposed_dock:null,
+      review_note:'SMART je predložio drugi termin '+p.date+' '+p.candidate.time+'. Dobavljač mora prihvatiti. R'+p.candidate.dock+' nije konačna rampa.'
+     });
+     try{await invoke({action:'record_request_review',delivery_id:p.id,decision:'proposal_sent'})}catch(e){console.warn('SMART audit',e)}
+     clearRequestPreview();
+     await window.YardivoSupplierLiveSync?.pullInternal?.(true);
+     alert('SMART prijedlog je poslan dobavljaču. Najava nije potvrđena i QR nije izdan.');
+     return;
+   }
    if(!window.confirm('Potvrditi dobavljačev zahtjev za '+p.date+' u '+p.time+'? R'+p.candidate.dock+' je samo predviđena rampa. QR će se poslati dobavljaču.'))return;
    await window.YardivoSupplierLiveSync.call('internal_update',{
     id:p.id,status:'confirmed',dock:null,smart_preview_ramp:Number(p.candidate.dock)
