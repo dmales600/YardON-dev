@@ -28,6 +28,18 @@ assert.equal(ctx.showNumber({announcementId:'SUPDEL-00000000-0000-4000-8000-0000
 assert(supplierSrc.includes('publicAnnouncementId:String(x?.client_id||x?.clientId'),'new supplier notification must carry real client_id');
 assert(src.includes("field('Broj najave',displayAnnouncementId(n))"),'reader must show public booking number');
 assert(src.includes("const number=canonicalSupplierAnnouncementNumber(hit?.client_id);"),'old notifications must canonicalize fetched client_id');
+assert(src.includes("call('notification_reference',{id:String(n.supplierDeliveryId)})"),'old cancelled notifications must use scoped historical reference lookup');
+const edge=fs.readFileSync('supabase/functions/yardivo-supplier-deliveries/index.ts','utf8');
+const actionStart=edge.indexOf("if(a==='notification_reference'){");
+const actionEnd=edge.indexOf("if(a==='list_internal'){",actionStart);
+assert(actionStart>0&&actionEnd>actionStart,'missing secure reference lookup');
+const action=edge.slice(actionStart,actionEnd);
+assert(action.includes("!['admin','manager','inventory','reception'].includes(r)"),'reject supplier/gate reading internal references');
+assert(action.includes('canWarehouse(p,String(delivery.warehouse'), 'enforce warehouse authorization');
+assert(action.includes(".select('id,client_id,warehouse').eq('id',id)"),'look up exact server UUID');
+assert(!action.includes(".not('status'"),'historical lookup must include cancelled deliveries');
+assert(edge.includes("publicAnnouncementId:String(x.client_id||'')"),'new notices must preserve the server client ID');
+
 assert(src.includes("item.publicAnnouncementId=String(hit.client_id);"),'resolved client_id must be persisted for next opening');
 // Logged-out history is recorded but never replayed as live speech.
 const sessionCode=extract('function sessionFresh(n){','\nfunction ingest(');
