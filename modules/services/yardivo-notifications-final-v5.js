@@ -298,20 +298,31 @@ function reader(){
   return m;
 }
 function field(k,v){return v===undefined||v===null||v===''?'':`<div class="y5-reader-field"><small>${esc(k)}</small><strong>${esc(v)}</strong></div>`}
+function canonicalSupplierAnnouncementNumber(clientId){
+  const raw=String(clientId||'').trim();
+  if(/^NAJ[0-9]{6}$/i.test(raw))return raw.toUpperCase();
+  // The supplier STATUS page uses this exact module for SUP-UUID → NAJxxxxxx.
+  // Never hash SUPDEL-{database UUID}: it is a different identifier.
+  if(!/^SUP-/i.test(raw))return '';
+  const value=window.YardivoAnnouncementNumberV583?.displayId?.(raw);
+  return /^NAJ[0-9]{6}$/i.test(String(value||''))?String(value).toUpperCase():'';
+}
 function displayAnnouncementId(n){
-  // Supplier-facing client_id is the public reference; SUPDEL-UUID is internal only.
-  const explicit=[n?.publicAnnouncementId,n?.clientId,n?.client_id,n?.bookingNumber]
-    .map(x=>String(x||'').trim()).find(x=>/^NAJ[0-9]{6}$/i.test(x));
-  if(explicit)return explicit.toUpperCase();
+  const values=[n?.publicAnnouncementId,n?.clientId,n?.client_id,n?.bookingNumber];
+  for(const candidate of values){
+    const formatted=canonicalSupplierAnnouncementNumber(candidate);
+    if(formatted)return formatted;
+  }
   const sid=String(n?.supplierDeliveryId||'').trim(),raw=String(n?.announcementId||'').trim();
   if(/^NAJ[0-9]{6}$/i.test(raw))return raw.toUpperCase();
+  // Old notifications have only SUPDEL-database UUID; resolve the corresponding
+  // Supabase client_id and apply the SAME number formatter as Supplier STATUS.
   try{
     const live=window.YardivoSupplierLiveSync?.internalRows?.()||[];
     const hit=live.find(x=>String(x?.id||'')===sid||String(x?.id||'')===raw.replace(/^SUPDEL-/,''));
-    const client=String(hit?.client_id||'').trim();
-    if(/^NAJ[0-9]{6}$/i.test(client))return client.toUpperCase();
+    const number=canonicalSupplierAnnouncementNumber(hit?.client_id);
+    if(number)return number;
   }catch(_){}
-  // Do not misrepresent a technical UUID as a supplier-facing booking number.
   return '—';
 }
 
@@ -327,14 +338,21 @@ function openReader(id,mark=true){
   // A notification may arrive before supplier rows hydrate. Resolve the public
   // NAJ number on demand and update only that field, never the entire reader.
   if(displayAnnouncementId(n)==='—'&&n.supplierDeliveryId&&window.YardivoSupplierLiveSync?.call){
-    void Promise.resolve(window.YardivoSupplierLiveSync.call('list_internal')).then(rows=>{
-      const hit=(Array.isArray(rows)?rows:[]).find(x=>String(x?.id||'')===String(n.supplierDeliveryId));
-      const client=String(hit?.client_id||'').trim();
-      if(!/^NAJ[0-9]{6}$/i.test(client)||m.dataset.y5ReaderNotificationId!==String(id)||!m.classList.contains('open'))return;
-      const f=[...m.querySelectorAll('.y5-reader-field')].find(x=>x.querySelector('small')?.textContent==='Broj najave');
-      const display=f?.querySelector('strong');
-      if(display&&display.textContent!==client.toUpperCase())display.textContent=client.toUpperCase();
-    }).catch(()=>{});
+    void Promise.resolve(window.YardivoSupplierLiveSync.call('notification_reference',{id:String(n.supplierDeliveryId)})).then(hit=>{
+      const number=canonicalSupplierAnnouncementNumber(hit?.client_id);
+      if(!number)return;
+      // Preserve the resolved canonical client ID so re-opening old notifications
+      // works without another network call. UUID stays untouched for linkage.
+      const current=load(),item=current.find(x=>String(x.id)===String(id));
+      if(item&&item.publicAnnouncementId!==String(hit.client_id)){
+        item.publicAnnouncementId=String(hit.client_id);
+        save(current);
+      }
+      if(m.dataset.y5ReaderNotificationId!==String(id)||!m.classList.contains('open'))return;
+      const fieldNode=[...m.querySelectorAll('.y5-reader-field')].find(x=>x.querySelector('small')?.textContent==='Broj najave');
+      const display=fieldNode?.querySelector('strong');
+      if(display&&display.textContent!==number)display.textContent=number;
+    }).catch(err=>console.warn('NAJ broj nije dohvaćen za notifikaciju',err));
   }
   render();
 }
