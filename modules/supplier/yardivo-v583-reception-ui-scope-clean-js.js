@@ -3,7 +3,7 @@
 if(window.__YV_RECEPTION_UI_SCOPE_CLEAN__)return;
 window.__YV_RECEPTION_UI_SCOPE_CLEAN__=true;
 
-const HIDDEN_VIEWS=new Set(['dashboard','controlTower','controltower','checkin','docks','suppliers','orderSearch']);
+const HIDDEN_VIEWS=new Set(['dashboard','controlTower','controltower','checkin','docks','orderSearch']);
 const $=id=>document.getElementById(id);
 let applyTimer=0;
 let lastUiSig='';
