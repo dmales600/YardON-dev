@@ -6,15 +6,20 @@ const fs=require('node:fs');
 const index=fs.readFileSync('index.html','utf8');
 const m=JSON.parse(fs.readFileSync('app/module-manifest.json','utf8'));
 const norm=url=>url.replace(/^\.\//,'').split('?')[0];
-const external=[...index.matchAll(/<script\b([^>]*)>/gi)].map(x=>{
+const allScripts=[...index.matchAll(/<script\b([^>]*)>/gi)].map(x=>{
  const attr=x[1],src=attr.match(/\bsrc=["']([^"']+)/)?.[1];
- return src?norm(src):null;
+ return src?src:null;
 }).filter(Boolean);
+const remote=url=>/^(https?:)?\/\//.test(url);
+const external=allScripts.filter(x=>!remote(x)).map(norm);
+const vendor=allScripts.filter(remote);
 const css=[...index.matchAll(/<link\b([^>]*rel=["']stylesheet["'][^>]*)>/gi)]
  .map(x=>x[1].match(/\bhref=["']([^"']+)/)?.[1])
  .filter(x=>x&&!/^https?:\/\//.test(x)).map(norm);
 assert.equal(new Set(external).size,external.length,'Duplicate external JS load');
-assert.equal(m.script_count,external.length,'Stale module count');
+assert.equal(m.script_count,external.length,'Stale local module count');
+assert.equal(m.third_party_script_count,vendor.length,'Stale vendor module count');
+assert.deepEqual(m.third_party_scripts.map(x=>x.url),vendor,'Manifest CDN scripts differ from live index');
 assert.deepEqual(m.scripts.map(x=>x.path),external,'Manifest differs from active index script order');
 assert.equal(new Set(m.scripts.map(x=>x.path)).size,m.scripts.length);
 assert.deepEqual(m.css.files,css,'Manifest CSS files do not match index');
