@@ -59,8 +59,9 @@ function hasConflict(a){
  const w=a.warehouse||yardivoCanonicalWarehouseV583(),start=min(a.time),dur=Math.max(15,Number(a.duration||15));
  if(isLocked(w,Number(a.dock)))return {type:'RAMP_CLOSED',reason:`Rampa R${a.dock} je zatvorena / nedostupna.`};
  if(isBlocked(w,a.date,Number(a.dock),start,dur))return {type:'RAMP_BLOCKED',reason:`Rampa R${a.dock} je blokirana u terminu ${a.time}.`};
- const conflict=A().find(b=>b.id!==a.id&&(b.warehouse||yardivoCanonicalWarehouseV583())===w&&b.date===a.date&&Number(b.dock)===Number(a.dock)&&typeof overlaps==='function'&&overlaps(start,dur,min(b.time),Number(b.duration||15)));
- if(conflict)return {type:'SLOT_CONFLICT',reason:`Termin se preklapa s ${conflict.supplier||'drugom najavom'} na R${a.dock}.`};
+ const dock=Number(a.dock);
+ const conflict=dock>0?A().find(b=>b.id!==a.id&&(b.warehouse||yardivoCanonicalWarehouseV583())===w&&b.date===a.date&&Number(b.dock)>0&&Number(b.dock)===dock&&typeof overlaps==='function'&&overlaps(start,dur,min(b.time),Number(b.duration||15))):null;
+ if(conflict)return {type:'SLOT_CONFLICT',reason:`Termin se preklapa s ${conflict.supplier||'drugom najavom'} na R${dock}.`};
  return null;
 }
 function workingDay(date){
