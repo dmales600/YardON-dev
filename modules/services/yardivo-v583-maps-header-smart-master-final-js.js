@@ -45,10 +45,8 @@ function moveSmartIntoMaster(){
 function smartOn(){const m=readMaster(), c=cfg(), s={...c,...(m.smart||{})};return s.enabled===true&&String(s.mode||'').toUpperCase()!=='PAUSED'}
 function canSeeSmart(){const r=role();if(['admin','inventory','reception'].includes(r))return true;if(r==='manager')return window.yardivoManagerSectionAllowed?.('smartReplanning')===true;return false}
 function syncSmartNav(){
- // SMART controls remain in Master Settings; never create or reveal a separate section.
- document.querySelector('.nav-btn[data-view="smartReplanning"]')?.remove();
- const view=$('smartReplanning');
- if(view&&!view.classList.contains('active'))view.remove();
+ // Master Settings controls the engine only; RoleVisibility owns the single SMART page.
+ window.YardivoRoleVisibility?.apply?.();
 }
 
 async function persistSmartParamsFromPanel(){
