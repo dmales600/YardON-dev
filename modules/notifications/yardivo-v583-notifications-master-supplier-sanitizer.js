@@ -20,11 +20,22 @@ function candidate(n){
  const d=[n?.supplier,n?.supplier_id,n?.supplier_name,n?.supplier_code].map(norm).find(Boolean);if(d)return d;
  const b=String(n?.body||'').trim();return b.includes('·')?norm(b.split('·')[0]):'';
 }
+function hasRetiredSupplierMention(n,active){
+ const text=[n?.title,n?.body].map(x=>String(x||'')).join(' ');
+ const rx=/\\bDobavljač\\s+(\\d{1,3})\\b/gi;let m;
+ while((m=rx.exec(text))){
+   const num=Number(m[1]);
+   if(num>=1&&num<=262&&!active.has(norm('Dobavljač '+num))&&!active.has(norm('SUP'+String(num).padStart(3,'0'))))return true;
+ }
+ return false;
+}
 function clean(list){
  if(!Array.isArray(list))return [];
  const a=aliases();
+ // Never purge notifications while Master data has not yet loaded.
+ if(!a.size)return list.filter(afterCutoff);
  return list.filter(n=>{
-   if(!afterCutoff(n))return false;
+   if(!afterCutoff(n)||hasRetiredSupplierMention(n,a))return false;
    if(!supplierLike(n))return true;
    const c=candidate(n);
    return !c||a.has(c);
