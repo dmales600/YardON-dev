@@ -24,14 +24,7 @@ function apply(){
  const on=enabled();
  document.documentElement.classList.toggle('yardivo-smart-on',on);
  document.documentElement.classList.toggle('yardivo-smart-off',!on);
- // The SMART service stays enabled, but its former navigation page is retired.
- const nav=document.querySelector('.nav-btn[data-view="smartReplanning"]');
- if(nav)nav.remove();
- const view=document.getElementById('smartReplanning');
- if(view){
-   if(view.classList.contains('active'))window.YardivoRoleStableFinal?.open?.('homeMenu');
-   view.remove();
- }
+ // Visibility is controlled by the canonical role matrix, not SMART power state.
 }
 
 ['yardivo:login','yardivo:data-synced','yardivo:master-data-changed','yardivo:smart-system-state']
