@@ -54,7 +54,7 @@ const assert=require('node:assert/strict');
  await page.waitForTimeout(1200);
  const debug=await page.evaluate(()=>({active:[...document.querySelectorAll('.view.active')].map(x=>x.id),host:document.querySelector('#tmsSettings .tms-live-host')?.innerHTML?.slice(0,2200)||null,allIds:[...document.querySelectorAll('section.view')].map(x=>x.id),hasAuth:!!window.YardivoAuth,hasPlanner:!!window.YardOnTMSPlanner,hasDispatcher:!!window.YardOnTMSDispatcher,selected:document.querySelector('#globalWarehouse')?.value}));
  console.log('TMS_BROWSER_DEBUG',JSON.stringify(debug),'errors',JSON.stringify(errors));
- await page.waitForSelector('#tmsGoogleMap',{timeout:8000});
+ await page.waitForSelector('#tmsGoogleMap',{state:'attached',timeout:8000});
  await page.waitForFunction(()=>typeof window.__mapClick==='function');
  await page.evaluate(()=>{
   window.__mapClick({latlng:{lat:44.2,lng:15.1}});
