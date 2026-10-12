@@ -6,6 +6,7 @@ on:
       - 'modules/auth/**'
       - 'modules/tms/**'
       - 'modules/supplier/yardivo-v545-user-admin-controller.js'
+      - 'modules/supplier/runtime/yardivo-final-login-interaction-fix-js-20260831.js'
       - 'modules/supplier/yardivo-role-stability-final-v6-20260902-js.js'
       - 'modules/supplier/yardivo-admin-user-creation-redesign-v583.js'
       - 'styles/dispatcher-v1.css'
@@ -29,6 +30,7 @@ jobs:
       - run: node --check services/auth.js
       - run: node --check modules/auth/role-visibility.js
       - run: node --check modules/auth/role-ui.js
+      - run: node --check modules/supplier/runtime/yardivo-final-login-interaction-fix-js-20260831.js
       - run: node .github/qa/yardon-dispatcher-tms.test.cjs
       - run: node .github/qa/yardon-active-manifest.test.cjs
       - run: node .github/qa/yardon-frontend-stability.test.cjs
