@@ -839,12 +839,13 @@ function moveDailyMapDay(delta){
 function applyDailyMapZoom(){
   const inner=document.getElementById('dailyMapInner');
   const label=document.getElementById('dailyZoomValue');
-  if(inner)inner.style.transform=`scale(${dailyMapZoom})`;
+  if(inner)inner.style.transform=inner.querySelector('.yardon-dock-timeline')?'none':`scale(${dailyMapZoom})`;
   if(label)label.textContent=Math.round(dailyMapZoom*100)+'%';
 }
 function setDailyMapZoom(next){
   dailyMapZoom=Math.max(.65,Math.min(1.65,Math.round(next*100)/100));
   applyDailyMapZoom();
+  if(document.querySelector('#dailyMapBoard .yardon-dock-timeline'))renderDailyMap();
 }
 function dailyMapWarehouseCode(){
   const sel=document.getElementById('dailyMapWarehouseSelect');
@@ -1037,80 +1038,104 @@ window.YardivoPlanningMasterAnnouncements=yardonPlanningAnnouncements;
 
 function renderDailyMap(){
   const host=document.getElementById('dailyMapBoard');if(!host)return;
-  const date=dailyMapDateValue();
-  const wh=dailyMapWarehouseCode();
-  const sourceW=WAREHOUSES[wh]||{};
-  const w={...sourceW};
+  const date=dailyMapDateValue(),wh=dailyMapWarehouseCode();
+  const sourceW=WAREHOUSES[wh]||{},w={...sourceW};
   if(!Number(w.ramps))w.ramps=6;
   if(!w.receptionStart)w.receptionStart='06:00';
   if(!w.receptionEnd)w.receptionEnd='22:00';
-
   const heading=document.getElementById('dailyMapHeading');
   if(heading){
     const d=new Date(date+'T12:00:00');
-    yardivoStableText(heading,`${d.toLocaleDateString('hr-HR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}`.toUpperCase());
+    yardivoStableText(heading,d.toLocaleDateString('hr-HR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'}).toUpperCase());
   }
-  const whBadge=document.getElementById('dailyMapWarehouse');
-  yardivoStableText(whBadge,whLabel(wh).toUpperCase());
-
+  yardivoStableText(document.getElementById('dailyMapWarehouse'),whLabel(wh).toUpperCase());
   const all=canonicalOperationalAnnouncements(announcements).filter(a=>(a.warehouse||yardivoCanonicalWarehouseV583())===wh&&a.date===date&&yardonMasterSupplierAllowed(a.supplier));
   const totalPal=all.reduce((s,a)=>s+Number(a.pallets||0),0);
   const totalTrucks=all.reduce((s,a)=>s+truckCountForPallets(a.pallets),0);
   const late=all.filter(a=>operationalPlanStatus(a)==='Kašnjenje').length;
   const noShow=all.filter(a=>operationalPlanStatus(a)==='NO-SHOW').length;
   const received=all.filter(a=>operationalPlanStatus(a)==='Zaprimljeno').length;
-
   renderDailyTotalCapacity();
-  const summary=document.getElementById('dailyMapSummary');
-  const summaryHtml=[
-    ['NAJAVE',all.length],['PALETE',totalPal],['KAMIONI',totalTrucks],['KAŠNJENJA',late],['NO-SHOW',noShow],['ZAPRIMLJENO',received]
-  ].map(x=>`<div class="control-card"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');
-  yardivoStableHtml(summary,summaryHtml,'yvDailySummarySig');
-
+  const summaryHtml=[['NAJAVE',all.length],['PALETE',totalPal],['KAMIONI',totalTrucks],['KAŠNJENJA',late],['NO-SHOW',noShow],['ZAPRIMLJENO',received]]
+    .map(x=>'<div class="control-card"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join('');
+  yardivoStableHtml(document.getElementById('dailyMapSummary'),summaryHtml,'yvDailySummarySig');
   if(typeof dayInfo==='function'){
     const info=dayInfo(date);
     if(info.closed){
-      yardivoStableHtml(host,`<div class="overview-empty"><strong>PRIJAM NE RADI</strong><br>${info.name}</div>`,'yvDailyMapSig');
-      renderDailyRampCapacity(); return;
+      yardivoStableHtml(host,'<div class="overview-empty"><strong>PRIJAM NE RADI</strong><br>'+info.name+'</div>','yvDailyMapSig');
+      renderDailyRampCapacity();return;
     }
   }
-
-  // Vertical timeline: TIME goes downward; ramps stay as columns.
-  const configuredStart=toMin(w.receptionStart);
-  const configuredEnd=toMin(w.receptionEnd);
-  const times=all.filter(a=>a.time).map(a=>toMin(a.time));
-  const ws=Math.min(configuredStart,times.length?Math.min(...times):configuredStart);
+  // Horizontal, 15-minute dock timeline. Preserve operational colors/status logic.
+  const configuredStart=toMin(w.receptionStart),configuredEnd=toMin(w.receptionEnd);
+  const times=all.filter(a=>a.time).map(a=>toMin(a.time)).filter(Number.isFinite);
+  const ws=Math.max(0,Math.floor(Math.min(configuredStart,...times)/15)*15);
   const latest=times.length?Math.max(...times)+60:configuredEnd;
-  const we=Math.min(24*60,Math.max(configuredEnd,latest,22*60));
-  const rows=Math.ceil((we-ws)/15);
-
-  let out=`<div class="daily-map-vertical-grid" style="grid-template-columns:84px repeat(${w.ramps},minmax(145px,1fr))">`;
-  out+='<div class="dmv-corner">VRIJEME</div>';
-  for(let dock=1;dock<=w.ramps;dock++)out+=`<div class="dmv-ramp-head" role="button" tabindex="0" data-daily-ramp="${dock}" title="Klikni za detalje rampe">RAMPA ${dock}</div>`;
-
-  for(let i=0;i<rows;i++){
-    const m=ws+i*15, label=hhmm(m);
-    out+=`<div class="dmv-time">${label}</div>`;
-    for(let dock=1;dock<=w.ramps;dock++){
+  const we=Math.min(1440,Math.ceil(Math.max(configuredEnd,latest,22*60)/15)*15);
+  const smartTarget=window.YardOnSmartCenter?.previewTarget?.();
+  const previewForDay=smartTarget&&String(smartTarget.date)===String(date)&&String(smartTarget.warehouse)===String(wh)?smartTarget:null;
+  const previewMinute=previewForDay?toMin(previewForDay.time):-1;
+  const count=Math.max(1,Math.ceil((we-ws)/15));
+  const cellWidth=Math.round(66*dailyMapZoom);
+  const template='grid-template-columns:108px repeat('+count+',minmax('+cellWidth+'px,1fr))';
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const busy=new Map();
+  for(const a of all){
+    const dock=Number(a.dock),minute=toMin(a.time||'');
+    if(!dock||!Number.isFinite(minute)||minute<ws||minute>=we)continue;
+    const idx=Math.floor((minute-ws)/15),key=dock+':'+idx;
+    if(!busy.has(key))busy.set(key,a);
+  }
+  const occupied=new Set(busy.keys());
+  let out='<div class="yardon-dock-timeline" style="'+template+'">';
+  out+='<div class="ydt-corner">RAMPA / SAT</div>';
+  for(let i=0;i<count;i++){
+    const m=ws+i*15;
+    out+='<div class="ydt-time'+(m%60===0?' ydt-hour':'')+'"><span>'+(m%30===0?hhmm(m):'·')+'</span></div>';
+  }
+  for(let dock=1;dock<=w.ramps;dock++){
+    out+='<div class="ydt-ramp dmv-ramp-head" role="button" tabindex="0" data-daily-ramp="'+dock+'" title="Detalji rampe '+dock+'"><strong>R'+dock+'</strong><small>RAMPA</small></div>';
+    for(let i=0;i<count;){
+      const m=ws+i*15,label=hhmm(m),key=dock+':'+i,a=busy.get(key);
       const block=(typeof rampBlocks!=='undefined')?rampBlocks.find(b=>b.warehouse===wh&&b.date===date&&Number(b.dock)===dock&&m>=toMin(b.from)&&m<toMin(b.to)):null;
-      const a=all.find(x=>Number(x.dock)===dock&&toMin(x.time)===m);
       if(a){
-        out+=`<div class="dmv-cell dmv-booked ${operationalPlanClass(a)}" draggable="true" data-announcement-id="${a.id}" data-move-date="${date}" data-move-warehouse="${wh}" data-move-dock="${dock}" data-move-time="${label}" oncontextmenu="openAnnouncementContextMenu(event,${a.id})" title="Povuci za promjenu termina · Desni klik za opcije">
-          <strong>${a.time} · ${a.supplier}</strong>
-          <small>${a.pallets} pal. · ${truckCountForPallets(a.pallets)} kam.</small>
-          ${(a.hasAttachment||a.attachmentDataUrl||window.YardivoSupplierAttachments?.has?.(a))?`<button type="button" class="yardivo-doc-icon" data-yardivo-doc="${a.id}" title="Otvori priloženi PDF dokument" aria-label="Otvori priloženi PDF dokument">📁</button>`:''}
-          <span class="booking-status">${operationalPlanStatus(a).toUpperCase()}</span>
-          ${yardivoMapDelayLabel(a)?`<span class="booking-delay-detail">${yardivoMapDelayLabel(a)}</span>`:''}
-        </div>`;
+        // Expand only across truly free quarter-hour cells, without covering another event or block.
+        let span=1;
+        while(span<4&&i+span<count&&!(previewForDay&&Number(previewForDay.dock)===dock&&previewMinute===ws+(i+span)*15)&&!occupied.has(dock+':'+(i+span))&&!(typeof rampBlocks!=='undefined'&&rampBlocks.some(b=>b.warehouse===wh&&b.date===date&&Number(b.dock)===dock&&ws+(i+span)*15>=toMin(b.from)&&ws+(i+span)*15<toMin(b.to))))span++;
+        out+='<div class="ydt-event dmv-cell dmv-booked '+operationalPlanClass(a)+'" style="grid-column:span '+span+'" draggable="true" data-announcement-id="'+esc(a.id)+'" data-move-date="'+esc(date)+'" data-move-warehouse="'+esc(wh)+'" data-move-dock="'+dock+'" data-move-time="'+label+'" oncontextmenu="openAnnouncementContextMenu(event,'+Number(a.id)+')" title="'+esc(a.time+' · '+a.supplier+' · '+operationalPlanStatus(a))+'">';
+        out+='<strong>'+esc(a.time)+' · '+esc(a.supplier)+'</strong><small>'+esc(a.pallets)+' pal. · '+esc(truckCountForPallets(a.pallets))+' kam.</small>';
+        if(a.hasAttachment||a.attachmentDataUrl||window.YardivoSupplierAttachments?.has?.(a))out+='<button type="button" class="yardivo-doc-icon" data-yardivo-doc="'+esc(a.id)+'" title="Otvori PDF dokument" aria-label="Otvori PDF dokument">📁</button>';
+        out+='<span class="booking-status">'+esc(operationalPlanStatus(a).toUpperCase())+'</span>';
+        const delay=yardivoMapDelayLabel(a);if(delay)out+='<span class="booking-delay-detail">'+esc(delay)+'</span>';
+        out+='</div>';i+=span;
       }else if(block){
-        out+=`<div class="dmv-cell dmv-blocked" data-move-date="${date}" data-move-warehouse="${wh}" data-move-dock="${dock}" data-move-time="${label}" data-move-blocked="1" title="${block.reason||'Blokirano'}">BLOKIRANO</div>`;
-      }else out+=`<div class="dmv-cell" data-move-date="${date}" data-move-warehouse="${wh}" data-move-dock="${dock}" data-move-time="${label}"></div>`;
+        out+='<div class="ydt-empty dmv-cell dmv-blocked" data-move-date="'+esc(date)+'" data-move-warehouse="'+esc(wh)+'" data-move-dock="'+dock+'" data-move-time="'+label+'" data-move-blocked="1" title="'+esc(block.reason||'Blokirano')+'">×</div>';i++;
+      }else{
+        const proposed=previewForDay&&Number(previewForDay.dock)===dock&&previewMinute===m;
+        out+='<div class="ydt-empty dmv-cell'+(proposed?' yv-smart-proposed-cell':'')+'" data-move-date="'+esc(date)+'" data-move-warehouse="'+esc(wh)+'" data-move-dock="'+dock+'" data-move-time="'+label+'"'+(proposed?' title="SMART prijedlog – nije fizička rezervacija"':'')+'>'+(proposed?'<span class="yv-smart-pulse">✦ SMART PRIJEDLOG</span>':'')+'</div>';i++;
+      }
     }
   }
-  yardivoStableHtml(host,out+'</div>','yvDailyMapSig');
+  out+='</div>';
+  // The container is never replaced: preserve scroll, focused controls and unchanged cells.
+  let grid=host.querySelector(':scope > .yardon-dock-timeline');
+  if(!grid){yardivoStableHtml(host,out,'yvDailyMapSig');}
+  else{
+    const draft=document.createElement('div');draft.innerHTML=out;
+    const next=draft.firstElementChild;
+    if(grid.getAttribute('style')!==next.getAttribute('style'))grid.setAttribute('style',next.getAttribute('style'));
+    const oldChildren=Array.from(grid.children),newChildren=Array.from(next.children);
+    newChildren.forEach((child,index)=>{
+      const prior=oldChildren[index];
+      if(prior&&prior.outerHTML===child.outerHTML)return;
+      if(prior)prior.replaceWith(child);else grid.appendChild(child);
+    });
+    for(let i=grid.children.length-1;i>=newChildren.length;i--)grid.children[i].remove();
+    host.dataset.yvDailyMapSig=yardivoUiFingerprint(out);
+  }
   renderDailyRampCapacity();
-  // Vertical layout is intentionally not transformed by old horizontal zoom.
 }
+
 function refreshDailyMapLiveStatus(){
   const view=document.getElementById('dailyMap');
   if(!view?.classList.contains('active')&&!view?.classList.contains('manager-force-active'))return;

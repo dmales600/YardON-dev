@@ -1,0 +1,27 @@
+name: Dock Timeline SMART Integration QA
+on:
+  pull_request:
+    paths:
+      - 'modules/supplier/script-022.js'
+      - 'styles/yardon-dock-timeline-v2.css'
+      - '.github/qa/yardon-dock-timeline-v2.test.cjs'
+      - '.github/workflows/yardon-dock-timeline-smart-qa.yml'
+      - 'index.html'
+  push:
+    branches:
+      - 'feat/dock-timeline-2-20261012'
+jobs:
+  dock-timeline-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dock Timeline and SMART adapter regression
+        run: node .github/qa/yardon-dock-timeline-v2.test.cjs
+      - name: Existing frontend stability regression
+        run: node .github/qa/yardon-frontend-stability.test.cjs
+      - name: Single UI owner regression
+        run: node .github/qa/yardon-ui-single-owner.test.cjs
