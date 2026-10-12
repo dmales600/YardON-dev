@@ -1101,7 +1101,7 @@ function renderDailyMap(){
       if(a){
         // Expand only across truly free quarter-hour cells, without covering another event or block.
         let span=1;
-        while(span<4&&i+span<count&&!occupied.has(dock+':'+(i+span))&&!(typeof rampBlocks!=='undefined'&&rampBlocks.some(b=>b.warehouse===wh&&b.date===date&&Number(b.dock)===dock&&ws+(i+span)*15>=toMin(b.from)&&ws+(i+span)*15<toMin(b.to))))span++;
+        while(span<4&&i+span<count&&!(previewForDay&&Number(previewForDay.dock)===dock&&previewMinute===ws+(i+span)*15)&&!occupied.has(dock+':'+(i+span))&&!(typeof rampBlocks!=='undefined'&&rampBlocks.some(b=>b.warehouse===wh&&b.date===date&&Number(b.dock)===dock&&ws+(i+span)*15>=toMin(b.from)&&ws+(i+span)*15<toMin(b.to))))span++;
         out+='<div class="ydt-event dmv-cell dmv-booked '+operationalPlanClass(a)+'" style="grid-column:span '+span+'" draggable="true" data-announcement-id="'+esc(a.id)+'" data-move-date="'+esc(date)+'" data-move-warehouse="'+esc(wh)+'" data-move-dock="'+dock+'" data-move-time="'+label+'" oncontextmenu="openAnnouncementContextMenu(event,'+Number(a.id)+')" title="'+esc(a.time+' · '+a.supplier+' · '+operationalPlanStatus(a))+'">';
         out+='<strong>'+esc(a.time)+' · '+esc(a.supplier)+'</strong><small>'+esc(a.pallets)+' pal. · '+esc(truckCountForPallets(a.pallets))+' kam.</small>';
         if(a.hasAttachment||a.attachmentDataUrl||window.YardivoSupplierAttachments?.has?.(a))out+='<button type="button" class="yardivo-doc-icon" data-yardivo-doc="'+esc(a.id)+'" title="Otvori PDF dokument" aria-label="Otvori PDF dokument">📁</button>';
