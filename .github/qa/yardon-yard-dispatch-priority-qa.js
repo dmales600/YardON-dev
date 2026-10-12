@@ -20,7 +20,8 @@ expect(receiving.includes("/functions/v1/yardivo-yard-dispatch"),'Receiving/Gate
 expect(receiving.includes("YardivoSupplierLiveSync?.pullInternal?.(true)"),'Receiving must pull fresh Supplier rows after AI dock assignment');
 expect(receiving.includes("window.renderDailyMap?.()"),'Receiving must redraw Daily Map after AI dock assignment');
 expect(receiving.includes("['Zaprimljeno','Odbijen']"),'Receiving completion must trigger immediate queue dispatch');
-expect(receiving.includes("setInterval(()=>{if(document.visibilityState==='visible'&&yardDispatchAllowed())"),'Yard dispatcher periodic reconciliation missing');
+expect(receiving.includes("setInterval(()=>{if(document.visibilityState==='visible'&&yardDispatchEnabled())"),'Yard dispatcher periodic reconciliation missing');
+expect(receiving.includes("function yardDispatchEnabled(){return yardDispatchAllowed()&&aiControlEnabled()}"),'Periodic dispatcher must require role permission and enabled AI');
 expect(supplierService.includes("bookingMode:'TIME_ONLY'"),'Supplier booking must remain TIME_ONLY; Supplier must not own a ramp');
 expect(operationalNotifications.includes("YARDON DODIJELIO RAMPU"),'First AI dock assignment must be labelled as YardOn dock assignment, not ramp change');
 expect(operationalNotifications.includes("n>0?String(n):''"),'Operational notifications must reject R0 as a physical ramp');

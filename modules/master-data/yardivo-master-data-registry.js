@@ -31,9 +31,10 @@ function load(){
    });
    if(clean.length!==d.suppliers.length){d.suppliers=clean;dirty=true}
    if(!d.__emptySupplierSeedMigrationV583){d.__emptySupplierSeedMigrationV583=true;dirty=true}
-   /* Keep the historical one-time warehouse migration semantics unchanged. */
+   /* A missing migration flag is not evidence that a warehouse is obsolete.
+      Never delete configured Master warehouses on read. A previous migration
+      could silently wipe valid W001 etc. and break account/booking flows. */
    if(!d.__emptyWarehouseMigrationV583){
-     d.warehouses=[];
      d.__emptyWarehouseMigrationV583=true;
      dirty=true;
    }

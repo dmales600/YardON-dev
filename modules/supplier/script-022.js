@@ -1995,28 +1995,30 @@ function renderReceiving(){
   const draft=document.createElement('div');
   draft.innerHTML=nextHtml;
   const incoming=[...draft.children],current=[...host.children];
-  const sameOrder=incoming.length===current.length&&incoming.every((row,i)=>
-    row.dataset.receivingAnnouncementId&&
-    row.dataset.receivingAnnouncementId===current[i]?.dataset?.receivingAnnouncementId);
-  if(sameOrder){
-    incoming.forEach((row,i)=>{
-      if(current[i].outerHTML!==row.outerHTML){
-        bindRow(row);
-        current[i].replaceWith(row);
-      }
-    });
-  }else{
-    // Reuse existing nodes even when the sort order changes; no full-grid white flash.
-    const previous=new Map(current.filter(x=>x.dataset?.receivingAnnouncementId).map(x=>[x.dataset.receivingAnnouncementId,x]));
-    incoming.forEach((row,index)=>{
-      const old=previous.get(row.dataset.receivingAnnouncementId);
-      const node=old&&old.outerHTML===row.outerHTML?old:row;
-      if(node===row)bindRow(row);
-      if(host.children[index]!==node)host.insertBefore(node,host.children[index]||null);
-    });
-    const ids=new Set(incoming.map(x=>x.dataset.receivingAnnouncementId));
-    [...host.children].forEach(x=>{if(!ids.has(x.dataset.receivingAnnouncementId))x.remove()});
-  }
+  const currentById=new Map(current.filter(x=>x.dataset?.receivingAnnouncementId).map(x=>[x.dataset.receivingAnnouncementId,x]));
+  const patchRow=(old,fresh)=>{
+    if(old.className!==fresh.className)old.className=fresh.className;
+    if(old.getAttribute('style')!==fresh.getAttribute('style')){
+      if(fresh.hasAttribute('style'))old.setAttribute('style',fresh.getAttribute('style'));
+      else old.removeAttribute('style');
+    }
+    if(old.title!==fresh.title)old.title=fresh.title;
+    // Retain the same row node and its event listeners when status/ETA changes.
+    // Replacing rows during polling detached the element while drivers clicked it.
+    if(old.innerHTML!==fresh.innerHTML)old.innerHTML=fresh.innerHTML;
+    return old;
+  };
+  incoming.forEach((fresh,index)=>{
+    const id=fresh.dataset.receivingAnnouncementId;
+    const old=currentById.get(id);
+    const row=old?patchRow(old,fresh):fresh;
+    if(!old)bindRow(row);
+    if(host.children[index]!==row)host.insertBefore(row,host.children[index]||null);
+  });
+  const valid=new Set(incoming.map(x=>x.dataset.receivingAnnouncementId));
+  [...host.children].forEach(row=>{
+    if(!valid.has(row.dataset.receivingAnnouncementId))row.remove();
+  });
 }
 
 function animateYardTruckToDock(a){
