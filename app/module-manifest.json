@@ -2,7 +2,7 @@
   "version": "2026-10-08-active-runtime",
   "strategy": "index.html is the sole ordered source for browser script loading. This manifest documents ONLY those active scripts. Never use stale byte sizes or checksums as runtime truth.",
   "entrypoint": "index.html",
-  "script_count": 326,
+  "script_count": 327,
   "scripts": [
     {
       "id": "yardivo-canonical-warehouse-helper-v583",
@@ -1626,6 +1626,9 @@
     },
     {
       "path": "modules/tms/dispatcher-v1.js"
+    },
+    {
+      "path": "modules/tms/tms-zone-planner-v2.js"
     },
     {
       "id": "yardivo-role-visibility-authority",

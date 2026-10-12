@@ -1,0 +1,32 @@
+name: YARD ON TMS Zone Planner QA
+on:
+  pull_request:
+    paths:
+      - 'modules/tms/**'
+      - 'styles/dispatcher-v1.css'
+      - 'supabase/migrations/20261012073000_tms_zone_trip_pallets.sql'
+      - '.github/qa/yardon-tms-zone*'
+      - 'app/module-manifest.json'
+      - 'index.html'
+      - 'modules/auth/role-visibility.js'
+      - 'modules/supplier/yardivo-role-stability-final-v6-20260902-js.js'
+  push:
+    branches: ['feat/tms-zone-planner-dragdrop-20261012']
+jobs:
+  tms-zone-planner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check modules/tms/tms-zone-planner-v2.js
+      - run: node --check modules/tms/dispatcher-v1.js
+      - run: node .github/qa/yardon-tms-zone.test.cjs
+      - run: node .github/qa/yardon-dispatcher-tms.test.cjs
+      - run: node .github/qa/yardon-active-manifest.test.cjs
+      - run: node .github/qa/yardon-frontend-stability.test.cjs
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - run: node .github/qa/yardon-tms-zone-browser.cjs

@@ -4,7 +4,7 @@ if(window.YardivoRoleVisibility?.owner==='modules/auth/role-visibility.js')retur
 
 const MATRIX={
   admin:null,
-  dispatcher:new Set(['homeMenu','tmsControl','tmsZones','tmsRoutes','tmsDock','tmsLoads','tmsTracking','tmsHistory']),
+  dispatcher:new Set(['homeMenu','tmsControl','tmsZones','tmsSettings','tmsRoutes','tmsDock','tmsLoads','tmsTracking','tmsHistory']),
   manager:new Set(['homeMenu','dashboard','controlTower','aiOperations','analytics','myYard','suppliers','overview','dailyMap','weeklyMap']),
   inventory:new Set(['smartReplanning','homeMenu','dashboard','controlTower','aiOperations','suppliers','orderSearch','announcements','supplierRequests','dailyMap','weeklyMap','overview','operations','incidents','documentArchive','unannounced','epal','myYard','reports','settings']),
   reception:new Set(['smartReplanning','homeMenu','aiOperations','receiving','dailyMap','weeklyMap','suppliers','myYard','operations','incidents','incidentArchive','documentArchive','settings','unannounced','epal','liveYard']),
