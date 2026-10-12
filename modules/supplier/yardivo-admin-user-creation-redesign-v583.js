@@ -4,6 +4,7 @@
 
 const ROLE_INFO={
   admin:{label:'Admin',icon:'★',desc:'Globalni Admin · puni pristup cijelom YARDIVO-u, svim lokacijama i svim skladištima.'},
+  dispatcher:{label:'Dispatcher',icon:'⇢',desc:'TMS planiranje otpreme, zona, tura, dockova i transporta.'},
   manager:{label:'Voditelj',icon:'◈',desc:'Admin bira lokaciju, skladišta i točno koje sekcije Voditelj vidi.'},
   inventory:{label:'Upravljanje zalihama',icon:'▦',desc:'Fiksne sekcije za zalihe; bira se lokacija i skladišta.'},
   reception:{label:'Prijam',icon:'⇥',desc:'Fiksne sekcije za prijam; bira se lokacija i skladišta.'},
