@@ -1,0 +1,34 @@
+name: Dispatcher TMS Role QA
+on:
+  pull_request:
+    paths:
+      - 'services/auth.js'
+      - 'modules/auth/**'
+      - 'modules/tms/**'
+      - 'modules/supplier/yardivo-v545-user-admin-controller.js'
+      - 'modules/supplier/yardivo-role-stability-final-v6-20260902-js.js'
+      - 'modules/supplier/yardivo-admin-user-creation-redesign-v583.js'
+      - 'styles/dispatcher-v1.css'
+      - 'supabase/functions/yardivo-sync/index.ts'
+      - 'supabase/functions/yardivo-admin-users/index.ts'
+      - '.github/qa/yardon-dispatcher-tms.test.cjs'
+      - 'index.html'
+      - 'app/module-manifest.json'
+  push:
+    branches: ['feat/dispatcher-tms-role-20261012']
+jobs:
+  dispatcher-role:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check modules/tms/dispatcher-v1.js
+      - run: node --check services/auth.js
+      - run: node --check modules/auth/role-visibility.js
+      - run: node --check modules/auth/role-ui.js
+      - run: node .github/qa/yardon-dispatcher-tms.test.cjs
+      - run: node .github/qa/yardon-active-manifest.test.cjs
+      - run: node .github/qa/yardon-frontend-stability.test.cjs

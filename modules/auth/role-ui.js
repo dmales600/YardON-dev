@@ -20,6 +20,7 @@ if(select){
   select.innerHTML=[
     ['admin','Admin'],
     ['manager','Voditelj'],
+    ['dispatcher','Dispatcher'],
     ['inventory','Upravljanje zalihama'],
     ['reception','Prijam'],
     ['gate','Porta'],

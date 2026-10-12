@@ -5,6 +5,7 @@ if(window.YardivoAuth?.owner==='services/auth.js')return;
 const ROLE_LABEL={
   admin:'Admin',
   manager:'Voditelj',
+  dispatcher:'Dispatcher',
   inventory:'Upravljanje zalihama',
   reception:'Prijam',
   gate:'Porta',
