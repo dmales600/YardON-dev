@@ -14,11 +14,11 @@ const FINAL_ROLES=[
 const LOGIN_ROLES=[
   ['admin','Admin'],
   ['manager','Voditelj'],
+  ['dispatcher','Dispatcher'],
   ['inventory','Upravljanje zalihama'],
   ['reception','Prijam'],
   ['gate','Porta'],
-  ['supplier','Dobavljač'],
-  ['dispatcher','Dispatcher']
+  ['supplier','Dobavljač']
 ];
 
 function normRole(v){
