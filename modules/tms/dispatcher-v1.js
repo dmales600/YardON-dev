@@ -4,6 +4,7 @@ if(window.YardOnTMSDispatcher?.version)return;
 const PAGES=[
  ['tmsControl','◉','Transport Control Tower','Operativni pregled transporta i outbounda'],
  ['tmsZones','◈','Zonska karta Hrvatske','Trgovine i palete po operativnoj zoni'],
+ ['tmsSettings','⚙','Postavke zona','Uređivanje zona na karti i dodjela trgovina'],
  ['tmsRoutes','⇢','Planiranje tura','Rute, trgovine i dodjela prijevoznika'],
  ['tmsDock','▥','Outbound Dock Manager','Raspoloživost rampi za utovar'],
  ['tmsLoads','▣','Utovari i palete','Mobilni utovari i kontrola paleta'],
@@ -24,6 +25,7 @@ function panel(h,inside){
 }
 function link(label,id){return '<button type="button" class="tms-jump" data-tms-go="'+id+'">'+esc(label)+' →</button>'}
 function content(id){
+ if(['tmsControl','tmsZones','tmsSettings','tmsRoutes','tmsLoads'].includes(id))return '<div class="tms-live-host" data-tms-live="'+id+'">Učitavanje TMS podataka...</div>';
  if(id==='tmsControl')return [
  '<div class="tms-metrics">'+[['0','Aktivne ture'],['0','Na utovaru'],['0','Spremno za izlaz'],['0','Kašnjenja']].map(([n,l])=>'<div class="tms-metric"><small>'+l+'</small><strong>'+n+'</strong></div>').join('')+'</div>',
  '<div class="tms-layout">'+panel('Aktivni transporti',empty('Još nema outbound naloga','Otpreme će se prikazivati nakon uključenja TMS podatkovnog modula.')+link('Planiranje tura','tmsRoutes'))+
@@ -66,7 +68,7 @@ function mount(){
    }
    if(!document.getElementById(id)){
      const view=document.createElement('section');view.className='view tms-view';view.id=id;view.setAttribute('aria-hidden','true');
-     view.innerHTML='<div class="tms-wrap"><header class="tms-header"><div><span class="tms-eyebrow">YARD ON TMS / DISPATCHER</span><h1>'+esc(name)+'</h1><p>'+esc(desc)+'</p></div><span class="tms-indicator">TMS · TESTNI PRIKAZ</span></header>'+content(id)+'</div>';
+     view.innerHTML='<div class="tms-wrap"><header class="tms-header"><div><span class="tms-eyebrow">YARD ON TMS / DISPATCHER</span><h1>'+esc(name)+'</h1><p>'+esc(desc)+'</p></div><span class="tms-indicator">TMS · OPERATIVNI MODUL</span></header>'+content(id)+'</div>';
      main.appendChild(view);
    }
  }
@@ -93,5 +95,5 @@ window.addEventListener('yardivo:view-opened',e=>{
 });
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
 else mount();
-window.YardOnTMSDispatcher={version:'1.0.0',pages:PAGES.map(x=>x[0]),mount};
+window.YardOnTMSDispatcher={version:'2.0.0',pages:PAGES.map(x=>x[0]),mount};
 })();
