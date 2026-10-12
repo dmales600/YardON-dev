@@ -34,7 +34,7 @@ function errorMessage(e){
  return s;
 }
 async function run(task,success){
- if(state.busy)return;state.busy=true;
+ if(state.busy){tell('Prethodno spremanje još traje. Pričekaj i pokušaj ponovno.',true);return;}state.busy=true;
  try{await task();state.selection='';await load();draw(active());tell(success||'Spremljeno.');}
  catch(e){console.warn('YARD ON TMS',e);tell(errorMessage(e),true);}
  finally{state.busy=false;}
@@ -389,5 +389,5 @@ document.addEventListener('drop',e=>{
 window.addEventListener('yardivo:logout',()=>{destroyMap();state.zones=[];state.stores=[];state.trips=[];state.pallets=[];state.zoneId='';});
 window.addEventListener('yardivo:login',()=>{const a=active();if(a.startsWith('tms'))render(a)});
 window.addEventListener('yardivo:view-opened',e=>{const id=e?.detail?.view;if(['tmsControl','tmsZones','tmsSettings','tmsRoutes','tmsLoads'].includes(id))render(id);});
-window.YardOnTMSPlanner={version:'2.0.0',render,warehouse:()=>state.warehouse};
+window.YardOnTMSPlanner={version:'2.0.0',render,warehouse:()=>state.warehouse,isBusy:()=>state.busy};
 })();
