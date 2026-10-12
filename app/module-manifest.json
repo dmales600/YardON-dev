@@ -1633,6 +1633,7 @@
   "css": {
     "files": [
       "styles/yardon-ai-operations-v1.css",
+      "styles/yardon-dock-timeline-v2.css",
       "styles/yardon-smart-center-v1.css",
       "styles/yardon-navigation-single-owner.css",
       "styles/yardivo-runtime.css",
