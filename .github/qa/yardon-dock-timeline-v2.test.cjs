@@ -12,6 +12,10 @@ for(const s of ['yardon-dock-timeline','ydt-ramp','ydt-time','ydt-event','operat
 assert(render.includes('prior.outerHTML===child.outerHTML'),'unchanged cells retain DOM identity');
 assert(render.includes('grid.children[i].remove()'),'stale cells are removed');
 assert(!render.includes('grid.innerHTML='),'no full redraw when grid exists');
+assert(render.includes("window.YardOnSmartCenter?.previewTarget?.()"),'SMART target uses shared controller');
+assert(render.includes("yv-smart-proposed-cell"),'SMART target is highlighted only on free cells');
+assert(render.includes("SMART prijedlog – nije fizička rezervacija"),'SMART target is explicitly provisional');
+assert(render.includes("previewMinute===ws+(i+span)*15"),'booking expansion cannot hide SMART slot');
 assert(css.includes('position:sticky;left:0'),'dock headers stay fixed horizontally');
 assert(css.includes('position:sticky;top:0'),'time headers stay fixed vertically');
 assert(css.includes('prefers-reduced-motion'),'respects reduced motion');
