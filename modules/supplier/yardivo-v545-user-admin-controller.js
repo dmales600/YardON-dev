@@ -7,6 +7,7 @@ const FINAL_ROLES=[
   ['reception','Prijam'],
   ['gate','Porta'],
   ['manager','Voditelj'],
+  ['dispatcher','Dispatcher'],
   ['admin','Admin']
 ];
 
@@ -16,7 +17,8 @@ const LOGIN_ROLES=[
   ['inventory','Upravljanje zalihama'],
   ['reception','Prijam'],
   ['gate','Porta'],
-  ['supplier','Dobavljač']
+  ['supplier','Dobavljač'],
+  ['dispatcher','Dispatcher']
 ];
 
 function normRole(v){
