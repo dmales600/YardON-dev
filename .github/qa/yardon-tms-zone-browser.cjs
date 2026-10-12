@@ -29,7 +29,7 @@ const assert=require('node:assert/strict');
      const arr=rows[table];let data=arr.filter(row=>conditions.every(([k,v])=>row[k]===v));
      if(mode==='insert'){
        const x=Array.isArray(payload)?payload:[payload];
-       data=x.map(z=>({...z,id:crypto.randomUUID(),created_at:new Date().toISOString(),...(table==='yardon_tms_pallets'?{trip_id:null}:{})}));
+       data=x.map(z=>({...z,id:crypto.randomUUID(),created_at:new Date().toISOString(),...(table==='yardon_tms_pallets'?{trip_id:null}:{}),...(table==='yardon_tms_trips'?{status:'planned'}:{})}));
        arr.push(...data);
      }else if(mode==='update'){data.forEach(x=>Object.assign(x,payload));if(!selected)data=null;
      }else if(mode==='delete'){rows[table]=arr.filter(x=>!data.includes(x));data=null;
