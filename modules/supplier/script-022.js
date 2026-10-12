@@ -1072,6 +1072,9 @@ function renderDailyMap(){
   const ws=Math.max(0,Math.floor(Math.min(configuredStart,...times)/15)*15);
   const latest=times.length?Math.max(...times)+60:configuredEnd;
   const we=Math.min(1440,Math.ceil(Math.max(configuredEnd,latest,22*60)/15)*15);
+  const smartTarget=window.YardOnSmartCenter?.previewTarget?.();
+  const previewForDay=smartTarget&&String(smartTarget.date)===String(date)&&String(smartTarget.warehouse)===String(wh)?smartTarget:null;
+  const previewMinute=previewForDay?toMin(previewForDay.time):-1;
   const count=Math.max(1,Math.ceil((we-ws)/15));
   const cellWidth=Math.round(66*dailyMapZoom);
   const template='grid-template-columns:108px repeat('+count+',minmax('+cellWidth+'px,1fr))';
@@ -1108,7 +1111,8 @@ function renderDailyMap(){
       }else if(block){
         out+='<div class="ydt-empty dmv-cell dmv-blocked" data-move-date="'+esc(date)+'" data-move-warehouse="'+esc(wh)+'" data-move-dock="'+dock+'" data-move-time="'+label+'" data-move-blocked="1" title="'+esc(block.reason||'Blokirano')+'">×</div>';i++;
       }else{
-        out+='<div class="ydt-empty dmv-cell" data-move-date="'+esc(date)+'" data-move-warehouse="'+esc(wh)+'" data-move-dock="'+dock+'" data-move-time="'+label+'"></div>';i++;
+        const proposed=previewForDay&&Number(previewForDay.dock)===dock&&previewMinute===m;
+        out+='<div class="ydt-empty dmv-cell'+(proposed?' yv-smart-proposed-cell':'')+'" data-move-date="'+esc(date)+'" data-move-warehouse="'+esc(wh)+'" data-move-dock="'+dock+'" data-move-time="'+label+'"'+(proposed?' title="SMART prijedlog – nije fizička rezervacija"':'')+'>'+(proposed?'<span class="yv-smart-pulse">✦ SMART PRIJEDLOG</span>':'')+'</div>';i++;
       }
     }
   }
