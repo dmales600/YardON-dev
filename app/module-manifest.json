@@ -2,7 +2,7 @@
   "version": "2026-10-08-active-runtime",
   "strategy": "index.html is the sole ordered source for browser script loading. This manifest documents ONLY those active scripts. Never use stale byte sizes or checksums as runtime truth.",
   "entrypoint": "index.html",
-  "script_count": 325,
+  "script_count": 326,
   "scripts": [
     {
       "id": "yardivo-canonical-warehouse-helper-v583",
@@ -1625,6 +1625,9 @@
       "category": "chat"
     },
     {
+      "path": "modules/tms/dispatcher-v1.js"
+    },
+    {
       "id": "yardivo-role-visibility-authority",
       "path": "modules/auth/role-visibility.js",
       "category": "auth"
@@ -1633,6 +1636,7 @@
   "css": {
     "files": [
       "styles/yardon-ai-operations-v1.css",
+      "styles/dispatcher-v1.css",
       "styles/yardon-smart-center-v1.css",
       "styles/yardon-navigation-single-owner.css",
       "styles/yardivo-runtime.css",
