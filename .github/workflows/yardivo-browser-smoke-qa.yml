@@ -246,12 +246,19 @@ jobs:
               assert(loginLogoState.filter && loginLogoState.filter.includes('drop-shadow'), `${name}: login base logo glow missing: ${JSON.stringify(loginLogoState)}`);
             }
 
+            // Wait beyond the legacy role-repair timeouts (0/40/180/700ms).
+            await page.waitForTimeout(850);
             const roles = await page.locator('#loginRole option').evaluateAll(opts =>
               opts.map(o => o.value).filter(Boolean)
             );
-            for (const role of ['admin','manager','inventory','reception','gate','supplier']) {
-              assert(roles.includes(role), `${name}: login role missing: ${role}`);
-            }
+            const canonicalLoginRoles=['admin','manager','dispatcher','inventory','reception','gate','supplier'];
+            assert(JSON.stringify(roles)===JSON.stringify(canonicalLoginRoles),
+              `${name}: login role options were rewritten after load: ${JSON.stringify(roles)}`);
+            await page.locator('#loginRole').selectOption('dispatcher');
+            await page.waitForTimeout(100);
+            assert(await page.locator('#loginRole').inputValue()==='dispatcher',
+              `${name}: Dispatcher role could not remain selected`);
+            await page.locator('#loginRole').selectOption('admin');
 
             const globals = await page.evaluate(() => ({
               supabase: !!window.YardivoSupabaseClient,
