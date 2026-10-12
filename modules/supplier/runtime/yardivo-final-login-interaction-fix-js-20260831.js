@@ -7,7 +7,7 @@ function fixRole(){
  if(label){label.style.removeProperty('display');label.hidden=false}
  s.disabled=false;s.removeAttribute('disabled');s.removeAttribute('aria-hidden');
  s.style.pointerEvents='auto';
- const wanted=[['admin','Admin'],['manager','Voditelj'],['inventory','Upravljanje zalihama'],['reception','Prijam'],['gate','Porta'],['supplier','Dobavljač']];
+ const wanted=[['admin','Admin'],['manager','Voditelj'],['dispatcher','Dispatcher'],['inventory','Upravljanje zalihama'],['reception','Prijam'],['gate','Porta'],['supplier','Dobavljač']];
  const vals=[...s.options].map(o=>o.value).join('|');
  if(vals!==wanted.map(x=>x[0]).join('|')){
    const cur=s.value;
