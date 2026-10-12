@@ -839,12 +839,13 @@ function moveDailyMapDay(delta){
 function applyDailyMapZoom(){
   const inner=document.getElementById('dailyMapInner');
   const label=document.getElementById('dailyZoomValue');
-  if(inner)inner.style.transform=`scale(${dailyMapZoom})`;
+  if(inner)inner.style.transform=inner.querySelector('.yardon-dock-timeline')?'none':`scale(${dailyMapZoom})`;
   if(label)label.textContent=Math.round(dailyMapZoom*100)+'%';
 }
 function setDailyMapZoom(next){
   dailyMapZoom=Math.max(.65,Math.min(1.65,Math.round(next*100)/100));
   applyDailyMapZoom();
+  if(document.querySelector('#dailyMapBoard .yardon-dock-timeline'))renderDailyMap();
 }
 function dailyMapWarehouseCode(){
   const sel=document.getElementById('dailyMapWarehouseSelect');
@@ -1072,7 +1073,7 @@ function renderDailyMap(){
   const latest=times.length?Math.max(...times)+60:configuredEnd;
   const we=Math.min(1440,Math.ceil(Math.max(configuredEnd,latest,22*60)/15)*15);
   const count=Math.max(1,Math.ceil((we-ws)/15));
-  const cellWidth=66;
+  const cellWidth=Math.round(66*dailyMapZoom);
   const template='grid-template-columns:108px repeat('+count+',minmax('+cellWidth+'px,1fr))';
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const busy=new Map();
